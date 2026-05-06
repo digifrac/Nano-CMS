@@ -1,8 +1,8 @@
-# Nano CMS — On-Disk File Format
+# Nano CMS - On-Disk File Format
 
 This document is the authoritative contract for the on-disk format used by
-Nano CMS. The frontend codebase and the admin codebase are independent —
-they share no PHP code — but both must conform to this format. Any change
+Nano CMS. The frontend codebase and the admin codebase are independent -
+they share no PHP code - but both must conform to this format. Any change
 to this document is a contract change requiring matching updates in both
 codebases and a bump to `format_version` in `config.json`.
 
@@ -33,7 +33,7 @@ rather than silently corrupting data.
 
 The path to `/blog-config/` is configured per deployment in
 `bootstrap.php` via the `NANO_CONFIG_PATH` and `NANO_RATE_LIMIT_PATH`
-constants. Both files MUST live outside webroot — they contain the
+constants. Both files MUST live outside webroot - they contain the
 password hash and security state.
 
 ---
@@ -64,7 +64,7 @@ gives a human-readable hint when browsing via SFTP.
 the filename exists only for human convenience. The admin keeps the two
 synchronized: every save renames the file to match
 `YYYY-MM-DD-{frontmatter slug}.md`. The frontend never parses the
-filename to determine slug — it reads the slug from frontmatter.
+filename to determine slug - it reads the slug from frontmatter.
 
 ### File structure
 
@@ -116,7 +116,7 @@ may override (or remove) it manually for trivial edits where an
 
 **`category` rules:** one category per post in v1. The list of valid
 categories is the union of `category` values across all existing
-posts — there is no master list. The admin offers an autocomplete
+posts - there is no master list. The admin offers an autocomplete
 based on this union when editing.
 
 **`image_alt` fallback:** if `image_alt` is missing, the rendered
@@ -126,7 +126,7 @@ is strongly preferred for accessibility and SEO.
 **`draft` behavior:** when `true`, the post is excluded from the
 public listing, the sitemap, and the RSS feed. The public URL returns
 404. While logged in to the admin, drafts can be previewed at
-`/blog/<slug>/?preview=<csrf_token>` — the request must carry both a
+`/blog/<slug>/?preview=<csrf_token>` - the request must carry both a
 valid admin session AND a matching CSRF token.
 
 ### Body: Markdown plus shortcodes
@@ -147,7 +147,7 @@ mode for trusted output:
 shortcode expansion. This order ensures iframes produced by shortcodes
 are not stripped by safe mode. Implementations may use placeholder
 tokens (replace shortcodes with tokens before render, swap tokens for
-iframes after) or post-render regex expansion — either approach is
+iframes after) or post-render regex expansion - either approach is
 acceptable as long as safe mode runs before any iframe HTML exists.
 
 No other shortcodes exist in v1.
@@ -246,7 +246,7 @@ This file tracks failed login attempts per IP so the rate-limiter can
 enforce: 5 failures in 15 minutes → 1-hour IP block.
 
 The schema is an internal implementation detail of the admin. It is
-**not** part of the cross-codebase contract — only the admin reads or
+**not** part of the cross-codebase contract - only the admin reads or
 writes it; the frontend never touches it. The schema may change between
 admin versions without bumping `format_version`.
 
@@ -258,7 +258,7 @@ If the file is missing, the admin treats it as empty and creates it on
 first failed login.
 
 The file lives outside webroot specifically so that lockout state
-survives the admin folder being removed and re-uploaded — an attacker
+survives the admin folder being removed and re-uploaded - an attacker
 cannot reset their lockout by forcing a fresh admin install.
 
 ---

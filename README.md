@@ -10,7 +10,7 @@ A flat-file PHP blog system for adding SEO-driven content to existing static HTM
 
 Nano CMS solves a specific problem: client websites that should stay as fast, simple static HTML, but need a steady stream of fresh blog content for search ranking. Rather than converting the whole site to WordPress or Joomla, Nano CMS slots a small blog system into an existing static site with minimal disruption.
 
-It is deliberately **not** a general-purpose CMS. It does one thing — serve a blog with strong SEO output — and tries to do it well in as little code as possible.
+It is deliberately **not** a general-purpose CMS. It does one thing - serve a blog with strong SEO output - and tries to do it well in as little code as possible.
 
 ---
 
@@ -28,7 +28,7 @@ Total target size: roughly 1500-1800 lines across the frontend and admin codebas
 
 ## Who it's for
 
-Web developers who build static sites for clients and want to add ranking blog content without taking on the weight of a full CMS. The tool assumes operators are fluent with Markdown and comfortable with SFTP. It is not aimed at non-technical end users — for those, WordPress is the right answer.
+Web developers who build static sites for clients and want to add ranking blog content without taking on the weight of a full CMS. The tool assumes operators are fluent with Markdown and comfortable with SFTP. It is not aimed at non-technical end users - for those, WordPress is the right answer.
 
 If you've ever installed WordPress just to publish four blog posts a year on a client site, this is for you.
 
@@ -42,7 +42,7 @@ Both are excellent for sites that need them. But for a static HTML client site t
 - Joomla brings a steeper learning curve and more weight than the use case justifies
 - Both fundamentally convert the site into a database-driven application; the static HTML is gone
 
-Nano CMS keeps the host site static. The blog adds rendered HTML pages alongside the existing site, sharing its design and CSS. When the admin is removed, only flat files remain — there is no service to maintain, no version to update, no plugin to patch.
+Nano CMS keeps the host site static. The blog adds rendered HTML pages alongside the existing site, sharing its design and CSS. When the admin is removed, only flat files remain - there is no service to maintain, no version to update, no plugin to patch.
 
 ---
 
@@ -51,10 +51,10 @@ Nano CMS keeps the host site static. The blog adds rendered HTML pages alongside
 These are all good flat-file CMSes that influenced this project. The differences:
 
 - **Pico** is closest in spirit but is designed as a standalone site builder, not as a drop-in for existing static sites.
-- **Bludit** has more features (multi-user, plugins, themes) — useful in many cases, scope creep here.
+- **Bludit** has more features (multi-user, plugins, themes) - useful in many cases, scope creep here.
 - **Grav** is significantly larger and more feature-rich, with its own template language and plugin architecture.
 
-Nano CMS deliberately stays smaller than all of them. The portable admin pattern — admin uploaded temporarily, removed after use — is also unusual in this category.
+Nano CMS deliberately stays smaller than all of them. The portable admin pattern - admin uploaded temporarily, removed after use - is also unusual in this category.
 
 ---
 
@@ -124,7 +124,7 @@ Tested on shared hosting (cPanel-style). No special privileges required.
 
 ## Backup
 
-Markdown files in `/posts/` and uploaded media in `/media/` are the only persistence — there is no database to dump and restore. Backups are the developer's responsibility; the CMS itself does not run them.
+Markdown files in `/posts/` and uploaded media in `/media/` are the only persistence - there is no database to dump and restore. Backups are the developer's responsibility; the CMS itself does not run them.
 
 A simple `cron` + `rsync` line on a backup machine handles this for any number of client sites:
 
@@ -143,13 +143,13 @@ A simple `cron` + `rsync` line on a backup machine handles this for any number o
   /backups/clientname/config/
 ```
 
-Adapt to your preferred backup target — cloud sync, restic, tarballs, anything works because all state is files.
+Adapt to your preferred backup target - cloud sync, restic, tarballs, anything works because all state is files.
 
 ---
 
 ## Roadmap
 
-**v0.1 (current — in development):**
+**v0.1 (current - in development):**
 - Frontend rendering, parser, file format
 - Basic single-post and index pages
 - `nano.css` neutral default stylesheet
@@ -194,5 +194,5 @@ Bug reports and architectural feedback are welcome via GitHub Issues even now.
 
 ## See also
 
-- [`CLAUDE.md`](CLAUDE.md) — full architectural specification (internal docs)
-- [Digital Fracture](https://digitalfracture.co.uk) — the developer's site
+- [`FORMAT.md`](FORMAT.md) - on-disk file format contract (post files, frontmatter, config schema)
+- [Digital Fracture](https://digitalfracture.co.uk) - the developer's site
