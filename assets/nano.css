@@ -1,0 +1,236 @@
+/*
+ * Nano CMS - frontend default stylesheet (nano.css)
+ *
+ * Neutral starter, not a design system. Drops in on top of any host
+ * site - every selector is scoped under .nano-blog so the host's own
+ * chrome (header, nav, footer) is never touched.
+ *
+ * THEMING CONTRACT
+ *   Override any of the custom properties below in a small
+ *   theme-custom.css to re-theme the blog without editing this file.
+ *   See template.php for how to wire the optional theme file in.
+ *
+ *     --nano-font-family       System font stack (no web fonts)
+ *     --nano-font-size-base    Body font size
+ *     --nano-line-height       Body line height
+ *     --nano-color-text        Primary text color
+ *     --nano-color-text-muted  Dates, descriptions, secondary text
+ *     --nano-color-bg          Page/card background
+ *     --nano-color-border      Card and divider borders
+ *     --nano-color-accent      Links and hover highlights
+ *     --nano-content-width     Max width of the blog area
+ *     --nano-spacing-unit      Base spacing rhythm
+ *     --nano-radius            Corner radius on cards, code, images
+ *     --nano-card-gap          Vertical space between listing cards
+ *     --nano-card-padding      Internal padding on listing cards
+ *
+ * Includes a prefers-color-scheme: dark override at the bottom.
+ */
+
+.nano-blog {
+  --nano-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --nano-font-size-base: 1.05rem;
+  --nano-line-height: 1.65;
+  --nano-color-text: #1a1a1a;
+  --nano-color-text-muted: #666;
+  --nano-color-bg: #ffffff;
+  --nano-color-border: #e5e5e5;
+  --nano-color-accent: #0066cc;
+  --nano-content-width: 720px;
+  --nano-spacing-unit: 1rem;
+  --nano-radius: 4px;
+  --nano-card-gap: 2rem;
+  --nano-card-padding: 1.5rem;
+
+  font-family: var(--nano-font-family);
+  font-size: var(--nano-font-size-base);
+  line-height: var(--nano-line-height);
+  color: var(--nano-color-text);
+  background: var(--nano-color-bg);
+  max-width: var(--nano-content-width);
+  margin: 0 auto;
+  padding: calc(var(--nano-spacing-unit) * 2) var(--nano-spacing-unit);
+  box-sizing: border-box;
+}
+
+.nano-blog *,
+.nano-blog *::before,
+.nano-blog *::after { box-sizing: inherit; }
+
+/* Headings */
+.nano-blog h1,
+.nano-blog h2,
+.nano-blog h3,
+.nano-blog h4 {
+  line-height: 1.25;
+  margin: calc(var(--nano-spacing-unit) * 1.5) 0 var(--nano-spacing-unit);
+  color: var(--nano-color-text);
+}
+.nano-blog h1 { font-size: 2rem; }
+.nano-blog h2 { font-size: 1.5rem; }
+.nano-blog h3 { font-size: 1.25rem; }
+.nano-blog h4 { font-size: 1.1rem; }
+.nano-blog > h1:first-child,
+.nano-blog-content > *:first-child { margin-top: 0; }
+
+/* Body text */
+.nano-blog p,
+.nano-blog ul,
+.nano-blog ol,
+.nano-blog blockquote,
+.nano-blog pre,
+.nano-blog figure { margin: 0 0 var(--nano-spacing-unit) 0; }
+.nano-blog ul,
+.nano-blog ol { padding-left: 1.5em; }
+.nano-blog li + li { margin-top: 0.25em; }
+.nano-blog blockquote {
+  border-left: 3px solid var(--nano-color-border);
+  padding: 0 var(--nano-spacing-unit);
+  color: var(--nano-color-text-muted);
+}
+.nano-blog a {
+  color: var(--nano-color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.nano-blog a:hover { text-decoration-thickness: 2px; }
+.nano-blog strong { font-weight: 600; }
+.nano-blog em { font-style: italic; }
+.nano-blog hr {
+  border: 0;
+  border-top: 1px solid var(--nano-color-border);
+  margin: calc(var(--nano-spacing-unit) * 2) 0;
+}
+
+/* Code */
+.nano-blog code,
+.nano-blog pre {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+.nano-blog code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.1em 0.35em;
+  border-radius: var(--nano-radius);
+}
+.nano-blog pre {
+  background: rgba(0, 0, 0, 0.05);
+  padding: var(--nano-spacing-unit);
+  border-radius: var(--nano-radius);
+  overflow-x: auto;
+}
+.nano-blog pre code { background: none; padding: 0; }
+
+/* Images */
+.nano-blog img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--nano-radius);
+}
+
+/* Listing (index and category archive) */
+.nano-blog-list h1 { margin-bottom: calc(var(--nano-spacing-unit) * 2); }
+.nano-blog-card {
+  border: 1px solid var(--nano-color-border);
+  border-radius: var(--nano-radius);
+  padding: var(--nano-card-padding);
+  margin-bottom: var(--nano-card-gap);
+  background: var(--nano-color-bg);
+  transition: border-color 0.15s ease;
+}
+.nano-blog-card:hover { border-color: var(--nano-color-accent); }
+.nano-blog-card a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.nano-blog-card h2 { margin: 0 0 0.5em 0; }
+.nano-blog-card a:hover h2 { color: var(--nano-color-accent); }
+.nano-blog-card img { margin-bottom: var(--nano-card-padding); }
+.nano-blog-card time {
+  display: block;
+  color: var(--nano-color-text-muted);
+  font-size: 0.875em;
+  margin-bottom: 0.5em;
+}
+.nano-blog-card p { margin: 0; color: var(--nano-color-text-muted); }
+
+/* Single post */
+.nano-blog-post header { margin-bottom: calc(var(--nano-spacing-unit) * 2); }
+.nano-blog-post h1 { margin: 0 0 0.5em 0; }
+.nano-blog-post time {
+  color: var(--nano-color-text-muted);
+  font-size: 0.875em;
+}
+.nano-blog-category {
+  margin: 0.5em 0 0 0;
+  color: var(--nano-color-text-muted);
+  font-size: 0.875em;
+}
+.nano-blog-category a { color: inherit; }
+.nano-blog-hero { margin: 0 0 calc(var(--nano-spacing-unit) * 2) 0; }
+.nano-blog-draft-banner {
+  background: #fff8c4;
+  color: #5a4500;
+  border: 1px solid #e6d484;
+  padding: 0.5em var(--nano-spacing-unit);
+  border-radius: var(--nano-radius);
+  font-weight: 600;
+  font-size: 0.875em;
+  letter-spacing: 0.05em;
+  margin-top: var(--nano-spacing-unit);
+}
+
+/* Pagination */
+.nano-blog-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--nano-spacing-unit);
+  margin-top: calc(var(--nano-spacing-unit) * 2);
+}
+.nano-blog-pagination span {
+  color: var(--nano-color-text-muted);
+  font-size: 0.875em;
+}
+.nano-blog-pagination a {
+  color: var(--nano-color-accent);
+  text-decoration: none;
+}
+.nano-blog-pagination a:hover { text-decoration: underline; }
+
+/* Video shortcode (responsive 16:9) */
+.nano-blog-video {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0 0 var(--nano-spacing-unit) 0;
+  border-radius: var(--nano-radius);
+  overflow: hidden;
+}
+.nano-blog-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .nano-blog {
+    --nano-color-text: #e8e8e8;
+    --nano-color-text-muted: #999;
+    --nano-color-bg: #121212;
+    --nano-color-border: #2a2a2a;
+    --nano-color-accent: #5aa8ff;
+  }
+  .nano-blog code,
+  .nano-blog pre { background: rgba(255, 255, 255, 0.06); }
+  .nano-blog-draft-banner {
+    background: #3d3520;
+    color: #fde88a;
+    border-color: #5a4f30;
+  }
+}
