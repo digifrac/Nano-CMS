@@ -1,0 +1,302 @@
+<?php
+/**
+ * Nano CMS - frontend core.
+ *
+ * Library file. Loaded by index.php / post.php after bootstrap.php has
+ * defined NANO_BOOTSTRAPPED, NANO_CONFIG_PATH, and NANO_CONTENT_PATH.
+ *
+ * Independent of admin/core.php by design - the two codebases share only
+ * the on-disk file format (see FORMAT.md), not PHP code.
+ */
+
+if (!defined('NANO_BOOTSTRAPPED')) {
+    http_response_code(403);
+    exit;
+}
+
+require_once __DIR__ . '/lib/Parsedown.php';
+
+/* ------------------------------------------------------------------------- */
+/* Configuration                                                              */
+/* ------------------------------------------------------------------------- */
+
+function nano_config(): array
+{
+    static $config = null;
+    if ($config !== null) {
+        return $config;
+    }
+    if (!defined('NANO_CONFIG_PATH') || !is_file(NANO_CONFIG_PATH)) {
+        throw new RuntimeException('Nano CMS: config.json not found at NANO_CONFIG_PATH');
+    }
+    $raw = file_get_contents(NANO_CONFIG_PATH);
+    if ($raw === false) {
+        throw new RuntimeException('Nano CMS: failed to read config.json');
+    }
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('Nano CMS: config.json is not valid JSON');
+    }
+    $config = $decoded;
+    return $config;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Escaping                                                                   */
+/* ------------------------------------------------------------------------- */
+
+function nano_e(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+/* ------------------------------------------------------------------------- */
+/* URL helpers                                                                */
+/* ------------------------------------------------------------------------- */
+
+function nano_base_url(): string
+{
+    $base = rtrim((string)(nano_config()['base_url'] ?? ''), '/');
+    if ($base === '') {
+        throw new RuntimeException('Nano CMS: base_url missing from config.json');
+    }
+    return $base;
+}
+
+function nano_post_url(string $slug): string
+{
+    return nano_base_url() . '/' . $slug . '/';
+}
+
+function nano_category_url(string $category): string
+{
+    return nano_base_url() . '/category/' . $category . '/';
+}
+
+function nano_media_url(string $filename): string
+{
+    return nano_base_url() . '/media/' . $filename;
+}
+
+function nano_index_url(int $page = 1): string
+{
+    if ($page <= 1) {
+        return nano_base_url() . '/';
+    }
+    return nano_base_url() . '/page/' . $page . '/';
+}
+
+/* ------------------------------------------------------------------------- */
+/* Slug sanitization                                                          */
+/* ------------------------------------------------------------------------- */
+
+function nano_safe_slug(string $input): string
+{
+    $slug = strtolower($input);
+    $slug = preg_replace('/[^a-z0-9-]/', '', $slug) ?? '';
+    $slug = preg_replace('/-+/', '-', $slug) ?? '';
+    return trim($slug, '-');
+}
+
+/* ------------------------------------------------------------------------- */
+/* Frontmatter parser                                                         */
+/* ------------------------------------------------------------------------- */
+
+function nano_read_post_file(string $filepath): array
+{
+    if (!is_file($filepath) || !is_readable($filepath)) {
+        throw new RuntimeException("Nano CMS: post file not readable: $filepath");
+    }
+    $contents = file_get_contents($filepath);
+    if ($contents === false) {
+        throw new RuntimeException("Nano CMS: failed to read post file: $filepath");
+    }
+    $contents = str_replace(["\r\n", "\r"], "\n", $contents);
+
+    if (substr($contents, 0, 4) !== "---\n") {
+        throw new RuntimeException("Nano CMS: post missing frontmatter block: $filepath");
+    }
+    $end = strpos($contents, "\n---\n", 4);
+    if ($end === false) {
+        // Tolerate a file ending with "\n---" and no trailing newline.
+        if (substr($contents, -4) === "\n---") {
+            $end = strlen($contents) - 4;
+            $body = '';
+        } else {
+            throw new RuntimeException("Nano CMS: post frontmatter not closed: $filepath");
+        }
+    } else {
+        $body = ltrim(substr($contents, $end + 5), "\n");
+    }
+    $frontmatter_raw = substr($contents, 4, $end - 4);
+    $frontmatter = nano_parse_frontmatter($frontmatter_raw);
+
+    return ['frontmatter' => $frontmatter, 'body' => $body];
+}
+
+function nano_parse_frontmatter(string $raw): array
+{
+    $out = [];
+    foreach (explode("\n", $raw) as $line) {
+        if (trim($line) === '') {
+            continue;
+        }
+        $colon = strpos($line, ':');
+        if ($colon === false) {
+            continue;
+        }
+        $key = trim(substr($line, 0, $colon));
+        $value = trim(substr($line, $colon + 1));
+        if (strlen($value) >= 2) {
+            $first = $value[0];
+            $last = $value[strlen($value) - 1];
+            if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
+                $value = substr($value, 1, -1);
+            }
+        }
+        if ($key !== '') {
+            $out[$key] = $value;
+        }
+    }
+
+    $out['draft'] = isset($out['draft'])
+        && in_array(strtolower((string)$out['draft']), ['true', 'yes', '1'], true);
+
+    foreach (['title', 'slug', 'date', 'category', 'description'] as $required) {
+        if (!isset($out[$required]) || $out[$required] === '') {
+            throw new RuntimeException("Nano CMS: frontmatter missing required field '$required'");
+        }
+    }
+
+    return $out;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Markdown rendering with shortcode expansion                                */
+/* ------------------------------------------------------------------------- */
+
+function nano_render_markdown(string $body): string
+{
+    static $parsedown = null;
+    if ($parsedown === null) {
+        $parsedown = new Parsedown();
+        $parsedown->setSafeMode(true);
+    }
+    $html = $parsedown->text($body);
+    return nano_expand_shortcodes($html);
+}
+
+function nano_expand_shortcodes(string $html): string
+{
+    // Match shortcode optionally wrapped in its own <p>...</p> block, so that
+    // a shortcode on its own line becomes a block-level iframe rather than
+    // staying inside a paragraph.
+    $pattern = '~(?:<p>\s*)?\[video:(youtube|vimeo):([A-Za-z0-9_-]+)\](?:\s*</p>)?~';
+    $result = preg_replace_callback($pattern, static function (array $m): string {
+        return nano_video_embed($m[1], $m[2]);
+    }, $html);
+    return $result ?? $html;
+}
+
+function nano_video_embed(string $provider, string $id): string
+{
+    $id_safe = nano_e($id);
+    if ($provider === 'youtube') {
+        $src = 'https://www.youtube-nocookie.com/embed/' . $id_safe;
+    } elseif ($provider === 'vimeo') {
+        $src = 'https://player.vimeo.com/video/' . $id_safe;
+    } else {
+        return '';
+    }
+    return '<div class="nano-blog-video">'
+         . '<iframe src="' . $src . '" loading="lazy" allowfullscreen '
+         . 'referrerpolicy="strict-origin-when-cross-origin" '
+         . 'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>'
+         . '</div>';
+}
+
+/* ------------------------------------------------------------------------- */
+/* Public parser entry points                                                 */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Parse a post file into frontmatter, raw body, and rendered HTML.
+ * @return array{frontmatter: array, body: string, html: string}
+ */
+function nano_parse_post(string $filepath): array
+{
+    $parts = nano_read_post_file($filepath);
+    $parts['html'] = nano_render_markdown($parts['body']);
+    return $parts;
+}
+
+/**
+ * Return summaries of all posts, sorted newest first.
+ * Drafts excluded unless filters['include_drafts'] is true.
+ * Optional filters['category'] restricts to a single category.
+ *
+ * @return array<int, array{frontmatter: array, filepath: string}>
+ */
+function nano_list_posts(array $filters = []): array
+{
+    $include_drafts = !empty($filters['include_drafts']);
+    $category = $filters['category'] ?? null;
+
+    if (!defined('NANO_CONTENT_PATH')) {
+        throw new RuntimeException('Nano CMS: NANO_CONTENT_PATH is not defined');
+    }
+    $dir = NANO_CONTENT_PATH . '/posts';
+    if (!is_dir($dir)) {
+        return [];
+    }
+    $real_dir = realpath($dir);
+    if ($real_dir === false) {
+        return [];
+    }
+
+    $posts = [];
+    foreach (glob($dir . '/*.md') ?: [] as $filepath) {
+        $real = realpath($filepath);
+        // FORMAT.md mandates no subdirectories under /posts/, so a valid
+        // post file's parent directory must be the posts directory itself.
+        if ($real === false || dirname($real) !== $real_dir) {
+            continue;
+        }
+        try {
+            $parts = nano_read_post_file($filepath);
+        } catch (RuntimeException $e) {
+            error_log('Nano CMS: skipping post ' . $filepath . ' - ' . $e->getMessage());
+            continue;
+        }
+        $fm = $parts['frontmatter'];
+        if (!$include_drafts && !empty($fm['draft'])) {
+            continue;
+        }
+        if ($category !== null && ($fm['category'] ?? '') !== $category) {
+            continue;
+        }
+        $posts[] = ['frontmatter' => $fm, 'filepath' => $filepath];
+    }
+
+    usort($posts, static function (array $a, array $b): int {
+        return strcmp($b['frontmatter']['date'], $a['frontmatter']['date']);
+    });
+
+    return $posts;
+}
+
+/**
+ * Find a post file by its frontmatter slug. Returns absolute filepath or null.
+ */
+function nano_find_post_by_slug(string $slug, bool $include_drafts = false): ?string
+{
+    if ($slug === '' || $slug !== nano_safe_slug($slug)) {
+        return null;
+    }
+    foreach (nano_list_posts(['include_drafts' => $include_drafts]) as $entry) {
+        if (($entry['frontmatter']['slug'] ?? '') === $slug) {
+            return $entry['filepath'];
+        }
+    }
+    return null;
+}
