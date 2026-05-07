@@ -1,0 +1,25 @@
+# Nano CMS frontend .htaccess
+#
+# Default install path: /blog/. The RewriteBase line below assumes that.
+# If installing at a different URL path, update RewriteBase to match.
+# This file is a paste-zone file - expect to edit it on first deployment.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /blog/
+
+    # Don't rewrite real files or directories. This lets sitemap.xml,
+    # feed.xml, /assets/*.css, /media/*.jpg, and the /admin/ folder be
+    # served directly by Apache without going through PHP.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Clean URL routing.
+    RewriteRule ^$ index.php [L]
+    RewriteRule ^category/([a-z0-9-]+)/?$ index.php?category=$1 [QSA,L]
+    RewriteRule ^page/([0-9]+)/?$ index.php?page=$1 [QSA,L]
+    RewriteRule ^([a-z0-9-]+)/?$ post.php?slug=$1 [QSA,L]
+</IfModule>
