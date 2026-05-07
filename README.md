@@ -22,7 +22,7 @@ It is deliberately **not** a general-purpose CMS. It does one thing - serve a bl
 - **Per-site config lives outside webroot.** Password hashes and site settings stored in a JSON file that's structurally unreachable via HTTP.
 - **No frameworks.** No Bootstrap, no Tailwind, no React, no jQuery, no build step. Hand-written PHP, scoped CSS, and minimal vanilla JavaScript.
 
-Total target size: roughly 1500-1800 lines across the frontend and admin codebases combined.
+Total target size: roughly 2200-2500 lines across the frontend and admin codebases combined.
 
 ---
 
