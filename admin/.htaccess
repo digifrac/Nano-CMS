@@ -1,0 +1,11 @@
+# Nano CMS admin .htaccess
+#
+# The admin folder is uploaded temporarily for publishing and removed
+# afterwards via SFTP. While present, it must never be indexed by
+# search engines.
+
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
