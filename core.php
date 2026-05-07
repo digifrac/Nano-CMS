@@ -285,6 +285,110 @@ function nano_list_posts(array $filters = []): array
     return $posts;
 }
 
+/* ------------------------------------------------------------------------- */
+/* SEO meta tag generation                                                    */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Build canonical, Open Graph, Twitter Card, and JSON-LD BlogPosting tags
+ * for a single post. Returns a block of HTML safe to drop into <head>.
+ */
+function nano_render_meta_tags_for_post(array $fm): string
+{
+    $cfg = nano_config();
+    $url = nano_post_url($fm['slug']);
+    $title = (string)$fm['title'];
+    $desc = (string)$fm['description'];
+    $site_name = (string)($cfg['site_name'] ?? '');
+    $author = (string)($cfg['author'] ?? '');
+    $publisher_name = (string)($cfg['publisher_name'] ?? $site_name);
+    $publisher_logo = (string)($cfg['publisher_logo'] ?? '');
+    $image_url = !empty($fm['image']) ? nano_media_url((string)$fm['image']) : null;
+    $image_alt = (string)($fm['image_alt'] ?? $title);
+
+    $tags = [];
+    $tags[] = '<link rel="canonical" href="' . nano_e($url) . '">';
+    $tags[] = '<meta property="og:type" content="article">';
+    $tags[] = '<meta property="og:title" content="' . nano_e($title) . '">';
+    $tags[] = '<meta property="og:description" content="' . nano_e($desc) . '">';
+    $tags[] = '<meta property="og:url" content="' . nano_e($url) . '">';
+    if ($site_name !== '') {
+        $tags[] = '<meta property="og:site_name" content="' . nano_e($site_name) . '">';
+    }
+    if ($image_url !== null) {
+        $tags[] = '<meta property="og:image" content="' . nano_e($image_url) . '">';
+        $tags[] = '<meta property="og:image:alt" content="' . nano_e($image_alt) . '">';
+        $tags[] = '<meta name="twitter:card" content="summary_large_image">';
+        $tags[] = '<meta name="twitter:image" content="' . nano_e($image_url) . '">';
+    } else {
+        $tags[] = '<meta name="twitter:card" content="summary">';
+    }
+    $tags[] = '<meta name="twitter:title" content="' . nano_e($title) . '">';
+    $tags[] = '<meta name="twitter:description" content="' . nano_e($desc) . '">';
+
+    $ld = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BlogPosting',
+        'headline' => $title,
+        'description' => $desc,
+        'datePublished' => (string)$fm['date'],
+        'mainEntityOfPage' => $url,
+    ];
+    if (!empty($fm['updated'])) {
+        $ld['dateModified'] = (string)$fm['updated'];
+    }
+    if ($image_url !== null) {
+        $ld['image'] = $image_url;
+    }
+    if ($author !== '') {
+        $ld['author'] = ['@type' => 'Person', 'name' => $author];
+    }
+    if ($publisher_name !== '') {
+        $publisher = ['@type' => 'Organization', 'name' => $publisher_name];
+        if ($publisher_logo !== '') {
+            $publisher['logo'] = ['@type' => 'ImageObject', 'url' => $publisher_logo];
+        }
+        $ld['publisher'] = $publisher;
+    }
+    $tags[] = '<script type="application/ld+json">'
+        . json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . '</script>';
+
+    return implode("\n", $tags);
+}
+
+/**
+ * Build canonical, Open Graph, and Twitter Card tags for the index or a
+ * category archive. Returns a block of HTML safe to drop into <head>.
+ */
+function nano_render_meta_tags_for_index(?string $category = null, int $page = 1): string
+{
+    $cfg = nano_config();
+    $site_name = (string)($cfg['site_name'] ?? 'Blog');
+    if ($category !== null) {
+        $url = nano_category_url($category);
+        $title = ucfirst(str_replace('-', ' ', $category)) . ' - ' . $site_name;
+        $desc = 'Posts in the ' . $category . ' category.';
+    } else {
+        $url = nano_index_url($page);
+        $title = $page > 1 ? $site_name . ' - Page ' . $page : $site_name;
+        $desc = $site_name . ' - latest posts.';
+    }
+    $tags = [];
+    $tags[] = '<link rel="canonical" href="' . nano_e($url) . '">';
+    $tags[] = '<meta property="og:type" content="website">';
+    $tags[] = '<meta property="og:title" content="' . nano_e($title) . '">';
+    $tags[] = '<meta property="og:description" content="' . nano_e($desc) . '">';
+    $tags[] = '<meta property="og:url" content="' . nano_e($url) . '">';
+    if ($site_name !== '') {
+        $tags[] = '<meta property="og:site_name" content="' . nano_e($site_name) . '">';
+    }
+    $tags[] = '<meta name="twitter:card" content="summary">';
+    $tags[] = '<meta name="twitter:title" content="' . nano_e($title) . '">';
+    $tags[] = '<meta name="twitter:description" content="' . nano_e($desc) . '">';
+    return implode("\n", $tags);
+}
+
 /**
  * Find a post file by its frontmatter slug. Returns absolute filepath or null.
  */
