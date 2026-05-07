@@ -7,12 +7,10 @@
 
 
 # -----------------------------------------------------------------------------
-# Local-only documentation and tooling state - never commit
+# Local-only tooling state - never commit
 # -----------------------------------------------------------------------------
-# Local working notes and per-machine tool state. Not part of the public
-# documentation surface (README.md and FORMAT.md cover that).
+# Per-machine tool state directory.
 
-CLAUDE.md
 .claude/
 
 
