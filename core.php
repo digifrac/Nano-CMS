@@ -150,8 +150,12 @@ function nano_parse_frontmatter(string $raw): array
         if (strlen($value) >= 2) {
             $first = $value[0];
             $last = $value[strlen($value) - 1];
-            if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
+            if ($first === '"' && $last === '"') {
                 $value = substr($value, 1, -1);
+                $value = str_replace(['\\\\', '\\"'], ['\\', '"'], $value);
+            } elseif ($first === "'" && $last === "'") {
+                $value = substr($value, 1, -1);
+                $value = str_replace("''", "'", $value);
             }
         }
         if ($key !== '') {

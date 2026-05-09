@@ -129,6 +129,30 @@ public listing, the sitemap, and the RSS feed. The public URL returns
 `/blog/<slug>/?preview=<csrf_token>` - the request must carry both a
 valid admin session AND a matching CSRF token.
 
+### Frontmatter quoting rules
+
+Frontmatter is one `key: value` pair per line. The format is YAML-style
+but minimal:
+
+- A value is everything after the first `:` on the line, with leading
+  and trailing whitespace trimmed.
+- A value is **bare** by default. No quoting is needed for values that
+  contain colons, hashes, brackets, or punctuation - only the first
+  colon on the line is interpreted as the key/value delimiter.
+- A value that already starts AND ends with the same quote character
+  (`"..."` or `'...'`) MUST be wrapped in the *other* quote character
+  to disambiguate from a quoted scalar. Likewise for values whose
+  leading/trailing whitespace is significant.
+- Inside double-quoted values, `\\` decodes to `\` and `\"` decodes to
+  `"`. Inside single-quoted values, `''` decodes to a single `'`. No
+  other escape sequences are recognized.
+- Values cannot contain a literal newline. Long descriptions stay on
+  one line.
+
+Writers (the admin) prefer the quote character that is NOT present in
+the value to avoid escapes. Backslash-escaping is only used when both
+quote characters appear in the value.
+
 ### Body: Markdown plus shortcodes
 
 The body is rendered with [Parsedown](https://github.com/erusev/parsedown)

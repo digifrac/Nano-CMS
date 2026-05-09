@@ -1,0 +1,307 @@
+<?php
+/**
+ * Admin post editor: create + edit + save.
+ *
+ * GET  edit.php             -> blank new-post form
+ * GET  edit.php?slug=...    -> edit existing post (404 if slug unknown)
+ * POST edit.php             -> save (with CSRF, slug-reconcile, auto-updated,
+ *                              regen of sitemap.xml/feed.xml)
+ */
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/core.php';
+require_once __DIR__ . '/posts.php';
+require_once __DIR__ . '/../generators.php';
+
+nano_admin_assert_https();
+
+if (!nano_admin_config_exists()) {
+    header('Location: setup.php');
+    exit;
+}
+
+nano_admin_version_check();
+nano_admin_require_login();
+
+$cfg = nano_admin_load_config();
+$site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
+$base_url = rtrim((string)($cfg['base_url'] ?? ''), '/');
+
+$today = date('Y-m-d');
+$errors = [];
+
+/* ---- Load original (for edits) ---------------------------------------- */
+
+$original_slug = nano_admin_safe_slug((string)($_GET['slug'] ?? ''));
+$original_filepath = null;
+$original_fm = null;
+$original_body = '';
+if ($original_slug !== '') {
+    $original_filepath = nano_admin_find_post_by_slug($original_slug);
+    if ($original_filepath === null) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo "No post with slug '$original_slug'.";
+        exit;
+    }
+    $loaded = nano_admin_read_post($original_filepath);
+    $original_fm = $loaded['frontmatter'];
+    $original_body = $loaded['body'];
+}
+
+$is_new = ($original_filepath === null);
+
+/* ---- Defaults for the form ------------------------------------------- */
+
+$form = [
+    'title'       => (string)($original_fm['title'] ?? ''),
+    'slug'        => (string)($original_fm['slug'] ?? ''),
+    'date'        => (string)($original_fm['date'] ?? $today),
+    'updated'     => (string)($original_fm['updated'] ?? ''),
+    'category'    => (string)($original_fm['category'] ?? ''),
+    'description' => (string)($original_fm['description'] ?? ''),
+    'image'       => (string)($original_fm['image'] ?? ''),
+    'image_alt'   => (string)($original_fm['image_alt'] ?? ''),
+    'draft'       => !empty($original_fm['draft']),
+    'body'        => $original_body,
+];
+
+/* ---- Save handler ---------------------------------------------------- */
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    nano_admin_require_csrf();
+
+    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt'] as $key) {
+        $form[$key] = trim((string)($_POST[$key] ?? ''));
+    }
+    $form['draft'] = !empty($_POST['draft']);
+    $form['body'] = (string)($_POST['body'] ?? '');
+
+    $intent_slug = nano_admin_safe_slug($form['slug']);
+    if ($intent_slug === '') {
+        $errors[] = 'Slug must contain at least one of [a-z0-9-].';
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $form['date'])) {
+        $errors[] = 'Date must be in YYYY-MM-DD format.';
+    }
+    if ($form['updated'] !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $form['updated'])) {
+        $errors[] = 'Updated must be in YYYY-MM-DD format or left blank.';
+    }
+    foreach (['title', 'category', 'description'] as $required) {
+        if ($form[$required] === '') {
+            $errors[] = ucfirst($required) . ' is required.';
+        }
+    }
+
+    // Auto-`updated`: bump to today when body or any other field changed,
+    // unless the user has manually overridden the field on this save.
+    if (empty($errors) && !$is_new) {
+        $orig_updated = (string)($original_fm['updated'] ?? '');
+        $user_touched_updated = ($form['updated'] !== $orig_updated);
+        if (!$user_touched_updated) {
+            $changed = false;
+            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt'] as $key) {
+                if ($form[$key] !== (string)($original_fm[$key] ?? '')) {
+                    $changed = true;
+                    break;
+                }
+            }
+            if (!$changed && (!empty($original_fm['draft']) !== $form['draft'])) {
+                $changed = true;
+            }
+            if (!$changed && rtrim($form['body'], "\n") !== rtrim($original_body, "\n")) {
+                $changed = true;
+            }
+            if ($changed) {
+                $form['updated'] = $today;
+            }
+        }
+    }
+
+    if (empty($errors)) {
+        $fm_to_save = [
+            'title'       => $form['title'],
+            'slug'        => $intent_slug,
+            'date'        => $form['date'],
+            'updated'     => $form['updated'],
+            'category'    => $form['category'],
+            'description' => $form['description'],
+            'image'       => $form['image'],
+            'image_alt'   => $form['image_alt'],
+            'draft'       => $form['draft'],
+        ];
+        try {
+            nano_admin_save_post($fm_to_save, $form['body'], $original_filepath);
+            nano_regenerate_static();
+            nano_admin_save_config($cfg); // bumps admin_version_last_used
+            header('Location: edit.php?slug=' . rawurlencode($intent_slug) . '&msg=saved');
+            exit;
+        } catch (RuntimeException $e) {
+            $errors[] = $e->getMessage();
+        }
+    }
+}
+
+$flash = ((string)($_GET['msg'] ?? '')) === 'saved' ? 'Post saved.' : null;
+$categories = nano_admin_categories();
+$preview_url = (!$is_new && $base_url !== '')
+    ? $base_url . '/' . rawurlencode((string)$original_fm['slug']) . '/?preview=' . rawurlencode(nano_admin_csrf_token())
+    : null;
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= nano_admin_e($is_new ? 'New post' : ('Edit: ' . $form['title'])) ?> - <?= nano_admin_e($site_name) ?></title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 920px; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
+h1 { font-size: 1.5rem; margin: 0; }
+.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+.errors { background: #fee; border: 1px solid #f99; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
+.errors ul { margin: 0.25rem 0; padding-left: 1.25rem; }
+.flash { background: #efe; border: 1px solid #9c9; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
+.grid > .full { grid-column: 1 / -1; }
+label { display: block; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem; }
+input[type=text], input[type=date], input[type=url], textarea, select { width: 100%; padding: 0.45rem 0.55rem; box-sizing: border-box; font-size: 1rem; font-family: inherit; }
+textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; min-height: 22rem; }
+.help { font-size: 0.8rem; color: #666; margin: 0.15rem 0 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.5rem 0 0.25rem; }
+.toolbar button { padding: 0.25rem 0.6rem; font-size: 0.875rem; cursor: pointer; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; }
+.actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.actions button.primary { padding: 0.5rem 1.5rem; font-size: 1rem; background: #0066cc; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+.actions button.danger { padding: 0.5rem 1rem; font-size: 0.875rem; background: #fff; color: #c00; border: 1px solid #c00; border-radius: 4px; cursor: pointer; }
+.actions a { margin-left: auto; }
+.checkbox-row { display: flex; align-items: center; gap: 0.5rem; }
+.counter { font-size: 0.75rem; color: #666; margin-top: 0.15rem; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1><?= nano_admin_e($is_new ? 'New post' : 'Edit post') ?></h1>
+  <div>
+    <a href="index.php">All posts</a>
+    | <a href="index.php?action=logout">Sign out</a>
+  </div>
+</div>
+
+<?php if (!empty($errors)): ?>
+<div class="errors"><strong>Could not save:</strong>
+<ul><?php foreach ($errors as $e): ?><li><?= nano_admin_e($e) ?></li><?php endforeach; ?></ul>
+</div>
+<?php elseif ($flash !== null): ?>
+<div class="flash"><?= nano_admin_e($flash) ?></div>
+<?php endif; ?>
+
+<form method="post" autocomplete="off">
+<?= nano_admin_csrf_field() ?>
+
+<div class="grid">
+  <div class="full">
+    <label>Title<input type="text" name="title" value="<?= nano_admin_e($form['title']) ?>" required></label>
+  </div>
+  <div>
+    <label>Slug<input type="text" name="slug" value="<?= nano_admin_e($form['slug']) ?>" pattern="[a-z0-9\-]+" required></label>
+    <p class="help">[a-z0-9-] only. Authoritative for the URL; filename will be reconciled on save.</p>
+  </div>
+  <div>
+    <label>Category<input type="text" name="category" list="nano-categories" value="<?= nano_admin_e($form['category']) ?>" required></label>
+    <datalist id="nano-categories">
+<?php foreach ($categories as $c): ?>
+      <option value="<?= nano_admin_e($c) ?>">
+<?php endforeach; ?>
+    </datalist>
+  </div>
+  <div>
+    <label>Date<input type="date" name="date" value="<?= nano_admin_e($form['date']) ?>" required></label>
+  </div>
+  <div>
+    <label>Updated (auto-set on save unless overridden)<input type="date" name="updated" value="<?= nano_admin_e($form['updated']) ?>"></label>
+  </div>
+  <div class="full">
+    <label>Description (meta description, ~150 chars)<input type="text" name="description" value="<?= nano_admin_e($form['description']) ?>" maxlength="240" required></label>
+    <p class="counter"><span id="desc-count">0</span> chars</p>
+  </div>
+  <div>
+    <label>Image filename (in /media/)<input type="text" name="image" value="<?= nano_admin_e($form['image']) ?>"></label>
+  </div>
+  <div>
+    <label>Image alt text<input type="text" name="image_alt" value="<?= nano_admin_e($form['image_alt']) ?>"></label>
+  </div>
+  <div class="full checkbox-row">
+    <label style="margin:0;"><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>
+<?php if ($preview_url !== null): ?>
+    <span style="margin-left:auto;">
+      <a href="<?= nano_admin_e($preview_url) ?>" target="_blank" rel="noopener">Preview as draft</a>
+    </span>
+<?php endif; ?>
+  </div>
+  <div class="full">
+    <label>Body (Markdown)</label>
+    <div class="toolbar">
+      <button type="button" data-md="bold">B</button>
+      <button type="button" data-md="italic"><em>I</em></button>
+      <button type="button" data-md="link">Link</button>
+      <button type="button" data-md="heading">H</button>
+      <button type="button" data-md="list">List</button>
+      <button type="button" data-md="code">Code</button>
+    </div>
+    <textarea id="nano-body" name="body" required><?= nano_admin_e($form['body']) ?></textarea>
+    <p class="help">Markdown only. Embed video with <code>[video:youtube:ID]</code> or <code>[video:vimeo:ID]</code>.</p>
+  </div>
+</div>
+
+<div class="actions">
+  <button type="submit" class="primary"><?= $is_new ? 'Create post' : 'Save changes' ?></button>
+  <a href="index.php">Cancel</a>
+</div>
+
+</form>
+
+<?php if (!$is_new): ?>
+<form method="post" action="index.php?action=delete" style="margin-top:1.5rem;"
+      onsubmit="return confirm('Delete this post? This cannot be undone.');">
+  <?= nano_admin_csrf_field() ?>
+  <input type="hidden" name="slug" value="<?= nano_admin_e((string)$original_fm['slug']) ?>">
+  <button type="submit" class="danger">Delete this post</button>
+</form>
+<?php endif; ?>
+
+<script>
+(function () {
+  var ta = document.getElementById('nano-body');
+  if (ta) {
+    document.querySelectorAll('.toolbar button[data-md]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var kind = btn.getAttribute('data-md');
+        var s = ta.selectionStart, e = ta.selectionEnd;
+        var sel = ta.value.substring(s, e);
+        var before = ta.value.substring(0, s);
+        var after = ta.value.substring(e);
+        var ins = sel, caret = null;
+        switch (kind) {
+          case 'bold':    ins = '**' + (sel || 'bold') + '**'; break;
+          case 'italic':  ins = '*'  + (sel || 'italic') + '*'; break;
+          case 'link':    ins = '[' + (sel || 'text') + '](https://)'; caret = ins.length - 1; break;
+          case 'heading': ins = (before && !before.endsWith('\n') ? '\n' : '') + '## ' + (sel || 'Heading') + '\n'; break;
+          case 'list':    ins = (before && !before.endsWith('\n') ? '\n' : '') + '- ' + (sel || 'item') + '\n'; break;
+          case 'code':    ins = sel.indexOf('\n') >= 0 ? '```\n' + sel + '\n```\n' : '`' + (sel || 'code') + '`'; break;
+        }
+        ta.value = before + ins + after;
+        var pos = caret !== null ? before.length + caret : before.length + ins.length;
+        ta.focus();
+        ta.setSelectionRange(pos, pos);
+      });
+    });
+  }
+  var desc = document.querySelector('input[name="description"]');
+  var counter = document.getElementById('desc-count');
+  if (desc && counter) {
+    var update = function () { counter.textContent = desc.value.length; };
+    desc.addEventListener('input', update);
+    update();
+  }
+})();
+</script>
+</body>
+</html>
