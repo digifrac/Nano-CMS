@@ -17,7 +17,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     exit;
 }
 
-const NANO_ADMIN_VERSION = '0.1.0';
+const NANO_ADMIN_VERSION = '1.0.0';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_SESSION_LIFETIME = 60 * 60 * 24 * 30;   // ~30 days
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;
