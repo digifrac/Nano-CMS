@@ -66,7 +66,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'created'                 => gmdate('Y-m-d\TH:i:s\Z'),
             'admin_version_last_used' => NANO_ADMIN_VERSION,
         ]);
-        header('Location: index.php');
+        // Render a "setup complete" landing page instead of silently
+        // redirecting to login - the user needs a clear, prominent
+        // reminder to delete setup.php from the server now that it
+        // has done its one and only job.
+        ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup complete - <?= nano_admin_e($site_name) ?></title>
+<link rel="stylesheet" href="assets/admin.css">
+</head>
+<body class="setup">
+<h1>Setup complete</h1>
+<div class="flash-ok">Configuration saved to <code>config.json</code>.</div>
+<div class="warn">
+<strong>One last step: delete <code>setup.php</code> from your server now.</strong>
+<p>This file has done its only job. Leaving it in place doesn't break anything (subsequent visits return 403), but removing it cuts one unused URL from your attack surface and matches the rest of Nano CMS's "upload only when needed" pattern.</p>
+</div>
+<p><a class="button-primary" href="index.php">Continue to sign-in</a></p>
+</body>
+</html>
+        <?php
         exit;
     }
 }
