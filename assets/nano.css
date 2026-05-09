@@ -137,9 +137,12 @@
   padding: var(--nano-card-padding);
   margin-bottom: var(--nano-card-gap);
   background: var(--nano-color-bg);
-  transition: border-color 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s ease;
 }
-.nano-blog-card:hover { border-color: var(--nano-color-accent); }
+.nano-blog-card:hover {
+  box-shadow: 0 16px 36px rgba(0,0,0,0.16), 0 6px 12px rgba(0,0,0,0.08);
+}
 .nano-blog-card a {
   display: block;
   color: inherit;
