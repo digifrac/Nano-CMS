@@ -22,7 +22,7 @@ It is deliberately **not** a general-purpose CMS. It does one thing - serve a bl
 - **Per-site config lives outside webroot.** Password hashes and site settings stored in a JSON file that's structurally unreachable via HTTP.
 - **No frameworks.** No Bootstrap, no Tailwind, no React, no jQuery, no build step. Hand-written PHP, scoped CSS, and minimal vanilla JavaScript.
 
-Total target size: roughly 3000-3500 lines across the frontend and admin codebases combined. For comparison: Grav core is ~30k, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
+Total size: comfortably under 6000 lines of hand-written PHP, CSS, and minimal JS, and the whole CMS deploys in under 250KB on disk (vendored Parsedown included). For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
 
 ---
 
