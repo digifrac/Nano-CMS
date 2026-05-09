@@ -348,6 +348,7 @@ function nano_render_meta_tags_for_post(array $fm): string
     $title = (string)$fm['title'];
     $desc = (string)$fm['description'];
     $site_name = (string)($cfg['site_name'] ?? '');
+    $locale = (string)($cfg['locale'] ?? 'en_US');
     $author = (string)($cfg['author'] ?? '');
     $publisher_name = (string)($cfg['publisher_name'] ?? $site_name);
     $publisher_logo = (string)($cfg['publisher_logo'] ?? '');
@@ -363,6 +364,7 @@ function nano_render_meta_tags_for_post(array $fm): string
     if ($site_name !== '') {
         $tags[] = '<meta property="og:site_name" content="' . nano_e($site_name) . '">';
     }
+    $tags[] = '<meta property="og:locale" content="' . nano_e($locale) . '">';
     if ($image_url !== null) {
         $tags[] = '<meta property="og:image" content="' . nano_e($image_url) . '">';
         $tags[] = '<meta property="og:image:alt" content="' . nano_e($image_alt) . '">';
@@ -406,22 +408,41 @@ function nano_render_meta_tags_for_post(array $fm): string
 }
 
 /**
- * Build canonical, Open Graph, and Twitter Card tags for the index or a
- * category archive. Returns a block of HTML safe to drop into <head>.
+ * Build canonical, Open Graph, Twitter Card, and CollectionPage JSON-LD
+ * tags for the index or a category archive. Returns a block of HTML
+ * safe to drop into <head>.
  */
 function nano_render_meta_tags_for_index(?string $category = null, int $page = 1): string
 {
     $cfg = nano_config();
     $site_name = (string)($cfg['site_name'] ?? 'Blog');
+    $locale = (string)($cfg['locale'] ?? 'en_US');
+
     if ($category !== null) {
+        $cat_label = ucfirst(str_replace('-', ' ', $category));
         $url = nano_category_url($category);
-        $title = ucfirst(str_replace('-', ' ', $category)) . ' - ' . $site_name;
-        $desc = 'Posts in the ' . $category . ' category.';
+        $title = $cat_label . ' - ' . $site_name;
+        $desc = 'Posts in the ' . $cat_label . ' category.';
+        $posts_for_image = nano_list_posts(['category' => $category]);
     } else {
         $url = nano_index_url($page);
         $title = $page > 1 ? $site_name . ' - Page ' . $page : $site_name;
         $desc = $site_name . ' - latest posts.';
+        $posts_for_image = nano_list_posts();
     }
+
+    // og:image fallback - first post in the listing that has a hero image.
+    // Gives social-share previews of category/index URLs a real thumbnail
+    // instead of a blank text card.
+    $og_image = null;
+    foreach ($posts_for_image as $p) {
+        $img = trim((string)($p['frontmatter']['image'] ?? ''));
+        if ($img !== '') {
+            $og_image = nano_media_url($img);
+            break;
+        }
+    }
+
     $tags = [];
     $tags[] = '<link rel="canonical" href="' . nano_e($url) . '">';
     $tags[] = '<meta property="og:type" content="website">';
@@ -431,9 +452,28 @@ function nano_render_meta_tags_for_index(?string $category = null, int $page = 1
     if ($site_name !== '') {
         $tags[] = '<meta property="og:site_name" content="' . nano_e($site_name) . '">';
     }
-    $tags[] = '<meta name="twitter:card" content="summary">';
+    $tags[] = '<meta property="og:locale" content="' . nano_e($locale) . '">';
+    if ($og_image !== null) {
+        $tags[] = '<meta property="og:image" content="' . nano_e($og_image) . '">';
+        $tags[] = '<meta name="twitter:card" content="summary_large_image">';
+        $tags[] = '<meta name="twitter:image" content="' . nano_e($og_image) . '">';
+    } else {
+        $tags[] = '<meta name="twitter:card" content="summary">';
+    }
     $tags[] = '<meta name="twitter:title" content="' . nano_e($title) . '">';
     $tags[] = '<meta name="twitter:description" content="' . nano_e($desc) . '">';
+
+    $ld = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $title,
+        'description' => $desc,
+        'url' => $url,
+    ];
+    $tags[] = '<script type="application/ld+json">'
+        . json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . '</script>';
+
     return implode("\n", $tags);
 }
 
