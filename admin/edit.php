@@ -161,6 +161,7 @@ $preview_url = (!$is_new && $base_url !== '')
   <div>
     <a href="index.php">All posts</a>
     | <a href="media.php">Media</a>
+    | <a href="help.php">Help</a>
     | <a href="index.php?action=logout">Sign out</a>
   </div>
 </div>
@@ -178,7 +179,8 @@ $preview_url = (!$is_new && $base_url !== '')
 
 <div class="grid">
   <div class="full">
-    <label>Title<input type="text" name="title" value="<?= nano_admin_e($form['title']) ?>" required></label>
+    <label>Title<input type="text" name="title" id="nano-title" value="<?= nano_admin_e($form['title']) ?>" maxlength="200" required></label>
+    <p class="counter"><span id="title-count">0</span> chars (search snippets cut off around 60)</p>
   </div>
   <div>
     <label>Slug<input type="text" name="slug" value="<?= nano_admin_e($form['slug']) ?>" pattern="[a-z0-9\-]+" required></label>
@@ -274,13 +276,16 @@ $preview_url = (!$is_new && $base_url !== '')
       });
     });
   }
-  var desc = document.querySelector('input[name="description"]');
-  var counter = document.getElementById('desc-count');
-  if (desc && counter) {
-    var update = function () { counter.textContent = desc.value.length; };
-    desc.addEventListener('input', update);
+  function wireCounter(inputSel, counterId) {
+    var input = document.querySelector(inputSel);
+    var counter = document.getElementById(counterId);
+    if (!input || !counter) return;
+    var update = function () { counter.textContent = input.value.length; };
+    input.addEventListener('input', update);
     update();
   }
+  wireCounter('input[name="description"]', 'desc-count');
+  wireCounter('#nano-title', 'title-count');
 })();
 </script>
 </body>

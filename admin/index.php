@@ -131,7 +131,7 @@ $categories = nano_admin_categories();
 <body>
 <div class="bar">
   <h1><?= nano_admin_e($site_name) ?> - admin</h1>
-  <div><a href="media.php">Media</a> | <a href="?action=logout">Sign out</a></div>
+  <div><a href="media.php">Media</a> | <a href="help.php">Help</a> | <a href="?action=logout">Sign out</a></div>
 </div>
 <?php if ($flash !== null): ?>
 <div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
@@ -155,7 +155,14 @@ $categories = nano_admin_categories();
 </form>
 
 <?php if (empty($posts)): ?>
+<?php if (empty($all_posts)): ?>
+<div class="empty-state">
+  <p>No posts yet. Welcome to Nano CMS.</p>
+  <p><a class="button-primary" href="edit.php">Create your first post</a></p>
+</div>
+<?php else: ?>
 <p class="empty">No posts match the current filter.</p>
+<?php endif; ?>
 <?php else: ?>
 <table>
 <thead>
