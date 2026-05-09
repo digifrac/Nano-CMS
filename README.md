@@ -2,6 +2,8 @@
 
 A flat-file PHP blog system for adding SEO-driven content to existing static HTML/CSS sites.
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF4D00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/digitalfracture)
+
 > **Status: v1.0.0 — feature complete.** First live-host verification in progress. See [INSTALL.md](INSTALL.md) for deployment.
 
 ---
