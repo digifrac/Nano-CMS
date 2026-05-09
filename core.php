@@ -187,7 +187,28 @@ function nano_render_markdown(string $body): string
         $parsedown->setSafeMode(true);
     }
     $html = $parsedown->text($body);
+    $html = nano_rewrite_media_image_srcs($html);
     return nano_expand_shortcodes($html);
+}
+
+/**
+ * Markdown image syntax `![alt](2026-05-09-abc123.jpg)` renders to
+ * `<img src="2026-05-09-abc123.jpg">` - a bare filename, which the
+ * browser resolves relative to the current post URL and 404s. The
+ * actual file lives at `/blog/media/...`. Patch the src to point at
+ * the right place and add lazy loading while we're at it.
+ *
+ * Only matches our own randomized filename pattern so user-supplied
+ * external URLs (https://..., data:, etc) are left alone.
+ */
+function nano_rewrite_media_image_srcs(string $html): string
+{
+    $pattern = '~<img\s+([^>]*?)src="(\d{4}-\d{2}-\d{2}-[0-9a-f]{6}\.(?:jpg|jpeg|png|gif|webp))"~i';
+    $result = preg_replace_callback($pattern, static function (array $m): string {
+        $url = nano_e(nano_media_url($m[2]));
+        return '<img ' . $m[1] . 'src="' . $url . '" loading="lazy"';
+    }, $html);
+    return $result ?? $html;
 }
 
 function nano_expand_shortcodes(string $html): string
