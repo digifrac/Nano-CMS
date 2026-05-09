@@ -43,7 +43,7 @@ ob_start();
   <nav class="nano-blog-breadcrumb" aria-label="Breadcrumb">
     <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e(nano_blog_label()) ?></a>
     <span aria-hidden="true">&rsaquo;</span>
-    <span><?= nano_e($heading) ?></span>
+    <span aria-current="page"><?= nano_e($heading) ?></span>
   </nav>
 <?php endif; ?>
   <h1><?= nano_e($heading) ?></h1>

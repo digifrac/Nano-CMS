@@ -60,6 +60,8 @@ ob_start();
     <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e(nano_blog_label()) ?></a>
     <span aria-hidden="true">&rsaquo;</span>
     <a href="<?= nano_e(nano_category_url((string)$fm['category'])) ?>"><?= nano_e($category_label) ?></a>
+    <span aria-hidden="true">&rsaquo;</span>
+    <span aria-current="page"><?= nano_e((string)$fm['title']) ?></span>
   </nav>
   <header>
     <h1><?= nano_e((string)$fm['title']) ?></h1>
