@@ -19,7 +19,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
 
 const NANO_ADMIN_VERSION = '1.0.0';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
-const NANO_ADMIN_SESSION_LIFETIME = 60 * 60 * 24 * 30;   // ~30 days
+const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;
 const NANO_ADMIN_RATE_LIMIT_WINDOW = 60 * 15;            // 15 minutes
 const NANO_ADMIN_RATE_LIMIT_BLOCK = 60 * 60;             // 1 hour
@@ -70,7 +70,7 @@ function nano_admin_session_start(): void
     }
     session_name(NANO_ADMIN_SESSION_NAME);
     session_set_cookie_params([
-        'lifetime' => NANO_ADMIN_SESSION_LIFETIME,
+        'lifetime' => 0, // browser-session cookie: deleted when the browser closes
         'path' => '/',
         'secure' => true,
         'httponly' => true,
@@ -79,10 +79,39 @@ function nano_admin_session_start(): void
     @session_start();
 }
 
+function nano_admin_pw_fingerprint(string $hash): string
+{
+    return hash('sha256', 'nano-pw-fp|' . $hash);
+}
+
 function nano_admin_logged_in(): bool
 {
     nano_admin_session_start();
-    return !empty($_SESSION['nano_admin_logged_in']);
+
+    if (empty($_SESSION['nano_admin_logged_in'])) {
+        return false;
+    }
+
+    $last = (int)($_SESSION['last_activity'] ?? 0);
+    if ($last === 0 || (time() - $last) > NANO_ADMIN_IDLE_TIMEOUT) {
+        nano_admin_logout();
+        return false;
+    }
+
+    if (!nano_admin_config_exists()) {
+        nano_admin_logout();
+        return false;
+    }
+    $cfg = nano_admin_load_config();
+    $current_fp = nano_admin_pw_fingerprint((string)($cfg['password_hash'] ?? ''));
+    $session_fp = (string)($_SESSION['pw_fp'] ?? '');
+    if ($session_fp === '' || !hash_equals($current_fp, $session_fp)) {
+        nano_admin_logout();
+        return false;
+    }
+
+    $_SESSION['last_activity'] = time();
+    return true;
 }
 
 function nano_admin_require_login(): void
@@ -149,6 +178,8 @@ function nano_admin_login_attempt(string $password, string $ip): array
     @session_regenerate_id(true);
     $_SESSION['nano_admin_logged_in'] = true;
     $_SESSION['nano_csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['last_activity'] = time();
+    $_SESSION['pw_fp'] = nano_admin_pw_fingerprint($hash);
     nano_admin_rate_limit_clear($ip);
     return ['ok' => true];
 }
