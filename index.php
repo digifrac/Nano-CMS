@@ -41,7 +41,7 @@ ob_start();
 <div class="nano-blog-list">
 <?php if ($category !== null): ?>
   <nav class="nano-blog-breadcrumb" aria-label="Breadcrumb">
-    <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e($site_name) ?></a>
+    <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e(nano_blog_label()) ?></a>
     <span aria-hidden="true">&rsaquo;</span>
     <span><?= nano_e($heading) ?></span>
   </nav>

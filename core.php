@@ -86,6 +86,29 @@ function nano_index_url(int $page = 1): string
     return nano_base_url() . '/page/' . $page . '/';
 }
 
+/**
+ * Label used for the blog index in breadcrumbs and similar nav.
+ * Reads `blog_label` from config if set; otherwise derives a label
+ * from the last path segment of base_url (so `/blog/` -> "Blog",
+ * `/news/` -> "News"). Falls back to "Home" if the blog is at the
+ * site root.
+ */
+function nano_blog_label(): string
+{
+    $cfg = nano_config();
+    $custom = trim((string)($cfg['blog_label'] ?? ''));
+    if ($custom !== '') {
+        return $custom;
+    }
+    $path = (string)(parse_url(nano_base_url(), PHP_URL_PATH) ?? '');
+    $segment = trim($path, '/');
+    if ($segment === '') {
+        return 'Home';
+    }
+    $last = basename($segment);
+    return ucfirst(str_replace(['-', '_'], ' ', $last));
+}
+
 /* ------------------------------------------------------------------------- */
 /* Slug sanitization                                                          */
 /* ------------------------------------------------------------------------- */

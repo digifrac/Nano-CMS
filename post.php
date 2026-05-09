@@ -57,7 +57,7 @@ ob_start();
 ?>
 <article class="nano-blog-post">
   <nav class="nano-blog-breadcrumb" aria-label="Breadcrumb">
-    <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e($site_name) ?></a>
+    <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e(nano_blog_label()) ?></a>
     <span aria-hidden="true">&rsaquo;</span>
     <a href="<?= nano_e(nano_category_url((string)$fm['category'])) ?>"><?= nano_e($category_label) ?></a>
   </nav>
