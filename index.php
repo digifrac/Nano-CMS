@@ -39,6 +39,13 @@ $heading = $category !== null
 ob_start();
 ?>
 <div class="nano-blog-list">
+<?php if ($category !== null): ?>
+  <nav class="nano-blog-breadcrumb" aria-label="Breadcrumb">
+    <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e($site_name) ?></a>
+    <span aria-hidden="true">&rsaquo;</span>
+    <span><?= nano_e($heading) ?></span>
+  </nav>
+<?php endif; ?>
   <h1><?= nano_e($heading) ?></h1>
 <?php if (empty($slice)): ?>
   <p>No posts yet.</p>

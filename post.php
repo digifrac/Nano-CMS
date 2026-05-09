@@ -49,13 +49,22 @@ if (!empty($fm['draft']) && !$is_admin_preview) {
     exit;
 }
 
+$cfg = nano_config();
+$site_name = (string)($cfg['site_name'] ?? '');
+$category_label = ucfirst(str_replace('-', ' ', (string)$fm['category']));
+
 ob_start();
 ?>
 <article class="nano-blog-post">
+  <nav class="nano-blog-breadcrumb" aria-label="Breadcrumb">
+    <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e($site_name) ?></a>
+    <span aria-hidden="true">&rsaquo;</span>
+    <a href="<?= nano_e(nano_category_url((string)$fm['category'])) ?>"><?= nano_e($category_label) ?></a>
+  </nav>
   <header>
     <h1><?= nano_e((string)$fm['title']) ?></h1>
     <time datetime="<?= nano_e((string)$fm['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fm['date']))) ?></time>
-    <p class="nano-blog-category"><a href="<?= nano_e(nano_category_url((string)$fm['category'])) ?>"><?= nano_e(ucfirst(str_replace('-', ' ', (string)$fm['category']))) ?></a></p>
+    <p class="nano-blog-category"><a href="<?= nano_e(nano_category_url((string)$fm['category'])) ?>"><?= nano_e($category_label) ?></a></p>
 <?php if (!empty($fm['draft']) && $is_admin_preview): ?>
     <p class="nano-blog-draft-banner">DRAFT PREVIEW</p>
 <?php endif; ?>
@@ -72,8 +81,6 @@ ob_start();
 <?php
 $content = ob_get_clean();
 
-$cfg = nano_config();
-$site_name = (string)($cfg['site_name'] ?? '');
 $page_title = nano_e((string)$fm['title'] . ($site_name !== '' ? ' - ' . $site_name : ''));
 $page_description = nano_e((string)$fm['description']);
 $meta_tags = nano_render_meta_tags_for_post($fm);

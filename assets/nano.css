@@ -169,6 +169,17 @@
   font-size: 0.875em;
 }
 .nano-blog-category a { color: inherit; }
+.nano-blog-breadcrumb {
+  margin: 0 0 var(--nano-spacing-unit) 0;
+  font-size: 0.875em;
+  color: var(--nano-color-text-muted);
+}
+.nano-blog-breadcrumb a {
+  color: var(--nano-color-text-muted);
+  text-decoration: none;
+}
+.nano-blog-breadcrumb a:hover { color: var(--nano-color-accent); text-decoration: underline; }
+.nano-blog-breadcrumb span[aria-hidden] { margin: 0 0.4em; opacity: 0.6; }
 .nano-blog-hero { margin: 0 0 calc(var(--nano-spacing-unit) * 2) 0; }
 .nano-blog-draft-banner {
   background: #fff8c4;
