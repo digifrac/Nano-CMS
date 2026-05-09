@@ -77,18 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nano CMS - Setup</title>
-<style>
-body { font-family: system-ui, sans-serif; max-width: 540px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
-h1 { font-size: 1.5rem; }
-label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
-input { width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 1rem; }
-.errors { background: #fee; border: 1px solid #f99; padding: 0.5rem 1rem; border-radius: 4px; margin: 1rem 0; }
-.errors ul { margin: 0.25rem 0; padding-left: 1.25rem; }
-.help { font-size: 0.875rem; color: #666; margin: 0.25rem 0 0; }
-button { margin-top: 1.5rem; padding: 0.5rem 1.5rem; font-size: 1rem; cursor: pointer; }
-</style>
+<link rel="stylesheet" href="assets/admin.css">
 </head>
-<body>
+<body class="setup">
 <h1>Nano CMS - first-time setup</h1>
 <p>Choose a password and enter the site details. This wizard runs only once.</p>
 <?php if (!empty($errors)): ?>

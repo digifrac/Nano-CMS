@@ -50,25 +50,7 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Media - <?= nano_admin_e($site_name) ?></title>
-<style>
-body { font-family: system-ui, sans-serif; max-width: 920px; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
-h1 { font-size: 1.5rem; margin: 0; }
-.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
-.flash-ok { background: #efe; border: 1px solid #9c9; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-.flash-error { background: #fee; border: 1px solid #f99; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-.warn { background: #fce8b2; border: 1px solid #cba62b; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-.upload { background: #f5f5f5; padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; }
-.upload input[type=file] { margin-right: 0.5rem; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
-.tile { border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; background: #fff; }
-.tile img { width: 100%; height: 120px; object-fit: cover; border-radius: 3px; background: #fafafa; }
-.tile .meta { font-size: 0.75rem; color: #666; margin-top: 0.25rem; word-break: break-all; }
-.tile .actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; }
-.tile button, .tile .copy { font-size: 0.75rem; padding: 0.2rem 0.5rem; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; font-family: inherit; }
-.tile .danger { color: #c00; border-color: #f99; }
-.unused-tag { background: #fce8b2; color: #735c00; padding: 0.05rem 0.4rem; border-radius: 3px; font-size: 0.7rem; margin-left: 0.25rem; }
-.empty { color: #666; font-style: italic; padding: 1rem 0; }
-</style>
+<link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
 <div class="bar">
@@ -90,13 +72,13 @@ h1 { font-size: 1.5rem; margin: 0; }
   <?= nano_admin_csrf_field() ?>
   <input type="file" name="image" accept=".jpg,.jpeg,.png,.gif,.webp" <?= $reencoder_available ? 'required' : 'disabled' ?>>
   <button type="submit" <?= $reencoder_available ? '' : 'disabled' ?>>Upload</button>
-  <span style="margin-left:0.5rem; font-size:0.8rem; color:#666;">jpg/png/gif/webp, up to 5 MB. Files are re-encoded on save.</span>
+  <span class="help">jpg/png/gif/webp, up to 5 MB. Files are re-encoded on save.</span>
 </form>
 
 <?php if (empty($items)): ?>
 <p class="empty">No media uploaded yet.</p>
 <?php else: ?>
-<div class="grid">
+<div class="media-grid">
 <?php foreach ($items as $it): $name = $it['filename']; $is_used = isset($used[strtolower($name)]); ?>
   <div class="tile">
     <img src="<?= nano_admin_e($base_url . '/media/' . $name) ?>" alt="" loading="lazy">
@@ -106,8 +88,8 @@ h1 { font-size: 1.5rem; margin: 0; }
       <br><?= number_format($it['bytes'] / 1024, 1) ?> KB &middot; <?= nano_admin_e(date('Y-m-d', $it['mtime'])) ?>
     </div>
     <div class="actions">
-      <button type="button" class="copy" data-md="![](<?= nano_admin_e($name) ?>)">Copy MD</button>
-      <form method="post" action="?action=delete" style="display:inline" onsubmit="return confirm('Delete <?= nano_admin_e($name) ?>?');">
+      <button type="button" class="js-copy" data-md="![](<?= nano_admin_e($name) ?>)">Copy MD</button>
+      <form method="post" action="?action=delete" onsubmit="return confirm('Delete <?= nano_admin_e($name) ?>?');">
         <?= nano_admin_csrf_field() ?>
         <input type="hidden" name="filename" value="<?= nano_admin_e($name) ?>">
         <button type="submit" class="danger">Delete</button>
@@ -119,7 +101,7 @@ h1 { font-size: 1.5rem; margin: 0; }
 <?php endif; ?>
 
 <script>
-document.querySelectorAll('button.copy').forEach(function (b) {
+document.querySelectorAll('button.js-copy').forEach(function (b) {
   b.addEventListener('click', function () {
     var md = b.getAttribute('data-md');
     if (navigator.clipboard) {

@@ -57,19 +57,12 @@ if (!nano_admin_logged_in()) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= nano_admin_e($site_name) ?> - Sign in</title>
-<style>
-body { font-family: system-ui, sans-serif; max-width: 360px; margin: 4rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
-h1 { font-size: 1.25rem; }
-label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
-input { width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 1rem; }
-.error { background: #fee; border: 1px solid #f99; padding: 0.5rem 1rem; border-radius: 4px; margin: 1rem 0; }
-button { margin-top: 1rem; padding: 0.5rem 1.5rem; font-size: 1rem; cursor: pointer; }
-</style>
+<link rel="stylesheet" href="assets/admin.css">
 </head>
-<body>
+<body class="login">
 <h1>Sign in to <?= nano_admin_e($site_name) ?></h1>
 <?php if ($error !== null): ?>
-<div class="error"><?= nano_admin_e($error) ?></div>
+<div class="flash-error"><?= nano_admin_e($error) ?></div>
 <?php endif; ?>
 <form method="post" autocomplete="off">
 <?= nano_admin_csrf_field() ?>
@@ -133,24 +126,7 @@ $categories = nano_admin_categories();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= nano_admin_e($site_name) ?> - Admin</title>
-<style>
-body { font-family: system-ui, sans-serif; max-width: 920px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
-h1 { font-size: 1.5rem; margin: 0; }
-.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
-.bar a { margin-left: 0.75rem; }
-.toolbar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 0.5rem 0 1.5rem; padding: 0.75rem 1rem; background: #f5f5f5; border-radius: 4px; }
-.toolbar .new { margin-left: auto; padding: 0.4rem 0.9rem; background: #0066cc; color: #fff; text-decoration: none; border-radius: 4px; }
-.flash-ok { background: #efe; border: 1px solid #9c9; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-.flash-error { background: #fee; border: 1px solid #f99; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #eee; vertical-align: top; }
-th { background: #fafafa; font-size: 0.875rem; }
-.draft-tag { background: #fce8b2; color: #735c00; padding: 0.05rem 0.4rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.4rem; }
-.actions { white-space: nowrap; }
-.actions form { display: inline; }
-.actions button { background: none; border: none; color: #c00; cursor: pointer; padding: 0; font: inherit; }
-.empty { color: #666; font-style: italic; padding: 1rem 0; }
-</style>
+<link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
 <div class="bar">
@@ -195,7 +171,7 @@ th { background: #fafafa; font-size: 0.875rem; }
 <td><?= nano_admin_e((string)$fm['date']) ?></td>
 <td><?= nano_admin_e((string)($fm['updated'] ?? '')) ?></td>
 <td><?= nano_admin_e((string)($fm['category'] ?? '')) ?></td>
-<td class="actions">
+<td class="row-actions">
   <a href="edit.php?slug=<?= nano_admin_e((string)$fm['slug']) ?>">Edit</a>
   <form method="post" action="?action=delete" onsubmit="return confirm('Delete &quot;<?= nano_admin_e((string)$fm['title']) ?>&quot;? This cannot be undone.');">
     <?= nano_admin_csrf_field() ?>

@@ -153,28 +153,7 @@ $preview_url = (!$is_new && $base_url !== '')
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= nano_admin_e($is_new ? 'New post' : ('Edit: ' . $form['title'])) ?> - <?= nano_admin_e($site_name) ?></title>
-<style>
-body { font-family: system-ui, sans-serif; max-width: 920px; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
-h1 { font-size: 1.5rem; margin: 0; }
-.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
-.errors { background: #fee; border: 1px solid #f99; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-.errors ul { margin: 0.25rem 0; padding-left: 1.25rem; }
-.flash { background: #efe; border: 1px solid #9c9; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0 1rem; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
-.grid > .full { grid-column: 1 / -1; }
-label { display: block; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem; }
-input[type=text], input[type=date], input[type=url], textarea, select { width: 100%; padding: 0.45rem 0.55rem; box-sizing: border-box; font-size: 1rem; font-family: inherit; }
-textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; min-height: 22rem; }
-.help { font-size: 0.8rem; color: #666; margin: 0.15rem 0 0; }
-.toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.5rem 0 0.25rem; }
-.toolbar button { padding: 0.25rem 0.6rem; font-size: 0.875rem; cursor: pointer; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; }
-.actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-.actions button.primary { padding: 0.5rem 1.5rem; font-size: 1rem; background: #0066cc; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-.actions button.danger { padding: 0.5rem 1rem; font-size: 0.875rem; background: #fff; color: #c00; border: 1px solid #c00; border-radius: 4px; cursor: pointer; }
-.actions a { margin-left: auto; }
-.checkbox-row { display: flex; align-items: center; gap: 0.5rem; }
-.counter { font-size: 0.75rem; color: #666; margin-top: 0.15rem; }
-</style>
+<link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
 <div class="bar">
@@ -191,7 +170,7 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 <ul><?php foreach ($errors as $e): ?><li><?= nano_admin_e($e) ?></li><?php endforeach; ?></ul>
 </div>
 <?php elseif ($flash !== null): ?>
-<div class="flash"><?= nano_admin_e($flash) ?></div>
+<div class="flash-ok"><?= nano_admin_e($flash) ?></div>
 <?php endif; ?>
 
 <form method="post" autocomplete="off">
@@ -230,16 +209,16 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
     <label>Image alt text<input type="text" name="image_alt" value="<?= nano_admin_e($form['image_alt']) ?>"></label>
   </div>
   <div class="full checkbox-row">
-    <label style="margin:0;"><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>
+    <label><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>
 <?php if ($preview_url !== null): ?>
-    <span style="margin-left:auto;">
+    <span class="preview-link">
       <a href="<?= nano_admin_e($preview_url) ?>" target="_blank" rel="noopener">Preview as draft</a>
     </span>
 <?php endif; ?>
   </div>
   <div class="full">
     <label>Body (Markdown)</label>
-    <div class="toolbar">
+    <div class="md-toolbar">
       <button type="button" data-md="bold">B</button>
       <button type="button" data-md="italic"><em>I</em></button>
       <button type="button" data-md="link">Link</button>
@@ -260,7 +239,7 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 </form>
 
 <?php if (!$is_new): ?>
-<form method="post" action="index.php?action=delete" style="margin-top:1.5rem;"
+<form method="post" action="index.php?action=delete" class="delete-form"
       onsubmit="return confirm('Delete this post? This cannot be undone.');">
   <?= nano_admin_csrf_field() ?>
   <input type="hidden" name="slug" value="<?= nano_admin_e((string)$original_fm['slug']) ?>">
@@ -272,7 +251,7 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 (function () {
   var ta = document.getElementById('nano-body');
   if (ta) {
-    document.querySelectorAll('.toolbar button[data-md]').forEach(function (btn) {
+    document.querySelectorAll('.md-toolbar button[data-md]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var kind = btn.getAttribute('data-md');
         var s = ta.selectionStart, e = ta.selectionEnd;
