@@ -181,6 +181,7 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
   <h1><?= nano_admin_e($is_new ? 'New post' : 'Edit post') ?></h1>
   <div>
     <a href="index.php">All posts</a>
+    | <a href="media.php">Media</a>
     | <a href="index.php?action=logout">Sign out</a>
   </div>
 </div>

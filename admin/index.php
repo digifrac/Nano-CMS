@@ -155,7 +155,7 @@ th { background: #fafafa; font-size: 0.875rem; }
 <body>
 <div class="bar">
   <h1><?= nano_admin_e($site_name) ?> - admin</h1>
-  <div><a href="?action=logout">Sign out</a></div>
+  <div><a href="media.php">Media</a> | <a href="?action=logout">Sign out</a></div>
 </div>
 <?php if ($flash !== null): ?>
 <div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
