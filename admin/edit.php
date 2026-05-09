@@ -133,7 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             nano_admin_save_post($fm_to_save, $form['body'], $original_filepath);
             nano_regenerate_static();
             nano_admin_save_config($cfg); // bumps admin_version_last_used
-            header('Location: edit.php?slug=' . rawurlencode($intent_slug) . '&msg=saved');
+            $save_action = ((string)($_POST['save_action'] ?? 'list')) === 'continue' ? 'continue' : 'list';
+            if ($save_action === 'continue') {
+                header('Location: edit.php?slug=' . rawurlencode($intent_slug) . '&msg=saved');
+            } else {
+                header('Location: index.php?msg=saved');
+            }
             exit;
         } catch (RuntimeException $e) {
             $errors[] = $e->getMessage();
@@ -234,7 +239,8 @@ $preview_url = (!$is_new && $base_url !== '')
 </div>
 
 <div class="actions">
-  <button type="submit" class="primary"><?= $is_new ? 'Create post' : 'Save changes' ?></button>
+  <button type="submit" name="save_action" value="list" class="primary"><?= $is_new ? 'Create and return to list' : 'Save and return to list' ?></button>
+  <button type="submit" name="save_action" value="continue">Save and keep editing</button>
   <a href="index.php">Cancel</a>
 </div>
 
