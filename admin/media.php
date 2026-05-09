@@ -88,7 +88,8 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
       <br><?= number_format($it['bytes'] / 1024, 1) ?> KB &middot; <?= nano_admin_e(date('Y-m-d', $it['mtime'])) ?>
     </div>
     <div class="actions">
-      <button type="button" class="js-copy" data-md="![](<?= nano_admin_e($name) ?>)">Copy MD</button>
+      <button type="button" class="js-copy" data-clip="![](<?= nano_admin_e($name) ?>)" title="Copy Markdown image syntax for the post body">Copy MD</button>
+      <button type="button" class="js-copy" data-clip="<?= nano_admin_e($name) ?>" title="Copy just the filename for the frontmatter image: field">Copy name</button>
       <form method="post" action="?action=delete" onsubmit="return confirm('Delete <?= nano_admin_e($name) ?>?');">
         <?= nano_admin_csrf_field() ?>
         <input type="hidden" name="filename" value="<?= nano_admin_e($name) ?>">
@@ -103,15 +104,15 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
 <script>
 document.querySelectorAll('button.js-copy').forEach(function (b) {
   b.addEventListener('click', function () {
-    var md = b.getAttribute('data-md');
+    var text = b.getAttribute('data-clip');
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(md).then(function () {
+      navigator.clipboard.writeText(text).then(function () {
         var orig = b.textContent;
         b.textContent = 'Copied!';
         setTimeout(function () { b.textContent = orig; }, 1200);
       });
     } else {
-      window.prompt('Copy this Markdown:', md);
+      window.prompt('Copy this:', text);
     }
   });
 });
