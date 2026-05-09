@@ -28,6 +28,10 @@
 !/media/.gitkeep
 !/media/.htaccess
 
+# Per-client sample/test posts dropped at the repo root during live-host
+# verification. These belong to a specific client deployment, not the CMS.
+/sample-*.md
+
 
 # -----------------------------------------------------------------------------
 # Per-deployment config - never commit (contains password hashes)

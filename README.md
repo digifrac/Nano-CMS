@@ -2,7 +2,7 @@
 
 A flat-file PHP blog system for adding SEO-driven content to existing static HTML/CSS sites.
 
-> **Status: in active development.** Not yet ready for production use. See [Roadmap](#roadmap) below.
+> **Status: v1.0.0 — feature complete.** First live-host verification in progress. See [INSTALL.md](INSTALL.md) for deployment.
 
 ---
 
@@ -147,26 +147,17 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 
 ---
 
-## Roadmap
+## What's in 1.0
 
-**v0.1 (current - in development):**
-- Frontend rendering, parser, file format
-- Basic single-post and index pages
+- Frontend rendering, parser, locked-in file format (see [FORMAT.md](FORMAT.md))
+- Single-post and index pages with category archives, breadcrumbs, clean URLs
 - `nano.css` neutral default stylesheet
-
-**v0.2:**
-- Sitemap and RSS generators
-- Universal portable admin (login, post editor, media manager)
-- Setup wizard for first-time deployment
-
-**v0.3:**
-- Documentation, deployment guide, example installation
-- First production deployment to a real client site
-
-**v1.0:**
-- Stable file format
-- Polished admin UX
-- Public release
+- Sitemap and RSS generators, regenerated atomically on every save
+- Universal portable admin: login, post editor, media manager
+- First-time setup wizard, version-compat check, atomic config write
+- HTTPS-only admin, CSRF on every POST, bcrypt + rate-limited login, browser-session cookies, idle-timeout sessions, password-hash-bound sessions
+- Image upload pipeline with GD/Imagick re-encode (defends against EXIF-payload smuggling)
+- Deployment guide ([INSTALL.md](INSTALL.md)) and pre-flight host check script
 
 **Possible future (no commitment):**
 - Two-factor authentication for the admin
@@ -180,9 +171,7 @@ Features explicitly **not** planned: multi-user accounts, plugin system, theme s
 
 ## Contributing
 
-The project is in early-stage solo development and not yet ready for outside contributions. Once v1 is stable, contribution guidelines will be added.
-
-Bug reports and architectural feedback are welcome via GitHub Issues even now.
+Solo-developed. Bug reports and architectural feedback are welcome via GitHub Issues. Pull requests are not currently accepted — the scope discipline that keeps the codebase small is hard to enforce from outside the project.
 
 ---
 
@@ -194,5 +183,6 @@ Bug reports and architectural feedback are welcome via GitHub Issues even now.
 
 ## See also
 
+- [`INSTALL.md`](INSTALL.md) - step-by-step deployment guide
 - [`FORMAT.md`](FORMAT.md) - on-disk file format contract (post files, frontmatter, config schema)
 - [Digital Fracture](https://digitalfracture.co.uk) - the developer's site
