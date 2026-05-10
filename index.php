@@ -36,14 +36,19 @@ $articles_per_row = (int)($cfg['articles_per_row'] ?? 3);
 if ($articles_per_row !== 3 && $articles_per_row !== 4) {
     $articles_per_row = 3;
 }
-// Thumbnail aspect ratio drives card image display: cards render at
-// the same ratio as configured thumbnails, so changes in the admin
-// settings actually show up on the page.
+// Thumbnail aspect ratios drive card-image display. Article cards and
+// category cards have independent dimension settings so their grids
+// can look different from one another.
 $thumb_w = (int)($cfg['thumb_width'] ?? 600);
 $thumb_h = (int)($cfg['thumb_height'] ?? 400);
 if ($thumb_w < 100 || $thumb_w > 2400) $thumb_w = 600;
 if ($thumb_h < 100 || $thumb_h > 2400) $thumb_h = 400;
-$grid_style = '--nano-thumb-aspect: ' . $thumb_w . ' / ' . $thumb_h . ';';
+$cat_thumb_w = (int)($cfg['cat_thumb_width'] ?? $thumb_w);
+$cat_thumb_h = (int)($cfg['cat_thumb_height'] ?? $thumb_h);
+if ($cat_thumb_w < 100 || $cat_thumb_w > 2400) $cat_thumb_w = $thumb_w;
+if ($cat_thumb_h < 100 || $cat_thumb_h > 2400) $cat_thumb_h = $thumb_h;
+$article_grid_style = '--nano-thumb-aspect: ' . $thumb_w . ' / ' . $thumb_h . ';';
+$category_grid_style = '--nano-thumb-aspect: ' . $cat_thumb_w . ' / ' . $cat_thumb_h . ';';
 
 if ($category !== null) {
     $all = nano_list_posts(['category' => $category]);
@@ -79,7 +84,7 @@ ob_start();
 <?php if (empty($slice)): ?>
   <p>No posts in this category yet.</p>
 <?php else: ?>
-  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $grid_style ?>">
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $article_grid_style ?>">
 <?php foreach ($slice as $entry): $fm = $entry['frontmatter']; ?>
     <article class="nano-blog-card<?= !empty($fm['image']) ? ' has-image' : '' ?>">
       <a href="<?= nano_e(nano_post_url((string)$fm['slug'], (string)$fm['category'])) ?>">
@@ -124,7 +129,7 @@ ob_start();
 <?php if (empty($categories)): ?>
   <p>No posts yet.</p>
 <?php else: ?>
-  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>; <?= $grid_style ?>">
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>; <?= $category_grid_style ?>">
 <?php foreach ($categories as $c):
     $post_word = $c['count'] === 1 ? 'article' : 'articles';
     $cat_image = nano_category_image_url($c['slug']);

@@ -221,6 +221,7 @@ function nano_admin_media_save_upload(array $file): array
 
 /**
  * Read thumbnail dimensions from config.json with sane fallbacks.
+ * Article cards use the `thumb_width` / `thumb_height` pair.
  * @return array{0:int, 1:int} [width, height]
  */
 function nano_admin_thumb_dimensions(): array
@@ -230,6 +231,24 @@ function nano_admin_thumb_dimensions(): array
     $h = (int)($cfg['thumb_height'] ?? NANO_ADMIN_THUMB_DEFAULT_HEIGHT);
     if ($w < 100 || $w > 2400) $w = NANO_ADMIN_THUMB_DEFAULT_WIDTH;
     if ($h < 100 || $h > 2400) $h = NANO_ADMIN_THUMB_DEFAULT_HEIGHT;
+    return [$w, $h];
+}
+
+/**
+ * Read category-image thumbnail dimensions from config.json. Falls
+ * back to article thumb dimensions, which fall back to the defaults.
+ * Lets the operator tune category-card and article-card crops
+ * independently without forcing both pairs to be set.
+ * @return array{0:int, 1:int} [width, height]
+ */
+function nano_admin_cat_thumb_dimensions(): array
+{
+    $cfg = nano_admin_load_config();
+    [$art_w, $art_h] = nano_admin_thumb_dimensions();
+    $w = (int)($cfg['cat_thumb_width'] ?? $art_w);
+    $h = (int)($cfg['cat_thumb_height'] ?? $art_h);
+    if ($w < 100 || $w > 2400) $w = $art_w;
+    if ($h < 100 || $h > 2400) $h = $art_h;
     return [$w, $h];
 }
 
@@ -437,7 +456,7 @@ function nano_admin_category_image_save_upload(string $slug, array $file): array
         return ['ok' => false, 'filename' => null, 'error' => 'Could not re-encode the image. Is it a valid ' . strtoupper($ext) . '?'];
     }
     @chmod($dest, 0644);
-    [$tw, $th] = nano_admin_thumb_dimensions();
+    [$tw, $th] = nano_admin_cat_thumb_dimensions();
     $thumb_path = $dir . '/' . nano_admin_media_thumb_filename($name);
     if (nano_admin_media_generate_thumb($dest, $thumb_path, $tw, $th, $ext)) {
         @chmod($thumb_path, 0644);

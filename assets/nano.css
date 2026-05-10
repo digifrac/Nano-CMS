@@ -259,7 +259,7 @@
 .nano-blog-category-card img {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: var(--nano-thumb-aspect, 3 / 2);
   object-fit: cover;
   object-position: 50% 35%;
   border-radius: var(--nano-radius) var(--nano-radius) 0 0;

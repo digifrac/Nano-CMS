@@ -29,16 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $arts_raw = (int)($_POST['articles_per_row'] ?? 0);
     $thumb_w = (int)($_POST['thumb_width'] ?? 0);
     $thumb_h = (int)($_POST['thumb_height'] ?? 0);
+    $cat_thumb_w = (int)($_POST['cat_thumb_width'] ?? 0);
+    $cat_thumb_h = (int)($_POST['cat_thumb_height'] ?? 0);
     $errors = [];
     if ($cats_raw !== 3 && $cats_raw !== 4) $errors[] = 'Categories per row must be 3 or 4.';
     if ($arts_raw !== 3 && $arts_raw !== 4) $errors[] = 'Articles per row must be 3 or 4.';
-    if ($thumb_w < 100 || $thumb_w > 2400) $errors[] = 'Thumbnail width must be between 100 and 2400.';
-    if ($thumb_h < 100 || $thumb_h > 2400) $errors[] = 'Thumbnail height must be between 100 and 2400.';
+    if ($thumb_w < 100 || $thumb_w > 2400) $errors[] = 'Article thumbnail width must be between 100 and 2400.';
+    if ($thumb_h < 100 || $thumb_h > 2400) $errors[] = 'Article thumbnail height must be between 100 and 2400.';
+    if ($cat_thumb_w < 100 || $cat_thumb_w > 2400) $errors[] = 'Category image width must be between 100 and 2400.';
+    if ($cat_thumb_h < 100 || $cat_thumb_h > 2400) $errors[] = 'Category image height must be between 100 and 2400.';
     if (empty($errors)) {
         $cfg['categories_per_row'] = $cats_raw;
         $cfg['articles_per_row'] = $arts_raw;
         $cfg['thumb_width'] = $thumb_w;
         $cfg['thumb_height'] = $thumb_h;
+        $cfg['cat_thumb_width'] = $cat_thumb_w;
+        $cfg['cat_thumb_height'] = $cat_thumb_h;
         nano_admin_save_config($cfg);
         $flash = ['ok', 'Settings saved.'];
     } else {
@@ -58,6 +64,10 @@ $thumb_width = (int)($cfg['thumb_width'] ?? 600);
 if ($thumb_width < 100 || $thumb_width > 2400) $thumb_width = 600;
 $thumb_height = (int)($cfg['thumb_height'] ?? 400);
 if ($thumb_height < 100 || $thumb_height > 2400) $thumb_height = 400;
+$cat_thumb_width = (int)($cfg['cat_thumb_width'] ?? $thumb_width);
+if ($cat_thumb_width < 100 || $cat_thumb_width > 2400) $cat_thumb_width = $thumb_width;
+$cat_thumb_height = (int)($cfg['cat_thumb_height'] ?? $thumb_height);
+if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $thumb_height;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,13 +111,22 @@ if ($thumb_height < 100 || $thumb_height > 2400) $thumb_height = 400;
   </label>
   <p class="help">How many article cards appear per row on category archive pages.</p>
 
-  <h2>Thumbnails</h2>
-  <p class="help">Hero images uploaded through the media manager get a smaller, pre-cropped thumbnail saved alongside them. Article cards on category pages use the thumbnail; the single-post hero uses the original. Default 600&times;400 (3:2 ratio). Changes apply only to <em>future</em> uploads.</p>
-  <label>Thumbnail width (px)
-    <input type="number" name="thumb_width" min="100" max="2400" step="10" value="<?= (int)$thumb_width ?>" required>
+  <h2>Article thumbnails</h2>
+  <p class="help">Hero images uploaded through the media manager get a smaller, pre-cropped thumbnail saved alongside them. Article cards use the thumbnail. The dimensions also drive the card display aspect ratio, so changes show up immediately on the public side. Thumbnail FILE size is regenerated only on future uploads.</p>
+  <label>Article thumbnail width (px)
+    <input type="number" name="thumb_width" min="100" max="2400" step="1" value="<?= (int)$thumb_width ?>" required>
   </label>
-  <label>Thumbnail height (px)
-    <input type="number" name="thumb_height" min="100" max="2400" step="10" value="<?= (int)$thumb_height ?>" required>
+  <label>Article thumbnail height (px)
+    <input type="number" name="thumb_height" min="100" max="2400" step="1" value="<?= (int)$thumb_height ?>" required>
+  </label>
+
+  <h2>Category images</h2>
+  <p class="help">Category cards on the homepage can have their own hero image (managed on the Categories page). These dimensions are independent of article thumbnails so the two grids can be tuned separately.</p>
+  <label>Category image width (px)
+    <input type="number" name="cat_thumb_width" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_width ?>" required>
+  </label>
+  <label>Category image height (px)
+    <input type="number" name="cat_thumb_height" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_height ?>" required>
   </label>
 
   <button type="submit">Save settings</button>

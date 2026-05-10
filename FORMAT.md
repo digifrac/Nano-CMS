@@ -21,8 +21,11 @@ rather than silently corrupting data.
 
 - Two optional grid-layout fields added to `config.json`:
   `categories_per_row` and `articles_per_row` (default 3 each).
-- Two optional thumbnail-dimension fields added to `config.json`:
-  `thumb_width` (default 600) and `thumb_height` (default 400).
+- Four optional thumbnail-dimension fields added to `config.json`:
+  `thumb_width` (default 600) and `thumb_height` (default 400) for
+  article thumbnails, plus `cat_thumb_width` and `cat_thumb_height`
+  for category images. The category pair falls back to the article
+  pair when not set.
 - Convention added: media uploads through the admin save a
   pre-cropped thumbnail alongside the original at
   `<base>-thumb.<ext>` (see "Media" section).
@@ -303,8 +306,10 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
 | `posts_per_page`          | integer       | Pagination size for category archive pages. Default 10.             |
 | `categories_per_row`      | integer       | Category cards per row on the homepage. Allowed `3` or `4`. Default `3`. Optional, added in 1.1. |
 | `articles_per_row`        | integer       | Article cards per row on category archives. Allowed `3` or `4`. Default `3`. Optional, added in 1.1. |
-| `thumb_width`             | integer       | Width in pixels of auto-generated thumbnails. Range 100-2400. Default `600`. Optional, added in 1.1. |
-| `thumb_height`            | integer       | Height in pixels of auto-generated thumbnails. Range 100-2400. Default `400`. Optional, added in 1.1. |
+| `thumb_width`             | integer       | Width in pixels of auto-generated article thumbnails. Range 100-2400. Default `600`. Optional, added in 1.1. |
+| `thumb_height`            | integer       | Height in pixels of auto-generated article thumbnails. Range 100-2400. Default `400`. Optional, added in 1.1. |
+| `cat_thumb_width`         | integer       | Width in pixels of auto-generated category-image thumbnails. Range 100-2400. Falls back to `thumb_width` when absent. Optional, added in 1.1. |
+| `cat_thumb_height`        | integer       | Height in pixels of auto-generated category-image thumbnails. Range 100-2400. Falls back to `thumb_height` when absent. Optional, added in 1.1. |
 | `password_hash`           | string        | bcrypt hash from PHP `password_hash()`. Single password per site.   |
 | `created`                 | ISO 8601 UTC  | Set by setup wizard. Informational.                                 |
 | `admin_version_last_used` | semver string | Bumped on every save. See compatibility check below.                |

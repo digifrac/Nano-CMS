@@ -153,3 +153,16 @@ old bookmarks land on the new layout without redirect.
 The visual treatment of the category cards may evolve without a
 format-version bump, since it is implementation detail rather than
 on-disk contract.
+
+---
+
+## Future work (not in 1.1)
+
+**Per-post separate thumbnail and hero image fields.** Currently the
+post's `image` frontmatter field is the source for both the article
+card thumbnail (cropped via the auto-thumbnail pipeline) and the
+single-post hero (rendered full-size). For images whose composition
+fights the auto-crop in either context, a Joomla-style two-image
+pattern (separate `thumbnail:` and `image:` frontmatter fields,
+either of which can fall back to the other) is the planned next
+step. Tracked for v1.2.
