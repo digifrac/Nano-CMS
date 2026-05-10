@@ -17,7 +17,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     exit;
 }
 
-const NANO_ADMIN_VERSION = '1.0.0';
+const NANO_ADMIN_VERSION = '1.1.0';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;
@@ -32,6 +32,30 @@ const NANO_ADMIN_PASSWORD_MIN = 12;
 function nano_admin_e(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+/**
+ * Render the standard admin-page footer: a credit/support/source link
+ * row plus the running version. Called from every admin page just
+ * before </body> so any future link-list or version changes are a
+ * single edit.
+ */
+function nano_admin_render_footer(): string
+{
+    $links = [
+        ['Created by Digital Fracture', 'https://digitalfracture.co.uk/index.html'],
+        ['Buy Me a Coffee', 'https://buymeacoffee.com/digitalfracture'],
+        ['GitHub', 'https://github.com/digifrac/Nano-CMS/tree/main'],
+    ];
+    $rendered = [];
+    foreach ($links as [$label, $url]) {
+        $rendered[] = '<a href="' . nano_admin_e($url) . '" target="_blank" rel="noopener">'
+            . nano_admin_e($label) . '</a>';
+    }
+    return '<footer class="admin-footer">'
+        . '<p class="admin-links">' . implode(' &middot; ', $rendered) . '</p>'
+        . '<p class="admin-version">Nano CMS v' . nano_admin_e(NANO_ADMIN_VERSION) . '</p>'
+        . '</footer>';
 }
 
 /* ------------------------------------------------------------------------ */

@@ -24,7 +24,7 @@ It is deliberately **not** a general-purpose CMS. It does one thing - serve a bl
 - **Per-site config lives outside webroot.** Password hashes and site settings stored in a JSON file that's structurally unreachable via HTTP.
 - **No frameworks.** No Bootstrap, no Tailwind, no React, no jQuery, no build step. Hand-written PHP, scoped CSS, and minimal vanilla JavaScript.
 
-Total size: under 4000 lines of hand-written PHP, CSS, and minimal JS, and the whole CMS deploys in under 300KB on disk (vendored Parsedown included). For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
+Total size: around 4500 lines of hand-written PHP, CSS, and minimal JS, and the whole CMS deploys in under 350KB on disk (vendored Parsedown included). For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
 
 ---
 
@@ -161,11 +161,23 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 - Image upload pipeline with GD/Imagick re-encode (defends against EXIF-payload smuggling)
 - Deployment guide ([INSTALL.md](INSTALL.md)) and pre-flight host check script
 
+## What's new in 1.1
+
+- **Blog homepage redesigned as a category landing.** Visitors arriving at `{base_url}/` see a card grid of categories (sorted by post count) instead of a feed of recent posts. Pick a topic, click into the category archive, read articles there. See [CATEGORIES.md](CATEGORIES.md) for the rationale.
+- **Independent 3- or 4-column grids** for the homepage category landing and the category archive article list. Each grid has its own setting (`categories_per_row` and `articles_per_row`), so any of 3-3, 3-4, 4-3, or 4-4 works.
+- **New admin settings page** at `/admin/settings.php` exposes the grid settings and thumbnail dimensions. Future settings can grow there without adding new admin pages.
+- **Auto-generated thumbnails on every upload** - the admin's image pipeline saves a pre-cropped thumb (default 600&times;400, 3:2) alongside each original. Article cards use the thumb so category archives stay light; single-post heroes keep the full-size image. Existing media falls back to the original until re-uploaded.
+- **One image per category, optional.** The new admin Categories page lets you attach a hero image to each category. The image appears at the top of that category's card on the homepage. No JSON metadata - the file's existence at `/media/category-<slug>.<ext>` is the metadata.
+- **Polished card visuals** - subtle accent on hover, gentle lift, cleaner typography. Underline rules removed from hyperlinks site-wide; links signal interactivity through colour and hover state instead.
+- **URL structure simplified.** The `/category/` prefix is removed. Category archives are now `/{cat}/`, posts are `/{cat}/{slug}/`. Pagination is `/{cat}/page/N/`.
+- **Admin login screen and every admin page now show the version** in a small footer line, so a non-developer can tell at a glance which version is running.
+
 **Possible future (no commitment):**
 - Two-factor authentication for the admin
 - Tag support alongside categories
 - Image gallery shortcode
 - Dark mode CSS variants
+- Admin settings page for `site_name`, `posts_per_page`, etc. (currently set at install via the setup wizard, only changeable by hand-editing `config.json`)
 
 Features explicitly **not** planned: multi-user accounts, plugin system, theme system, WYSIWYG editor, comments, scheduled publishing, post revisions. The project will not accept feature requests for any of these.
 
@@ -187,4 +199,5 @@ Solo-developed. Bug reports and architectural feedback are welcome via GitHub Is
 
 - [`INSTALL.md`](INSTALL.md) - step-by-step deployment guide
 - [`FORMAT.md`](FORMAT.md) - on-disk file format contract (post files, frontmatter, config schema)
+- [`CATEGORIES.md`](CATEGORIES.md) - categories index page spec (1.1)
 - [Digital Fracture](https://digitalfracture.co.uk) - the developer's site

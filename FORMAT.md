@@ -10,12 +10,27 @@ codebases and a bump to `format_version` in `config.json`.
 
 ## Format version
 
-Current: **1.0**
+Current: **1.1**
 
 The version string is recorded in `config.json` at the `format_version`
 field. Future Nano CMS releases check this on startup. An admin running an
 older format than the version recorded by the last save refuses to operate
 rather than silently corrupting data.
+
+**Changes from 1.0:**
+
+- Two optional grid-layout fields added to `config.json`:
+  `categories_per_row` and `articles_per_row` (default 3 each).
+- Two optional thumbnail-dimension fields added to `config.json`:
+  `thumb_width` (default 600) and `thumb_height` (default 400).
+- Convention added: media uploads through the admin save a
+  pre-cropped thumbnail alongside the original at
+  `<base>-thumb.<ext>` (see "Media" section).
+
+Existing 1.0 installs remain compatible. All new fields fall back to
+their defaults when absent; thumbnails are generated lazily for any
+new upload, with the frontend falling back to the original file when
+no thumbnail exists.
 
 ---
 
@@ -200,6 +215,39 @@ Example: `2026-05-06-a4f8b2.jpg`. User-supplied filenames are never
 preserved (avoids collisions, sanitization issues, and information
 leakage about the user's local filesystem).
 
+**Category images (added in 1.1):** in addition to randomly-named
+post hero images, the admin can attach one image per category. These
+live in `/media/` with a fixed filename:
+
+```
+category-<slug>.<ext>
+category-<slug>-thumb.<ext>      (auto-generated thumbnail)
+```
+
+Example: `category-web-design.jpg`. The file's existence at this
+path IS the metadata - no JSON sidecar, no `config.json` entry. The
+frontend's `nano_category_image_url($slug)` checks this naming
+convention and returns the URL when found.
+
+**Thumbnail companion file (added in 1.1):** every successful upload
+(both regular media and category images) also writes a pre-cropped
+thumbnail at the same path with a `-thumb` suffix before the extension:
+
+```
+2026-05-06-a4f8b2.jpg          (original)
+2026-05-06-a4f8b2-thumb.jpg    (auto-generated thumbnail)
+```
+
+Dimensions come from `thumb_width` and `thumb_height` in `config.json`
+(defaults 600x400 / 3:2). The crop is cover-style with an upper bias
+of 35% so subjects in the upper third survive the crop.
+
+The frontend's `nano_thumb_url()` returns the thumbnail URL when the
+file exists, falling back to the original. So any media that pre-dates
+1.1 (or where thumbnail generation failed) renders normally; only new
+uploads benefit from the smaller card-grid payload until the original
+is re-uploaded.
+
 **Validation requirements (admin-side):** every uploaded file must be
 verified with `finfo_file()` against its claimed extension AND
 re-encoded through GD or Imagick before being saved. Re-encoding
@@ -227,28 +275,36 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
 
 ```json
 {
-  "format_version": "1.0",
+  "format_version": "1.1",
   "site_name": "Acme Corp Blog",
   "base_url": "https://acmecorp.com/blog",
   "author": "David Smith",
   "publisher_name": "Acme Corp",
   "publisher_logo": "https://acmecorp.com/logo.png",
   "posts_per_page": 10,
+  "categories_per_row": 3,
+  "articles_per_row": 3,
+  "thumb_width": 600,
+  "thumb_height": 400,
   "password_hash": "$2y$10$...",
   "created": "2026-05-06T10:30:00Z",
-  "admin_version_last_used": "1.0.0"
+  "admin_version_last_used": "1.1.0"
 }
 ```
 
 | Field                     | Type          | Description                                                         |
 |---------------------------|---------------|---------------------------------------------------------------------|
-| `format_version`          | string        | On-disk format version. This document describes 1.0.                |
+| `format_version`          | string        | On-disk format version. This document describes 1.1.                |
 | `site_name`               | string        | Used in `<title>` suffix, RSS, OpenGraph `site_name`.               |
 | `base_url`                | string (URL)  | Absolute base URL of the blog. Used to build canonical URLs.        |
 | `author`                  | string        | Default author name. Used in JSON-LD `author` and RSS.              |
 | `publisher_name`          | string        | Publisher name in JSON-LD `BlogPosting.publisher`.                  |
 | `publisher_logo`          | string (URL)  | Publisher logo URL in JSON-LD `BlogPosting.publisher.logo`.         |
-| `posts_per_page`          | integer       | Pagination size for index and category archive pages. Default 10.   |
+| `posts_per_page`          | integer       | Pagination size for category archive pages. Default 10.             |
+| `categories_per_row`      | integer       | Category cards per row on the homepage. Allowed `3` or `4`. Default `3`. Optional, added in 1.1. |
+| `articles_per_row`        | integer       | Article cards per row on category archives. Allowed `3` or `4`. Default `3`. Optional, added in 1.1. |
+| `thumb_width`             | integer       | Width in pixels of auto-generated thumbnails. Range 100-2400. Default `600`. Optional, added in 1.1. |
+| `thumb_height`            | integer       | Height in pixels of auto-generated thumbnails. Range 100-2400. Default `400`. Optional, added in 1.1. |
 | `password_hash`           | string        | bcrypt hash from PHP `password_hash()`. Single password per site.   |
 | `created`                 | ISO 8601 UTC  | Set by setup wizard. Informational.                                 |
 | `admin_version_last_used` | semver string | Bumped on every save. See compatibility check below.                |

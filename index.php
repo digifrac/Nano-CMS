@@ -1,7 +1,9 @@
 <?php
 /**
- * Blog listing entry point. Renders the index, category archives, and
- * paginated pages. Routed to from .htaccess clean-URL rewrites.
+ * Blog listing entry point. The bare blog homepage renders a category
+ * landing - one card per category with a post count. A category
+ * archive (?category=slug, routed via .htaccess) renders the post
+ * list for that category. Pagination only applies to category archives.
  */
 
 require_once __DIR__ . '/bootstrap.php';
@@ -23,18 +25,38 @@ $cfg = nano_config();
 $site_name = (string)($cfg['site_name'] ?? 'Blog');
 $posts_per_page = max(1, (int)($cfg['posts_per_page'] ?? 10));
 
-$all = nano_list_posts($category !== null ? ['category' => $category] : []);
-$total = count($all);
-$total_pages = max(1, (int)ceil($total / $posts_per_page));
-if ($page > $total_pages && $total > 0) {
-    http_response_code(404);
-    exit;
+// Each grid has an independent setting. Allowed values are 3 or 4;
+// any other value (missing, typo, etc.) silently falls back to 3
+// rather than 500-ing the page.
+$categories_per_row = (int)($cfg['categories_per_row'] ?? 3);
+if ($categories_per_row !== 3 && $categories_per_row !== 4) {
+    $categories_per_row = 3;
 }
-$slice = array_slice($all, ($page - 1) * $posts_per_page, $posts_per_page);
+$articles_per_row = (int)($cfg['articles_per_row'] ?? 3);
+if ($articles_per_row !== 3 && $articles_per_row !== 4) {
+    $articles_per_row = 3;
+}
 
-$heading = $category !== null
-    ? ucfirst(str_replace('-', ' ', $category))
-    : $site_name;
+if ($category !== null) {
+    $all = nano_list_posts(['category' => $category]);
+    $total = count($all);
+    $total_pages = max(1, (int)ceil($total / $posts_per_page));
+    if ($page > $total_pages && $total > 0) {
+        http_response_code(404);
+        exit;
+    }
+    $slice = array_slice($all, ($page - 1) * $posts_per_page, $posts_per_page);
+    $heading = ucfirst(str_replace('-', ' ', $category));
+} else {
+    // Bare homepage no longer paginates, so /page/N/ for N>1 is a 404.
+    // Prevents duplicate-content SEO issues from query-string variants.
+    if ($page > 1) {
+        http_response_code(404);
+        exit;
+    }
+    $categories = nano_list_categories_with_counts();
+    $heading = $site_name;
+}
 
 ob_start();
 ?>
@@ -45,40 +67,37 @@ ob_start();
     <span aria-hidden="true">&rsaquo;</span>
     <span aria-current="page"><?= nano_e($heading) ?></span>
   </nav>
-<?php endif; ?>
   <h1><?= nano_e($heading) ?></h1>
 <?php if (empty($slice)): ?>
-  <p>No posts yet.</p>
-<?php else: foreach ($slice as $entry): $fm = $entry['frontmatter']; ?>
-  <article class="nano-blog-card">
-    <a href="<?= nano_e(nano_post_url((string)$fm['slug'])) ?>">
+  <p>No posts in this category yet.</p>
+<?php else: ?>
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>;">
+<?php foreach ($slice as $entry): $fm = $entry['frontmatter']; ?>
+    <article class="nano-blog-card">
+      <a href="<?= nano_e(nano_post_url((string)$fm['slug'], (string)$fm['category'])) ?>">
 <?php if (!empty($fm['image'])): ?>
-      <img src="<?= nano_e(nano_media_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
+        <img src="<?= nano_e(nano_thumb_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
 <?php endif; ?>
-      <h2><?= nano_e((string)$fm['title']) ?></h2>
-      <time datetime="<?= nano_e((string)$fm['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fm['date']))) ?></time>
-      <p><?= nano_e((string)$fm['description']) ?></p>
-    </a>
-  </article>
-<?php endforeach; endif; ?>
+        <h2><?= nano_e((string)$fm['title']) ?></h2>
+        <time datetime="<?= nano_e((string)$fm['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fm['date']))) ?></time>
+        <p><?= nano_e((string)$fm['description']) ?></p>
+      </a>
+    </article>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
 <?php if ($total_pages > 1): ?>
   <nav class="nano-blog-pagination">
 <?php
-    // Build prev/next URLs. Category archives keep the category in the path
-    // and pass page via query string; the bare index uses /page/N/.
     $prev_url = null;
     $next_url = null;
     if ($page > 1) {
-        if ($category !== null) {
-            $prev_url = nano_category_url($category) . ($page > 2 ? '?page=' . ($page - 1) : '');
-        } else {
-            $prev_url = nano_index_url($page - 1);
-        }
+        $prev_url = $page > 2
+            ? nano_category_url($category) . 'page/' . ($page - 1) . '/'
+            : nano_category_url($category);
     }
     if ($page < $total_pages) {
-        $next_url = $category !== null
-            ? nano_category_url($category) . '?page=' . ($page + 1)
-            : nano_index_url($page + 1);
+        $next_url = nano_category_url($category) . 'page/' . ($page + 1) . '/';
     }
 ?>
 <?php if ($prev_url !== null): ?>
@@ -89,6 +108,29 @@ ob_start();
     <a href="<?= nano_e($next_url) ?>" rel="next">Older &raquo;</a>
 <?php endif; ?>
   </nav>
+<?php endif; ?>
+<?php else: ?>
+  <h1><?= nano_e($heading) ?></h1>
+<?php if (empty($categories)): ?>
+  <p>No posts yet.</p>
+<?php else: ?>
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>;">
+<?php foreach ($categories as $c):
+    $post_word = $c['count'] === 1 ? 'article' : 'articles';
+    $cat_image = nano_category_image_url($c['slug']);
+?>
+    <a class="nano-blog-category-card<?= $cat_image !== null ? ' has-image' : '' ?>" href="<?= nano_e(nano_category_url($c['slug'])) ?>">
+<?php if ($cat_image !== null): ?>
+      <img src="<?= nano_e($cat_image) ?>" alt="<?= nano_e($c['label']) ?>" loading="lazy">
+<?php endif; ?>
+      <div class="nano-blog-category-card-text">
+        <h2><?= nano_e($c['label']) ?></h2>
+        <p class="nano-blog-category-count"><?= (int)$c['count'] ?> <?= $post_word ?></p>
+      </div>
+    </a>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
 <?php endif; ?>
 </div>
 <?php
@@ -102,7 +144,7 @@ $page_title = nano_e(
 $page_description = nano_e(
     $category !== null
         ? 'Posts in the ' . $category . ' category.'
-        : $site_name . ' - latest posts.'
+        : $site_name . ' - browse by topic.'
 );
 $meta_tags = nano_render_meta_tags_for_index($category, $page);
 

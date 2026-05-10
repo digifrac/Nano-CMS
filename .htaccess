@@ -17,9 +17,15 @@ Options -Indexes
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Clean URL routing.
+    # Clean URL routing. URL shape:
+    #   /                        blog homepage (category landing)
+    #   /<cat>/                  category archive
+    #   /<cat>/page/<n>/         paginated category archive
+    #   /<cat>/<slug>/           single post
+    # More-specific rules first so the post catch-all does not swallow
+    # paginated archive URLs.
     RewriteRule ^$ index.php [L]
-    RewriteRule ^category/([a-z0-9-]+)/?$ index.php?category=$1 [QSA,L]
-    RewriteRule ^page/([0-9]+)/?$ index.php?page=$1 [QSA,L]
-    RewriteRule ^([a-z0-9-]+)/?$ post.php?slug=$1 [QSA,L]
+    RewriteRule ^([a-z0-9-]+)/page/([0-9]+)/?$ index.php?category=$1&page=$2 [QSA,L]
+    RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)/?$ post.php?category=$1&slug=$2 [QSA,L]
+    RewriteRule ^([a-z0-9-]+)/?$ index.php?category=$1 [QSA,L]
 </IfModule>

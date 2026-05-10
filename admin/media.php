@@ -56,7 +56,7 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
 <div class="bar">
   <h1>Media</h1>
   <div>
-    <a href="index.php">All posts</a> | <a href="help.php">Help</a> | <a href="index.php?action=logout">Sign out</a>
+    <a href="index.php">All posts</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="help.php">Help</a> | <a href="index.php?action=logout">Sign out</a>
   </div>
 </div>
 
@@ -117,5 +117,6 @@ document.querySelectorAll('button.js-copy').forEach(function (b) {
   });
 });
 </script>
+<?= nano_admin_render_footer() ?>
 </body>
 </html>

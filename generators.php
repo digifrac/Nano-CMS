@@ -70,7 +70,7 @@ function nano_generate_sitemap(): string
     foreach ($posts as $entry) {
         $fm = $entry['frontmatter'];
         $when = (string)($fm['updated'] ?? $fm['date']);
-        $entries[] = nano_sitemap_url(nano_post_url((string)$fm['slug']), $when);
+        $entries[] = nano_sitemap_url(nano_post_url((string)$fm['slug'], (string)$fm['category']), $when);
     }
 
     return '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
@@ -105,7 +105,7 @@ function nano_generate_feed(): string
     $latest_pub_date = null;
     foreach ($posts as $entry) {
         $fm = $entry['frontmatter'];
-        $url = nano_post_url((string)$fm['slug']);
+        $url = nano_post_url((string)$fm['slug'], (string)$fm['category']);
         $date = (string)$fm['date'];
         $pub = nano_rfc2822_date($date);
         if ($latest_pub_date === null || strtotime($date) > strtotime($latest_pub_date)) {

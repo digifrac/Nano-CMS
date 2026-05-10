@@ -63,19 +63,71 @@ function nano_base_url(): string
     return $base;
 }
 
-function nano_post_url(string $slug): string
+function nano_post_url(string $slug, string $category): string
 {
-    return nano_base_url() . '/' . $slug . '/';
+    return nano_base_url() . '/' . $category . '/' . $slug . '/';
 }
 
 function nano_category_url(string $category): string
 {
-    return nano_base_url() . '/category/' . $category . '/';
+    return nano_base_url() . '/' . $category . '/';
 }
 
 function nano_media_url(string $filename): string
 {
     return nano_base_url() . '/media/' . $filename;
+}
+
+/**
+ * Return the absolute URL of a category's image, or null if no
+ * image is set. Convention: image lives at /media/category-<slug>.<ext>
+ * for some allowed ext - existence of the file IS the metadata, no
+ * sidecar JSON. Prefers the thumbnail if one exists.
+ */
+function nano_category_image_url(string $slug): ?string
+{
+    if ($slug === '' || !defined('NANO_CONTENT_PATH')) {
+        return null;
+    }
+    static $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $dir = NANO_CONTENT_PATH . '/media';
+    foreach ($allowed_exts as $ext) {
+        $base = 'category-' . $slug;
+        $original = $base . '.' . $ext;
+        if (!is_file($dir . '/' . $original)) {
+            continue;
+        }
+        $thumb = $base . '-thumb.' . $ext;
+        if (is_file($dir . '/' . $thumb)) {
+            return nano_base_url() . '/media/' . $thumb;
+        }
+        return nano_base_url() . '/media/' . $original;
+    }
+    return null;
+}
+
+/**
+ * Return the URL of the auto-generated thumbnail for a media file
+ * (e.g. `2026-05-06-a4f8b2-thumb.jpg`) when one exists on disk, or
+ * the original file URL as a fallback. Used by article cards to keep
+ * grid pages light without needing every existing post to be
+ * re-uploaded after upgrade.
+ */
+function nano_thumb_url(string $filename): string
+{
+    if ($filename === '' || !defined('NANO_CONTENT_PATH')) {
+        return nano_media_url($filename);
+    }
+    $dot = strrpos($filename, '.');
+    if ($dot === false) {
+        return nano_media_url($filename);
+    }
+    $thumb_name = substr($filename, 0, $dot) . '-thumb' . substr($filename, $dot);
+    $thumb_path = NANO_CONTENT_PATH . '/media/' . $thumb_name;
+    if (is_file($thumb_path)) {
+        return nano_base_url() . '/media/' . $thumb_name;
+    }
+    return nano_media_url($filename);
 }
 
 function nano_index_url(int $page = 1): string
@@ -333,6 +385,53 @@ function nano_list_posts(array $filters = []): array
     return $posts;
 }
 
+/**
+ * Group published posts by category and return one entry per distinct
+ * category. Sorted by count descending, ties broken alphabetically by
+ * label. Drafts excluded (matches nano_list_posts() defaults).
+ *
+ * @return array<int, array{
+ *     slug: string,
+ *     label: string,
+ *     count: int,
+ *     latest_title: string,
+ *     latest_date: string,
+ * }>
+ */
+function nano_list_categories_with_counts(): array
+{
+    $by_slug = [];
+    // nano_list_posts() returns newest-first, so the first post we see
+    // in each category is the latest by date. PHP's usort is stable
+    // since 8.0, so same-date ties fall back to glob's filename order.
+    foreach (nano_list_posts() as $entry) {
+        $fm = $entry['frontmatter'];
+        $slug = trim((string)($fm['category'] ?? ''));
+        if ($slug === '') {
+            continue;
+        }
+        if (!isset($by_slug[$slug])) {
+            $by_slug[$slug] = [
+                'slug' => $slug,
+                'label' => ucfirst(str_replace('-', ' ', $slug)),
+                'count' => 0,
+                'latest_title' => (string)($fm['title'] ?? ''),
+                'latest_date' => (string)($fm['date'] ?? ''),
+            ];
+        }
+        $by_slug[$slug]['count']++;
+    }
+
+    $cats = array_values($by_slug);
+    usort($cats, static function (array $a, array $b): int {
+        if ($a['count'] !== $b['count']) {
+            return $b['count'] <=> $a['count'];
+        }
+        return strcmp($a['label'], $b['label']);
+    });
+    return $cats;
+}
+
 /* ------------------------------------------------------------------------- */
 /* SEO meta tag generation                                                    */
 /* ------------------------------------------------------------------------- */
@@ -344,7 +443,7 @@ function nano_list_posts(array $filters = []): array
 function nano_render_meta_tags_for_post(array $fm): string
 {
     $cfg = nano_config();
-    $url = nano_post_url($fm['slug']);
+    $url = nano_post_url((string)$fm['slug'], (string)$fm['category']);
     $title = (string)$fm['title'];
     $desc = (string)$fm['description'];
     $site_name = (string)($cfg['site_name'] ?? '');

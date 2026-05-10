@@ -1,7 +1,8 @@
 <?php
 /**
- * Single-post entry point. Routed to from .htaccess clean-URL rewrites,
- * which strip the slug into ?slug=... before this file runs.
+ * Single-post entry point. Routed to from .htaccess clean-URL rewrites
+ * which split a request like /<category>/<slug>/ into ?category=<cat>&slug=<slug>
+ * before this file runs.
  */
 
 require_once __DIR__ . '/bootstrap.php';
@@ -10,6 +11,13 @@ require_once __DIR__ . '/core.php';
 $slug_raw = isset($_GET['slug']) ? (string)$_GET['slug'] : '';
 $slug = nano_safe_slug($slug_raw);
 if ($slug === '' || $slug !== $slug_raw) {
+    http_response_code(404);
+    exit;
+}
+
+$category_raw = isset($_GET['category']) ? (string)$_GET['category'] : '';
+$url_category = nano_safe_slug($category_raw);
+if ($url_category === '' || $url_category !== $category_raw) {
     http_response_code(404);
     exit;
 }
@@ -45,6 +53,14 @@ $fm = $post['frontmatter'];
 // Belt-and-braces: even if the slug matched a draft, only render it when
 // admin preview is genuinely active.
 if (!empty($fm['draft']) && !$is_admin_preview) {
+    http_response_code(404);
+    exit;
+}
+
+// The URL must include the post's actual category. Prevents two URLs
+// (the right one + any wrong-category URL) from serving identical
+// content - that would be a duplicate-content SEO problem.
+if ((string)($fm['category'] ?? '') !== $url_category) {
     http_response_code(404);
     exit;
 }

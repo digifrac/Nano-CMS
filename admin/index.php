@@ -69,6 +69,7 @@ if (!nano_admin_logged_in()) {
 <label>Password<input type="password" name="password" autocomplete="current-password" autofocus required></label>
 <button type="submit">Sign in</button>
 </form>
+<?= nano_admin_render_footer() ?>
 </body>
 </html>
     <?php
@@ -131,7 +132,7 @@ $categories = nano_admin_categories();
 <body>
 <div class="bar">
   <h1><?= nano_admin_e($site_name) ?> - admin</h1>
-  <div><a href="media.php">Media</a> | <a href="help.php">Help</a> | <a href="?action=logout">Sign out</a></div>
+  <div><a href="media.php">Media</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="help.php">Help</a> | <a href="?action=logout">Sign out</a></div>
 </div>
 <?php if ($flash !== null): ?>
 <div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
@@ -191,5 +192,6 @@ $categories = nano_admin_categories();
 </tbody>
 </table>
 <?php endif; ?>
+<?= nano_admin_render_footer() ?>
 </body>
 </html>

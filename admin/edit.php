@@ -166,6 +166,8 @@ $preview_url = (!$is_new && $base_url !== '')
   <div>
     <a href="index.php">All posts</a>
     | <a href="media.php">Media</a>
+    | <a href="categories.php">Categories</a>
+    | <a href="settings.php">Settings</a>
     | <a href="help.php">Help</a>
     | <a href="index.php?action=logout">Sign out</a>
   </div>
@@ -259,6 +261,17 @@ $preview_url = (!$is_new && $base_url !== '')
 (function () {
   var ta = document.getElementById('nano-body');
   if (ta) {
+    // Some browsers reset textarea scrollTop and/or page scroll when
+    // pasting into a focused textarea, which is jarring when pasting
+    // at the bottom of a long body. Restore both after paste settles.
+    ta.addEventListener('paste', function () {
+      var savedScrollTop = ta.scrollTop;
+      var savedWindowScroll = window.scrollY;
+      setTimeout(function () {
+        if (ta.scrollTop !== savedScrollTop) ta.scrollTop = savedScrollTop;
+        if (window.scrollY !== savedWindowScroll) window.scrollTo(0, savedWindowScroll);
+      }, 0);
+    });
     document.querySelectorAll('.md-toolbar button[data-md]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var kind = btn.getAttribute('data-md');
@@ -294,5 +307,6 @@ $preview_url = (!$is_new && $base_url !== '')
   wireCounter('#nano-title', 'title-count');
 })();
 </script>
+<?= nano_admin_render_footer() ?>
 </body>
 </html>

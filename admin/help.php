@@ -34,6 +34,8 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
   <div>
     <a href="index.php">All posts</a>
     | <a href="media.php">Media</a>
+    | <a href="categories.php">Categories</a>
+    | <a href="settings.php">Settings</a>
     | <a href="index.php?action=logout">Sign out</a>
   </div>
 </div>
@@ -94,6 +96,18 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 </section>
 
 <section class="help-section">
+<h2>Recommended image sizes</h2>
+<p>Hero images appear in two places: the article-card grid (small, cropped) and the single-post hero (full-width). The rendering rules:</p>
+<ul>
+<li><strong>Aim for landscape, ratio 3:2.</strong> Article cards crop everything to 3:2 (1.5x wider than tall). Pictures shot in 4:3 or 16:9 still work, but expect crop loss.</li>
+<li><strong>Recommended size: 1200&times;800 pixels.</strong> Big enough to look sharp on retina screens, small enough that the file stays well under the 5 MB limit. 1600&times;1067 if you want extra headroom for high-DPI displays.</li>
+<li><strong>Keep the subject near the upper-centre.</strong> The card crop biases roughly 35% from the top - faces and key elements there survive the crop reliably.</li>
+<li><strong>JPG for photos, PNG for graphics with sharp edges, WebP if you want smaller files.</strong> The server re-encodes on upload, so source compression doesn't matter.</li>
+</ul>
+<p class="help">Every upload now generates a pre-cropped thumbnail saved alongside the original (e.g. <code>2026-05-06-a4f8b2.jpg</code> + <code>2026-05-06-a4f8b2-thumb.jpg</code>). Article cards on category pages display the thumbnail; the single-post hero still uses the full-size original. Default thumbnail dimensions are 600&times;400 (3:2). Adjust them on the Settings page if needed - changes apply only to subsequent uploads.</p>
+</section>
+
+<section class="help-section">
 <h2>Deployment notes</h2>
 <ul>
 <li><strong>HTTPS is mandatory.</strong> The admin refuses to load over HTTP, with no localhost exemption.</li>
@@ -106,5 +120,6 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 
 <p class="help">Admin version <?= nano_admin_e(NANO_ADMIN_VERSION) ?>. Format version <?= nano_admin_e((string)($cfg['format_version'] ?? '?')) ?>.</p>
 
+<?= nano_admin_render_footer() ?>
 </body>
 </html>
