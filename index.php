@@ -36,6 +36,14 @@ $articles_per_row = (int)($cfg['articles_per_row'] ?? 3);
 if ($articles_per_row !== 3 && $articles_per_row !== 4) {
     $articles_per_row = 3;
 }
+// Thumbnail aspect ratio drives card image display: cards render at
+// the same ratio as configured thumbnails, so changes in the admin
+// settings actually show up on the page.
+$thumb_w = (int)($cfg['thumb_width'] ?? 600);
+$thumb_h = (int)($cfg['thumb_height'] ?? 400);
+if ($thumb_w < 100 || $thumb_w > 2400) $thumb_w = 600;
+if ($thumb_h < 100 || $thumb_h > 2400) $thumb_h = 400;
+$grid_style = '--nano-thumb-aspect: ' . $thumb_w . ' / ' . $thumb_h . ';';
 
 if ($category !== null) {
     $all = nano_list_posts(['category' => $category]);
@@ -71,16 +79,18 @@ ob_start();
 <?php if (empty($slice)): ?>
   <p>No posts in this category yet.</p>
 <?php else: ?>
-  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>;">
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $grid_style ?>">
 <?php foreach ($slice as $entry): $fm = $entry['frontmatter']; ?>
-    <article class="nano-blog-card">
+    <article class="nano-blog-card<?= !empty($fm['image']) ? ' has-image' : '' ?>">
       <a href="<?= nano_e(nano_post_url((string)$fm['slug'], (string)$fm['category'])) ?>">
 <?php if (!empty($fm['image'])): ?>
         <img src="<?= nano_e(nano_thumb_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
 <?php endif; ?>
-        <h2><?= nano_e((string)$fm['title']) ?></h2>
-        <time datetime="<?= nano_e((string)$fm['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fm['date']))) ?></time>
-        <p><?= nano_e((string)$fm['description']) ?></p>
+        <div class="nano-blog-card-text">
+          <h2><?= nano_e((string)$fm['title']) ?></h2>
+          <time datetime="<?= nano_e((string)$fm['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fm['date']))) ?></time>
+          <p><?= nano_e((string)$fm['description']) ?></p>
+        </div>
       </a>
     </article>
 <?php endforeach; ?>
@@ -114,7 +124,7 @@ ob_start();
 <?php if (empty($categories)): ?>
   <p>No posts yet.</p>
 <?php else: ?>
-  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>;">
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>; <?= $grid_style ?>">
 <?php foreach ($categories as $c):
     $post_word = $c['count'] === 1 ? 'article' : 'articles';
     $cat_image = nano_category_image_url($c['slug']);
