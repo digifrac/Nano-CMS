@@ -133,7 +133,7 @@ $has_licence  = $current_key !== '';
 <section class="settings-form">
   <h2>Where to buy</h2>
   <p>£29 per domain. £69 for an agency 3-pack. £249 unlimited.
-    <a href="https://digitalfracture.co.uk/licensing/nano-cms" target="_blank" rel="noopener">Buy at Digital Fracture &rarr;</a>
+    <a href="https://digitalfracture.co.uk/nano-licence.html" target="_blank" rel="noopener">Buy at Digital Fracture &rarr;</a>
   </p>
   <p class="help">Licences are signed offline with Ed25519 and verified locally against the public key embedded in this build. There is no licence server. Lost a key? Email Digital Fracture; re-issue is free.</p>
 </section>
