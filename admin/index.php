@@ -132,7 +132,7 @@ $categories = nano_admin_categories();
 <body>
 <div class="bar">
   <h1><?= nano_admin_e($site_name) ?> - admin</h1>
-  <div><a href="media.php">Media</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="help.php">Help</a> | <a href="?action=logout">Sign out</a></div>
+  <div><a href="media.php">Media</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="licence.php">Licence</a> | <a href="help.php">Help</a> | <a href="?action=logout">Sign out</a></div>
 </div>
 <?php if ($flash !== null): ?>
 <div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>

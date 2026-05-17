@@ -62,6 +62,7 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
     <a href="index.php">All posts</a>
     | <a href="media.php">Media</a>
     | <a href="settings.php">Settings</a>
+    | <a href="licence.php">Licence</a>
     | <a href="help.php">Help</a>
     | <a href="index.php?action=logout">Sign out</a>
   </div>

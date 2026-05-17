@@ -55,13 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         nano_admin_save_config([
-            'format_version'          => '1.2',
+            'format_version'          => '1.3',
             'site_name'               => $site_name,
             'base_url'                => $base_url,
             'author'                  => $author,
             'publisher_name'          => $publisher_name,
             'publisher_logo'          => $publisher_logo,
             'posts_per_page'          => $posts_per_page,
+            'licence_key'             => '',
             'password_hash'           => password_hash($password, PASSWORD_DEFAULT),
             'created'                 => gmdate('Y-m-d\TH:i:s\Z'),
             'admin_version_last_used' => NANO_ADMIN_VERSION,

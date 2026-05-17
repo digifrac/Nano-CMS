@@ -8,6 +8,7 @@
 
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/core.php';
+require_once __DIR__ . '/licence.php';
 
 $category_raw = isset($_GET['category']) ? (string)$_GET['category'] : null;
 $category = null;
@@ -148,6 +149,7 @@ ob_start();
 <?php endif; ?>
 <?php endif; ?>
 </div>
+<?= nano_render_licence_footer() ?>
 <?php
 $content = ob_get_clean();
 

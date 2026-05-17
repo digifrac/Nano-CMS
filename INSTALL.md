@@ -29,7 +29,8 @@ From the repo root, on your machine:
 ```sh
 git archive --format=zip --prefix=blog/ -o nano-cms-frontend.zip HEAD \
   ":(exclude)admin" ":(exclude)nano-preflight.php" \
-  ":(exclude)posts/example.md" ":(exclude).gitignore"
+  ":(exclude)posts/example.md" ":(exclude).gitignore" \
+  ":(exclude)tests"
 
 git archive --format=zip --prefix=admin/ -o nano-cms-admin.zip HEAD:admin
 ```
@@ -189,3 +190,40 @@ restricted. Talk to the host.
 `bootstrap.php`'s `NANO_CONTENT_PATH` actually points at the directory
 containing `posts/`. The default `__DIR__` is right unless you moved files
 around.
+
+---
+
+## 7. Licensing (optional)
+
+Nano CMS is MIT-licensed and works without any licence key - in that state
+it renders a small `Powered by Nano CMS - Developed by Digital Fracture`
+footer at the bottom of every Nano-rendered page.
+
+To remove the footer on production sites, purchase a perpetual per-domain
+licence at [digitalfracture.co.uk/licensing/nano-cms](https://digitalfracture.co.uk/licensing/nano-cms) (£29 single domain, £69 agency 3-pack, £249 unlimited).
+
+Once you have the licence string, two equivalent ways to install it:
+
+1. **Via the admin (recommended).** Re-upload the admin folder if you
+   removed it, then visit `https://example.com/blog/admin/licence.php`
+   and paste the key. The page verifies the signature against the
+   embedded public key and shows what it covers. Remove the admin
+   folder again as usual when done.
+
+2. **By editing `config.json` directly.** SFTP in and set the
+   `licence_key` field to the full `base64(payload).base64(signature)`
+   string. No restart, no cache - the next page render picks it up.
+
+Verification is offline-only. There is no network call, no licence
+server, and no telemetry. Lose your licence key and Digital Fracture
+will re-issue it for free against the same domain.
+
+**Development domains skip the licence check entirely:**
+
+- `localhost` / `127.0.0.1` / `::1`
+- Any host with a port (e.g. `dev.example.com:8443`)
+- Any `*.test` or `*.local` host
+
+So you can develop locally without ever seeing the footer regardless
+of licence state, and the production site is the only place where the
+licence is actually enforced.

@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/core.php';
+require_once __DIR__ . '/licence.php';
 
 $slug_raw = isset($_GET['slug']) ? (string)$_GET['slug'] : '';
 $slug = nano_safe_slug($slug_raw);
@@ -96,6 +97,7 @@ ob_start();
 <?= $post['html'] ?>
   </div>
 </article>
+<?= nano_render_licence_footer() ?>
 <?php
 $content = ob_get_clean();
 

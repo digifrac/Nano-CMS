@@ -10,7 +10,7 @@ codebases and a bump to `format_version` in `config.json`.
 
 ## Format version
 
-Current: **1.2**
+Current: **1.3**
 
 The version string is recorded in `config.json` at the `format_version`
 field. Future Nano CMS releases check this on startup. An admin running an
@@ -35,8 +35,13 @@ rather than silently corrupting data.
   set, article cards use this image instead of an auto-thumbnail of
   `image`. Lets the operator upload a card-specific thumbnail
   composed independently of the full-size hero.
+- *(1.3)* New optional `licence_key` field on `config.json`. Holds a
+  `base64(payload).base64(signature)` Ed25519 string issued by Digital
+  Fracture. When present and valid for the request host, the
+  "Powered by Nano CMS" footer attribution is suppressed. Empty or
+  absent = unlicensed, footer renders as usual.
 
-Existing 1.0 and 1.1 installs remain compatible. All new fields and
+Existing 1.0, 1.1, and 1.2 installs remain compatible. All new fields and
 conventions degrade gracefully when absent.
 
 ---
@@ -283,7 +288,7 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
 
 ```json
 {
-  "format_version": "1.2",
+  "format_version": "1.3",
   "site_name": "Acme Corp Blog",
   "base_url": "https://acmecorp.com/blog",
   "author": "David Smith",
@@ -294,15 +299,16 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
   "articles_per_row": 3,
   "thumb_width": 600,
   "thumb_height": 400,
+  "licence_key": "",
   "password_hash": "$2y$10$...",
   "created": "2026-05-06T10:30:00Z",
-  "admin_version_last_used": "1.2.0"
+  "admin_version_last_used": "1.3.0"
 }
 ```
 
 | Field                     | Type          | Description                                                         |
 |---------------------------|---------------|---------------------------------------------------------------------|
-| `format_version`          | string        | On-disk format version. This document describes 1.2.                |
+| `format_version`          | string        | On-disk format version. This document describes 1.3.                |
 | `site_name`               | string        | Used in `<title>` suffix, RSS, OpenGraph `site_name`.               |
 | `base_url`                | string (URL)  | Absolute base URL of the blog. Used to build canonical URLs.        |
 | `author`                  | string        | Default author name. Used in JSON-LD `author` and RSS.              |
@@ -315,6 +321,7 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
 | `thumb_height`            | integer       | Height in pixels of auto-generated article thumbnails. Range 100-2400. Default `400`. Optional, added in 1.1. |
 | `cat_thumb_width`         | integer       | Width in pixels of auto-generated category-image thumbnails. Range 100-2400. Falls back to `thumb_width` when absent. Optional, added in 1.1. |
 | `cat_thumb_height`        | integer       | Height in pixels of auto-generated category-image thumbnails. Range 100-2400. Falls back to `thumb_height` when absent. Optional, added in 1.1. |
+| `licence_key`             | string        | Ed25519 `base64(payload).base64(signature)` licence issued by Digital Fracture. Suppresses the footer attribution when present and valid for the request host. Empty / missing = unlicensed. Optional, added in 1.3. |
 | `password_hash`           | string        | bcrypt hash from PHP `password_hash()`. Single password per site.   |
 | `created`                 | ISO 8601 UTC  | Set by setup wizard. Informational.                                 |
 | `admin_version_last_used` | semver string | Bumped on every save. See compatibility check below.                |
