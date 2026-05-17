@@ -85,11 +85,11 @@ ob_start();
   <p>No posts in this category yet.</p>
 <?php else: ?>
   <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $article_grid_style ?>">
-<?php foreach ($slice as $entry): $fm = $entry['frontmatter']; ?>
-    <article class="nano-blog-card<?= !empty($fm['image']) ? ' has-image' : '' ?>">
+<?php foreach ($slice as $entry): $fm = $entry['frontmatter']; $card_img = nano_card_image_url($fm); ?>
+    <article class="nano-blog-card<?= $card_img !== null ? ' has-image' : '' ?>">
       <a href="<?= nano_e(nano_post_url((string)$fm['slug'], (string)$fm['category'])) ?>">
-<?php if (!empty($fm['image'])): ?>
-        <img src="<?= nano_e(nano_thumb_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
+<?php if ($card_img !== null): ?>
+        <img src="<?= nano_e($card_img) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
 <?php endif; ?>
         <div class="nano-blog-card-text">
           <h2><?= nano_e((string)$fm['title']) ?></h2>

@@ -1,9 +1,12 @@
 # Nano CMS - Category Landing on the Blog Homepage
 
-This document describes the v1.1 redesign of the blog homepage. Format
-version bumps to 1.1 because one optional field is added to
-`config.json` (`cards_per_row`). Existing 1.0 installs remain
-compatible - the field falls back to its default (3) when absent.
+This document describes the v1.1 / v1.2 redesign of the blog
+homepage and per-post image handling. Format version is currently
+**1.2** - several optional config-file fields were added in 1.1
+(`categories_per_row`, `articles_per_row`, thumbnail dimensions),
+and one optional frontmatter field was added in 1.2 (`thumbnail`).
+Existing 1.0 installs remain compatible - all new fields fall back
+to defaults when absent.
 
 ---
 
@@ -156,13 +159,13 @@ on-disk contract.
 
 ---
 
-## Future work (not in 1.1)
+## What 1.2 added
 
-**Per-post separate thumbnail and hero image fields.** Currently the
-post's `image` frontmatter field is the source for both the article
-card thumbnail (cropped via the auto-thumbnail pipeline) and the
-single-post hero (rendered full-size). For images whose composition
-fights the auto-crop in either context, a Joomla-style two-image
-pattern (separate `thumbnail:` and `image:` frontmatter fields,
-either of which can fall back to the other) is the planned next
-step. Tracked for v1.2.
+**Per-post separate thumbnail and hero image fields.** A new optional
+`thumbnail` frontmatter field on posts. Article cards on category
+archives use `thumbnail` when set, falling back to the auto-generated
+thumbnail of `image`, falling back to the original `image` file. The
+single-post hero always uses `image` directly. Lets the operator
+upload a card-specific image composed independently of the full-size
+hero, for cases where one image's crop just can't be tuned to look
+right in two different contexts.

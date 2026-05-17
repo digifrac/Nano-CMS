@@ -78,7 +78,8 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 <tr><td><code>updated</code></td><td>no</td><td><code>YYYY-MM-DD</code>. Auto-set to today on save when content changes; clear it manually for trivial edits.</td></tr>
 <tr><td><code>category</code></td><td>yes</td><td>Single category, free-form, <code>[a-z0-9-]+</code>. Existing values autocomplete in the editor.</td></tr>
 <tr><td><code>description</code></td><td>yes</td><td>Meta description. Aim for ~150 chars.</td></tr>
-<tr><td><code>image</code></td><td>no</td><td>Hero image filename (relative to <code>/media/</code>).</td></tr>
+<tr><td><code>image</code></td><td>no</td><td>Hero image filename (relative to <code>/media/</code>). Shown full-size on the single-post page.</td></tr>
+<tr><td><code>thumbnail</code></td><td>no</td><td>Optional separate image used only on article cards. Leave blank to auto-derive a thumbnail from <code>image</code>.</td></tr>
 <tr><td><code>image_alt</code></td><td>no</td><td>Alt text. Falls back to <code>title</code> if absent. Supplying it explicitly is strongly preferred.</td></tr>
 <tr><td><code>draft</code></td><td>no</td><td><code>true</code> hides the post from listing, sitemap, and feed. Drafts are previewable from the editor while signed in.</td></tr>
 </table>

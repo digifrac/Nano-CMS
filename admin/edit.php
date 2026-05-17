@@ -61,6 +61,7 @@ $form = [
     'description' => (string)($original_fm['description'] ?? ''),
     'image'       => (string)($original_fm['image'] ?? ''),
     'image_alt'   => (string)($original_fm['image_alt'] ?? ''),
+    'thumbnail'   => (string)($original_fm['thumbnail'] ?? ''),
     'draft'       => !empty($original_fm['draft']),
     'body'        => $original_body,
 ];
@@ -70,7 +71,7 @@ $form = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     nano_admin_require_csrf();
 
-    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt'] as $key) {
+    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'thumbnail'] as $key) {
         $form[$key] = trim((string)($_POST[$key] ?? ''));
     }
     $form['draft'] = !empty($_POST['draft']);
@@ -99,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_touched_updated = ($form['updated'] !== $orig_updated);
         if (!$user_touched_updated) {
             $changed = false;
-            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt'] as $key) {
+            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt', 'thumbnail'] as $key) {
                 if ($form[$key] !== (string)($original_fm[$key] ?? '')) {
                     $changed = true;
                     break;
@@ -127,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => $form['description'],
             'image'       => $form['image'],
             'image_alt'   => $form['image_alt'],
+            'thumbnail'   => $form['thumbnail'],
             'draft'       => $form['draft'],
         ];
         try {
@@ -212,7 +214,12 @@ $preview_url = (!$is_new && $base_url !== '')
     <p class="counter"><span id="desc-count">0</span> chars</p>
   </div>
   <div>
-    <label>Image filename (in /media/)<input type="text" name="image" value="<?= nano_admin_e($form['image']) ?>"></label>
+    <label>Hero image filename (in /media/)<input type="text" name="image" value="<?= nano_admin_e($form['image']) ?>"></label>
+    <p class="help">Full-size image shown at the top of the single-post page.</p>
+  </div>
+  <div>
+    <label>Card thumbnail filename (optional)<input type="text" name="thumbnail" value="<?= nano_admin_e($form['thumbnail'] ?? '') ?>"></label>
+    <p class="help">Separate image used on category-archive cards. Leave blank to auto-derive from the hero image.</p>
   </div>
   <div>
     <label>Image alt text<input type="text" name="image_alt" value="<?= nano_admin_e($form['image_alt']) ?>"></label>

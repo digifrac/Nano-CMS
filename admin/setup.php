@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         nano_admin_save_config([
-            'format_version'          => '1.1',
+            'format_version'          => '1.2',
             'site_name'               => $site_name,
             'base_url'                => $base_url,
             'author'                  => $author,

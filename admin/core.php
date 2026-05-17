@@ -17,7 +17,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     exit;
 }
 
-const NANO_ADMIN_VERSION = '1.1.0';
+const NANO_ADMIN_VERSION = '1.2.0';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;

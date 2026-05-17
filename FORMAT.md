@@ -10,30 +10,34 @@ codebases and a bump to `format_version` in `config.json`.
 
 ## Format version
 
-Current: **1.1**
+Current: **1.2**
 
 The version string is recorded in `config.json` at the `format_version`
 field. Future Nano CMS releases check this on startup. An admin running an
 older format than the version recorded by the last save refuses to operate
 rather than silently corrupting data.
 
-**Changes from 1.0:**
+**Changes since 1.0:**
 
-- Two optional grid-layout fields added to `config.json`:
+- *(1.1)* Two optional grid-layout fields added to `config.json`:
   `categories_per_row` and `articles_per_row` (default 3 each).
-- Four optional thumbnail-dimension fields added to `config.json`:
-  `thumb_width` (default 600) and `thumb_height` (default 400) for
-  article thumbnails, plus `cat_thumb_width` and `cat_thumb_height`
-  for category images. The category pair falls back to the article
-  pair when not set.
-- Convention added: media uploads through the admin save a
+- *(1.1)* Four optional thumbnail-dimension fields added to
+  `config.json`: `thumb_width` (default 600) and `thumb_height`
+  (default 400) for article thumbnails, plus `cat_thumb_width` and
+  `cat_thumb_height` for category images. The category pair falls
+  back to the article pair when not set.
+- *(1.1)* Convention added: media uploads through the admin save a
   pre-cropped thumbnail alongside the original at
   `<base>-thumb.<ext>` (see "Media" section).
+- *(1.1)* Convention added: per-category hero images at
+  `/media/category-<slug>.<ext>`. File existence is the metadata.
+- *(1.2)* New optional frontmatter field on posts: `thumbnail`. When
+  set, article cards use this image instead of an auto-thumbnail of
+  `image`. Lets the operator upload a card-specific thumbnail
+  composed independently of the full-size hero.
 
-Existing 1.0 installs remain compatible. All new fields fall back to
-their defaults when absent; thumbnails are generated lazily for any
-new upload, with the frontend falling back to the original file when
-no thumbnail exists.
+Existing 1.0 and 1.1 installs remain compatible. All new fields and
+conventions degrade gracefully when absent.
 
 ---
 
@@ -123,8 +127,9 @@ Or: [video:vimeo:123456789]
 | `updated`     | ISO date | no       | Last meaningful edit. Auto-set by admin on save.           |
 | `category`    | string   | yes      | Single category. Free-form. `[a-z0-9-]+` recommended.      |
 | `description` | string   | yes      | Meta description. Aim for ~150 characters.                 |
-| `image`       | string   | no       | Hero image filename, relative to `/media/`.                |
+| `image`       | string   | no       | Hero image filename, relative to `/media/`. Shown full-size on the single-post page. |
 | `image_alt`   | string   | no       | Alt text for hero image. Falls back to `title` if absent.  |
+| `thumbnail`   | string   | no       | Optional separate filename used on article cards. Falls back to `image`'s auto-thumbnail when absent. Added in 1.2. |
 | `draft`       | boolean  | no       | `true` hides post from public output. Defaults to `false`. |
 
 **`updated` semantics:** the admin auto-sets this to today's date
@@ -278,7 +283,7 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
 
 ```json
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "site_name": "Acme Corp Blog",
   "base_url": "https://acmecorp.com/blog",
   "author": "David Smith",
@@ -291,13 +296,13 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
   "thumb_height": 400,
   "password_hash": "$2y$10$...",
   "created": "2026-05-06T10:30:00Z",
-  "admin_version_last_used": "1.1.0"
+  "admin_version_last_used": "1.2.0"
 }
 ```
 
 | Field                     | Type          | Description                                                         |
 |---------------------------|---------------|---------------------------------------------------------------------|
-| `format_version`          | string        | On-disk format version. This document describes 1.1.                |
+| `format_version`          | string        | On-disk format version. This document describes 1.2.                |
 | `site_name`               | string        | Used in `<title>` suffix, RSS, OpenGraph `site_name`.               |
 | `base_url`                | string (URL)  | Absolute base URL of the blog. Used to build canonical URLs.        |
 | `author`                  | string        | Default author name. Used in JSON-LD `author` and RSS.              |

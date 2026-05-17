@@ -107,6 +107,28 @@ function nano_category_image_url(string $slug): ?string
 }
 
 /**
+ * Return the URL of the image to use on an article card for the given
+ * post frontmatter, or null if the post has no image at all. Order of
+ * preference (first match wins):
+ *   1. Explicit `thumbnail` frontmatter field (Joomla-style separate
+ *      thumbnail) - used as-is, no auto-thumb fallback.
+ *   2. Auto-generated thumbnail of the `image` field (if generated).
+ *   3. Original `image` file at full size.
+ */
+function nano_card_image_url(array $fm): ?string
+{
+    $thumb = trim((string)($fm['thumbnail'] ?? ''));
+    if ($thumb !== '') {
+        return nano_media_url($thumb);
+    }
+    $image = trim((string)($fm['image'] ?? ''));
+    if ($image !== '') {
+        return nano_thumb_url($image);
+    }
+    return null;
+}
+
+/**
  * Return the URL of the auto-generated thumbnail for a media file
  * (e.g. `2026-05-06-a4f8b2-thumb.jpg`) when one exists on disk, or
  * the original file URL as a fallback. Used by article cards to keep

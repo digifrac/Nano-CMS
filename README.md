@@ -4,7 +4,7 @@ A flat-file PHP blog system for adding SEO-driven content to existing static HTM
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF4D00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/digitalfracture)
 
-> **Status: v1.1.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment and [CATEGORIES.md](CATEGORIES.md) for the v1.1 changes.
+> **Status: v1.2.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment and [CATEGORIES.md](CATEGORIES.md) for the v1.1 / v1.2 changes.
 
 ---
 
@@ -24,7 +24,7 @@ It is deliberately **not** a general-purpose CMS. It does one thing - serve a bl
 - **Per-site config lives outside webroot.** Password hashes and site settings stored in a JSON file that's structurally unreachable via HTTP.
 - **No frameworks.** No Bootstrap, no Tailwind, no React, no jQuery, no build step. Hand-written PHP, scoped CSS, and minimal vanilla JavaScript.
 
-Total size: around 4500 lines of hand-written PHP, CSS, and minimal JS, and the whole CMS deploys in under 350KB on disk (vendored Parsedown included). For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
+Total size: around 4600 lines of hand-written PHP, CSS, and minimal JS, and the whole CMS deploys in under 350KB on disk (vendored Parsedown included). For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
 
 ---
 
@@ -160,6 +160,12 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 - HTTPS-only admin, CSRF on every POST, bcrypt + rate-limited login, browser-session cookies, idle-timeout sessions, password-hash-bound sessions
 - Image upload pipeline with GD/Imagick re-encode (defends against EXIF-payload smuggling)
 - Deployment guide ([INSTALL.md](INSTALL.md)) and pre-flight host check script
+
+## What's new in 1.2
+
+- **Joomla-style separate card thumbnail per post.** New optional `thumbnail` frontmatter field. When set, the article card on the category archive uses this image instead of an auto-cropped thumbnail of `image`. Lets you upload a card-specific image whose composition is tuned for the small grid context, while `image` stays the full-size single-post hero.
+- **Site name editable from admin Settings.** Previously fixed at install time by the setup wizard; now changeable any time without editing `config.json` by hand.
+- **Common-size hint chips on the Settings page.** Quick-reference list of standard thumbnail dimensions (3:2, 16:9, 4:3, 1:1) so you don't have to guess.
 
 ## What's new in 1.1
 

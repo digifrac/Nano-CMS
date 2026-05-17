@@ -25,6 +25,7 @@ $flash = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     nano_admin_require_csrf();
+    $new_site_name = trim((string)($_POST['site_name'] ?? ''));
     $cats_raw = (int)($_POST['categories_per_row'] ?? 0);
     $arts_raw = (int)($_POST['articles_per_row'] ?? 0);
     $thumb_w = (int)($_POST['thumb_width'] ?? 0);
@@ -32,6 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cat_thumb_w = (int)($_POST['cat_thumb_width'] ?? 0);
     $cat_thumb_h = (int)($_POST['cat_thumb_height'] ?? 0);
     $errors = [];
+    if ($new_site_name === '' || mb_strlen($new_site_name) > 80) {
+        $errors[] = 'Site name must be 1-80 characters.';
+    }
     if ($cats_raw !== 3 && $cats_raw !== 4) $errors[] = 'Categories per row must be 3 or 4.';
     if ($arts_raw !== 3 && $arts_raw !== 4) $errors[] = 'Articles per row must be 3 or 4.';
     if ($thumb_w < 100 || $thumb_w > 2400) $errors[] = 'Article thumbnail width must be between 100 and 2400.';
@@ -39,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($cat_thumb_w < 100 || $cat_thumb_w > 2400) $errors[] = 'Category image width must be between 100 and 2400.';
     if ($cat_thumb_h < 100 || $cat_thumb_h > 2400) $errors[] = 'Category image height must be between 100 and 2400.';
     if (empty($errors)) {
+        $cfg['site_name'] = $new_site_name;
         $cfg['categories_per_row'] = $cats_raw;
         $cfg['articles_per_row'] = $arts_raw;
         $cfg['thumb_width'] = $thumb_w;
@@ -46,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cfg['cat_thumb_width'] = $cat_thumb_w;
         $cfg['cat_thumb_height'] = $cat_thumb_h;
         nano_admin_save_config($cfg);
+        $site_name = $new_site_name; // refresh the page-title variable
         $flash = ['ok', 'Settings saved.'];
     } else {
         $flash = ['error', implode(' ', $errors)];
@@ -95,6 +101,14 @@ if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $th
 
 <form method="post" class="settings-form">
   <?= nano_admin_csrf_field() ?>
+
+  <h2>Site</h2>
+  <label>Site name
+    <input type="text" name="site_name" value="<?= nano_admin_e($site_name) ?>" maxlength="80" required>
+  </label>
+  <p class="help">Shown in the <code>&lt;title&gt;</code> suffix, the RSS feed, and OpenGraph metadata. Set initially by the setup wizard; change it here whenever you rebrand.</p>
+
+  <h2>Layout</h2>
   <label>Categories per row
     <select name="categories_per_row">
       <option value="3"<?= $categories_per_row === 3 ? ' selected' : '' ?>>3 (default)</option>
@@ -113,6 +127,7 @@ if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $th
 
   <h2>Article thumbnails</h2>
   <p class="help">Hero images uploaded through the media manager get a smaller, pre-cropped thumbnail saved alongside them. Article cards use the thumbnail. The dimensions also drive the card display aspect ratio, so changes show up immediately on the public side. Thumbnail FILE size is regenerated only on future uploads.</p>
+  <p class="help"><strong>Common sizes:</strong> <code>600&times;400</code> (3:2, default), <code>800&times;533</code> (3:2 retina), <code>640&times;360</code> (16:9 widescreen), <code>600&times;450</code> (4:3 squarer), <code>500&times;500</code> (1:1 square).</p>
   <label>Article thumbnail width (px)
     <input type="number" name="thumb_width" min="100" max="2400" step="1" value="<?= (int)$thumb_width ?>" required>
   </label>
@@ -122,6 +137,7 @@ if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $th
 
   <h2>Category images</h2>
   <p class="help">Category cards on the homepage can have their own hero image (managed on the Categories page). These dimensions are independent of article thumbnails so the two grids can be tuned separately.</p>
+  <p class="help"><strong>Common sizes:</strong> <code>600&times;400</code> (3:2, default), <code>800&times;533</code> (3:2 retina), <code>640&times;360</code> (16:9 widescreen), <code>600&times;450</code> (4:3 squarer), <code>500&times;500</code> (1:1 square).</p>
   <label>Category image width (px)
     <input type="number" name="cat_thumb_width" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_width ?>" required>
   </label>
