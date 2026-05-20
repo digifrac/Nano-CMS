@@ -23,6 +23,10 @@
 
 session*.md
 
+# Personal TODO list. Working notes, not source.
+
+TODO.md
+
 
 # -----------------------------------------------------------------------------
 # Per-deployment content - never commit (this is client data, not source)
