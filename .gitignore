@@ -13,6 +13,16 @@
 
 .claude/
 
+# Live Nano CMS website (the public-facing site that markets the CMS).
+# Lives inside this repo for convenience but isn't part of the CMS source.
+
+/web/
+
+# Session prompts driving Claude Code work in this repo. Working notes,
+# not source. Stay local.
+
+session*.md
+
 
 # -----------------------------------------------------------------------------
 # Per-deployment content - never commit (this is client data, not source)
