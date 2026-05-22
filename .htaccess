@@ -6,6 +6,17 @@
 
 Options -Indexes
 
+<IfModule mod_headers.c>
+    # Defence-in-depth response headers. `always` ensures they're set on
+    # error responses too (404 pages etc), where mod_php otherwise can
+    # skip the headers table.
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always unset X-Powered-By
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /blog/

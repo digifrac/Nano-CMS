@@ -31,3 +31,11 @@ define('NANO_BOOTSTRAPPED', true);
 define('NANO_CONFIG_PATH', '/home/clientuser/blog-config/config.json');
 define('NANO_RATE_LIMIT_PATH', '/home/clientuser/blog-config/rate-limit.json');
 define('NANO_CONTENT_PATH', __DIR__);
+
+// Set to true ONLY if this site is behind a reverse proxy / CDN that
+// you trust to set X-Forwarded-Proto correctly (Cloudflare, AWS ALB,
+// nginx in front of php-fpm, etc). Leaving it false means the admin
+// trusts only the direct $_SERVER['HTTPS'] flag, which is the safe
+// default - a forwarded-proto header from a non-trusted client can
+// otherwise bypass HTTPS enforcement.
+define('NANO_TRUST_PROXY', false);

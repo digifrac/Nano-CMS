@@ -17,6 +17,23 @@ if (nano_admin_config_exists()) {
     exit;
 }
 
+// Bound the unauthenticated-setup window. Setup.php has to be reachable
+// before any password is set, so we can't gate it on auth. Instead,
+// require that bootstrap.php was modified within the last 10 minutes -
+// the operator's own SFTP upload of bootstrap.php is the implicit
+// "I am at the keyboard now" signal. If they walk away without
+// finishing, the window closes and an opportunistic visitor can't
+// claim the password later. Recovering: re-upload bootstrap.php.
+$bootstrap_path = __DIR__ . '/../bootstrap.php';
+$bootstrap_mtime = is_file($bootstrap_path) ? (int)@filemtime($bootstrap_path) : 0;
+if ($bootstrap_mtime === 0 || (time() - $bootstrap_mtime) > 600) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo "Setup window closed. Re-upload bootstrap.php (via SFTP) to "
+       . "open a new 10-minute window, then reload this page.";
+    exit;
+}
+
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -40,8 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($site_name === '') {
         $errors[] = 'Site name is required.';
     }
-    if (!preg_match('~^https?://~', $base_url)) {
-        $errors[] = 'Base URL must start with http:// or https://.';
+    // Strict shape: http(s)://host[:port][/path] with only URL-safe chars.
+    // Stops a setup-time value like `javascript:alert(1)` from later
+    // landing inside an href= attribute - htmlspecialchars escapes < and "
+    // but doesn't neutralise a javascript: scheme.
+    if (!preg_match('~^https?://[A-Za-z0-9.\-]+(:\d+)?(/[A-Za-z0-9._~!\$&\'()*+,;=:@%/-]*)?$~', $base_url)) {
+        $errors[] = 'Base URL must be a plain http(s) URL like https://example.com/blog.';
     }
     if ($author === '') {
         $errors[] = 'Author name is required.';

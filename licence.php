@@ -29,6 +29,48 @@ if (!defined('NANO_BOOTSTRAPPED')) {
 const NANO_LICENCE_PUBKEY_V1 = 'OW0ZWPowsYFF4Hv49r8Kc8OcM31COddoOk5j1UVCWfY=';
 
 /* ------------------------------------------------------------------------ */
+/* Canonical host (from base_url)                                            */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Return the host the licence is bound to, derived from `base_url` in
+ * config.json. Never reads `$_SERVER['HTTP_HOST']` - the request header
+ * is attacker-controlled and was previously a Host-spoof / cache-poison
+ * vector for the licence check.
+ *
+ * Returns '' on any failure (config missing, base_url unset, malformed).
+ * Callers treat '' as a hard "do not verify" signal.
+ */
+function nano_licence_canonical_host(): string
+{
+    try {
+        $base = (string)(nano_config()['base_url'] ?? '');
+    } catch (Throwable $e) {
+        return '';
+    }
+    if ($base === '') {
+        return '';
+    }
+    $parts = parse_url($base);
+    $host = $parts['host'] ?? null;
+    if (!is_string($host) || $host === '') {
+        return '';
+    }
+    $host = strtolower($host);
+    // Preserve a non-default port (8000, 8443, ...) so `nano_is_dev_host()`
+    // can still see the port-in-host signal that base_urls like
+    // `http://example.com:8000/blog` carry. parse_url splits port off into
+    // its own key, so without this we'd lose the dev-shape marker.
+    $port = isset($parts['port']) ? (int)$parts['port'] : 0;
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    $default_port = $scheme === 'http' ? 80 : ($scheme === 'https' ? 443 : 0);
+    if ($port > 0 && $port !== $default_port) {
+        return $host . ':' . $port;
+    }
+    return $host;
+}
+
+/* ------------------------------------------------------------------------ */
 /* Dev-host detection                                                        */
 /* ------------------------------------------------------------------------ */
 
@@ -171,7 +213,15 @@ function nano_licence_inspect(string $licence_key, string $current_host): array
     $expires = $payload['expires'] ?? null;
     if ($expires !== null && $expires !== '') {
         $ts = strtotime((string)$expires);
-        if ($ts !== false && $ts < time()) {
+        if ($ts === false) {
+            // Fail closed on an unparseable expiry. Only Digital Fracture
+            // can sign payloads, so a garbage `expires` would have to be
+            // their mistake - but treating it as "no expiry" would be a
+            // silent forgiveness of a malformed licence, which we'd
+            // rather catch loudly than ignore.
+            return ['ok' => false, 'reason' => "Licence has an unparseable expiry value: $expires.", 'payload' => $payload];
+        }
+        if ($ts < time()) {
             return ['ok' => false, 'reason' => "Licence expired on $expires.", 'payload' => $payload];
         }
     }
@@ -199,7 +249,23 @@ function nano_licence_inspect(string $licence_key, string $current_host): array
  */
 function nano_render_licence_footer(): string
 {
-    $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+    $footer_html = '<footer class="nano-blog-footer">'
+                 . 'Powered by <a href="https://nanocms.co.uk/" target="_blank" rel="noopener noreferrer">Nano CMS</a>'
+                 . ' &mdash; Developed by '
+                 . '<a href="https://digitalfracture.co.uk/" target="_blank" rel="noopener noreferrer">Digital Fracture</a>'
+                 . '</footer>';
+
+    // Canonical host (from config base_url), NOT $_SERVER['HTTP_HOST'].
+    // HTTP_HOST is attacker-controlled and was previously a single-request
+    // bypass (Host: localhost on a production deploy) plus a reverse-proxy
+    // cache-poisoning vector. Anchoring to base_url ties the licence check
+    // to the operator's signed site identity instead.
+    $host = nano_licence_canonical_host();
+    if ($host === '') {
+        // Config missing or base_url unset - fail-safe to "show the footer"
+        // rather than risk a silent suppression on a misconfigured site.
+        return $footer_html;
+    }
     if (nano_is_dev_host($host)) {
         return '';
     }
@@ -217,9 +283,5 @@ function nano_render_licence_footer(): string
         return '';
     }
 
-    return '<footer class="nano-blog-footer">'
-         . 'Powered by <a href="https://nanocms.co.uk/" target="_blank" rel="noopener">Nano CMS</a>'
-         . ' &mdash; Developed by '
-         . '<a href="https://digitalfracture.co.uk/" target="_blank" rel="noopener">Digital Fracture</a>'
-         . '</footer>';
+    return $footer_html;
 }

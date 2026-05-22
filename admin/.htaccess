@@ -8,4 +8,15 @@ Options -Indexes
 
 <IfModule mod_headers.c>
     Header set X-Robots-Tag "noindex, nofollow"
+
+    # Stricter defence-in-depth headers for the admin. DENY rather than
+    # SAMEORIGIN because nothing on the host should ever frame the admin,
+    # and a tight CSP because the admin's own JS is all inline-but-static
+    # (no third-party scripts, no eval).
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "no-referrer"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Header always unset X-Powered-By
 </IfModule>

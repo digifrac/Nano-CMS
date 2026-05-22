@@ -32,6 +32,20 @@ function nano_regenerate_static(): void
 }
 
 /**
+ * Escape a value for XML output: strip the C0 control characters that
+ * XML 1.0 forbids in content (only TAB/LF/CR are allowed below U+0020),
+ * then HTML-encode `<`, `>`, `&`, `"`, `'`. Without the strip, a post
+ * title or description that picked up a stray control char (e.g. via
+ * copy-paste from a PDF) would produce invalid XML and break feed
+ * readers + sitemap parsers downstream.
+ */
+function nano_xml_e(string $value): string
+{
+    $stripped = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $value);
+    return nano_e($stripped ?? $value);
+}
+
+/**
  * Build sitemap.xml content. Drafts excluded.
  *
  * Includes:
@@ -81,8 +95,8 @@ function nano_generate_sitemap(): string
 
 function nano_sitemap_url(string $loc, string $lastmod): string
 {
-    return '  <url><loc>' . nano_e($loc) . '</loc>'
-         . '<lastmod>' . nano_e($lastmod) . '</lastmod></url>';
+    return '  <url><loc>' . nano_xml_e($loc) . '</loc>'
+         . '<lastmod>' . nano_xml_e($lastmod) . '</lastmod></url>';
 }
 
 /**
@@ -112,11 +126,11 @@ function nano_generate_feed(): string
             $latest_pub_date = $date;
         }
         $items[] = '    <item>'
-                 . '<title>' . nano_e((string)$fm['title']) . '</title>'
-                 . '<link>' . nano_e($url) . '</link>'
-                 . '<description>' . nano_e((string)$fm['description']) . '</description>'
-                 . '<pubDate>' . nano_e($pub) . '</pubDate>'
-                 . '<guid isPermaLink="true">' . nano_e($url) . '</guid>'
+                 . '<title>' . nano_xml_e((string)$fm['title']) . '</title>'
+                 . '<link>' . nano_xml_e($url) . '</link>'
+                 . '<description>' . nano_xml_e((string)$fm['description']) . '</description>'
+                 . '<pubDate>' . nano_xml_e($pub) . '</pubDate>'
+                 . '<guid isPermaLink="true">' . nano_xml_e($url) . '</guid>'
                  . '</item>';
     }
 
@@ -125,12 +139,12 @@ function nano_generate_feed(): string
     return '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
          . '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">' . "\n"
          . '  <channel>' . "\n"
-         . '    <title>' . nano_e($site_name) . '</title>' . "\n"
-         . '    <link>' . nano_e($base . '/') . '</link>' . "\n"
-         . '    <description>' . nano_e($site_name . ' - latest posts.') . '</description>' . "\n"
+         . '    <title>' . nano_xml_e($site_name) . '</title>' . "\n"
+         . '    <link>' . nano_xml_e($base . '/') . '</link>' . "\n"
+         . '    <description>' . nano_xml_e($site_name . ' - latest posts.') . '</description>' . "\n"
          . '    <language>en</language>' . "\n"
-         . '    <atom:link href="' . nano_e($base . '/feed.xml') . '" rel="self" type="application/rss+xml" />' . "\n"
-         . '    <lastBuildDate>' . nano_e($channel_pub) . '</lastBuildDate>' . "\n"
+         . '    <atom:link href="' . nano_xml_e($base . '/feed.xml') . '" rel="self" type="application/rss+xml" />' . "\n"
+         . '    <lastBuildDate>' . nano_xml_e($channel_pub) . '</lastBuildDate>' . "\n"
          . (empty($items) ? '' : implode("\n", $items) . "\n")
          . '  </channel>' . "\n"
          . '</rss>' . "\n";

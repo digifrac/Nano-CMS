@@ -9,6 +9,8 @@ require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/core.php';
 require_once __DIR__ . '/licence.php';
 
+header('Content-Type: text/html; charset=UTF-8');
+
 $slug_raw = isset($_GET['slug']) ? (string)$_GET['slug'] : '';
 $slug = nano_safe_slug($slug_raw);
 if ($slug === '' || $slug !== $slug_raw) {
@@ -24,13 +26,23 @@ if ($url_category === '' || $url_category !== $category_raw) {
 }
 
 // Draft preview path: requires a logged-in admin session AND a CSRF token
-// matching the one issued by the admin. The admin codebase (built in a
-// later step) sets these session keys on login. Both checks must pass;
-// otherwise drafts are treated as missing posts and 404.
+// matching the one issued by the admin. Must read the admin's session
+// (cookie name nano_admin, not the PHP default PHPSESSID) or the lookup
+// will silently miss and drafts will never render. Cookie params mirror
+// admin/core.php's nano_admin_session_start() so a session created here
+// inherits the same flags.
 $preview_token = isset($_GET['preview']) ? (string)$_GET['preview'] : '';
 $is_admin_preview = false;
 if ($preview_token !== '') {
     if (session_status() === PHP_SESSION_NONE) {
+        session_name('nano_admin');
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => '/',
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
         @session_start();
     }
     if (

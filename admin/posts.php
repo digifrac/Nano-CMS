@@ -355,6 +355,23 @@ function nano_admin_save_post(array $fm, string $body, ?string $original_filepat
         throw new RuntimeException('Category must contain at least one of [a-z0-9-]');
     }
 
+    // Image + thumbnail are referenced from frontmatter and rendered into
+    // <img src=> by the frontend. Restrict to plain filenames with an
+    // allowed image extension - blocks `../bootstrap.php`, `foo.svg`
+    // (script-bearing), and similar paths a hand-edit or SFTP drop could
+    // sneak past the upload pipeline's own checks.
+    foreach (['image', 'thumbnail'] as $img_key) {
+        $value = trim((string)($fm[$img_key] ?? ''));
+        if ($value === '') {
+            continue;
+        }
+        if (!preg_match('/^[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|gif|webp)$/i', $value)) {
+            throw new RuntimeException(
+                ucfirst($img_key) . ' must be a plain filename ending in .jpg, .jpeg, .png, .gif, or .webp.'
+            );
+        }
+    }
+
     $target = nano_admin_post_path($date, $slug);
 
     // Refuse if the target path is already taken by a *different* post.

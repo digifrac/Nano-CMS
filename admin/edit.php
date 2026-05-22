@@ -172,7 +172,7 @@ $preview_url = (!$is_new && $base_url !== '')
     | <a href="settings.php">Settings</a>
     | <a href="licence.php">Licence</a>
     | <a href="help.php">Help</a>
-    | <a href="index.php?action=logout">Sign out</a>
+    | <?= nano_admin_logout_form() ?>
   </div>
 </div>
 

@@ -18,6 +18,15 @@ nano_admin_version_check();
 $action = (string)($_GET['action'] ?? '');
 
 if ($action === 'logout') {
+    // POST + CSRF only: prevents cross-site GETs (e.g. <img src="..."> in
+    // a malicious email) from logging the operator out remotely.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !nano_admin_csrf_check((string)($_POST['csrf'] ?? ''))) {
+        http_response_code(405);
+        header('Allow: POST');
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo "Logout must be a POST with a valid CSRF token.";
+        exit;
+    }
     nano_admin_logout();
     header('Location: index.php');
     exit;
@@ -132,7 +141,7 @@ $categories = nano_admin_categories();
 <body>
 <div class="bar">
   <h1><?= nano_admin_e($site_name) ?> - admin</h1>
-  <div><a href="media.php">Media</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="licence.php">Licence</a> | <a href="help.php">Help</a> | <a href="?action=logout">Sign out</a></div>
+  <div><a href="media.php">Media</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="licence.php">Licence</a> | <a href="help.php">Help</a> | <?= nano_admin_logout_form() ?></div>
 </div>
 <?php if ($flash !== null): ?>
 <div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>

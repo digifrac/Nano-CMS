@@ -17,7 +17,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     exit;
 }
 
-const NANO_ADMIN_VERSION = '1.3.0';
+const NANO_ADMIN_VERSION = '1.3.1';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;
@@ -49,7 +49,7 @@ function nano_admin_render_footer(): string
     ];
     $rendered = [];
     foreach ($links as [$label, $url]) {
-        $rendered[] = '<a href="' . nano_admin_e($url) . '" target="_blank" rel="noopener">'
+        $rendered[] = '<a href="' . nano_admin_e($url) . '" target="_blank" rel="noopener noreferrer">'
             . nano_admin_e($label) . '</a>';
     }
     return '<footer class="admin-footer">'
@@ -68,8 +68,15 @@ function nano_admin_is_https(): bool
     if ($h !== '' && strtolower((string)$h) !== 'off') {
         return true;
     }
-    $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
-    return strtolower((string)$proto) === 'https';
+    // HTTP_X_FORWARDED_PROTO is client-controlled unless a reverse proxy
+    // strips/overwrites it. Only honour it when the operator has opted in
+    // by defining NANO_TRUST_PROXY in bootstrap.php (or the site is behind
+    // a Cloudflare/Apache/Nginx layer that they trust).
+    if (defined('NANO_TRUST_PROXY') && NANO_TRUST_PROXY) {
+        $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+        return strtolower((string)$proto) === 'https';
+    }
+    return false;
 }
 
 function nano_admin_assert_https(): void
@@ -172,6 +179,21 @@ function nano_admin_csrf_field(): string
     return '<input type="hidden" name="csrf" value="' . nano_admin_e(nano_admin_csrf_token()) . '">';
 }
 
+/**
+ * Render the "Sign out" control as a CSRF-protected POST form, styled
+ * inline to read as a link inside the admin nav bar. POST + CSRF stops
+ * cross-site GETs (e.g. <img src="...?action=logout">) from logging
+ * the operator out.
+ */
+function nano_admin_logout_form(): string
+{
+    $btn_style = 'background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;';
+    return '<form method="post" action="index.php?action=logout" style="display:inline;margin:0;padding:0;">'
+         . nano_admin_csrf_field()
+         . '<button type="submit" style="' . $btn_style . '">Sign out</button>'
+         . '</form>';
+}
+
 function nano_admin_require_csrf(): void
 {
     $supplied = (string)($_POST['csrf'] ?? '');
@@ -264,10 +286,14 @@ function nano_admin_save_config(array $config): void
     if ($json === false) {
         throw new RuntimeException('Nano CMS admin: failed to encode config.json');
     }
-    nano_admin_atomic_write(NANO_CONFIG_PATH, $json . "\n");
+    // 0600: config.json contains password_hash + licence_key. On shared
+    // hosting, 0644 lets other tenants read the bcrypt hash and offline-
+    // crack it. The file is outside webroot (HTTP-unreachable) but local
+    // tenants share the filesystem.
+    nano_admin_atomic_write(NANO_CONFIG_PATH, $json . "\n", 0600);
 }
 
-function nano_admin_atomic_write(string $path, string $contents): void
+function nano_admin_atomic_write(string $path, string $contents, int $mode = 0644): void
 {
     $dir = dirname($path);
     if (!is_dir($dir)) {
@@ -282,7 +308,7 @@ function nano_admin_atomic_write(string $path, string $contents): void
         @unlink($tmp);
         throw new RuntimeException("Nano CMS admin: could not rename to $path");
     }
-    @chmod($path, 0644);
+    @chmod($path, $mode);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -331,7 +357,9 @@ function nano_admin_rate_limit_save(array $state): void
     if ($json === false) {
         return;
     }
-    nano_admin_atomic_write(NANO_RATE_LIMIT_PATH, $json . "\n");
+    // 0600: same shared-hosting concern as config.json - failed-login state
+    // shouldn't be readable by other tenants.
+    nano_admin_atomic_write(NANO_RATE_LIMIT_PATH, $json . "\n", 0600);
 }
 
 function nano_admin_rate_limit_prune(array $state, int $now): array

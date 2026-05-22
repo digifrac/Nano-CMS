@@ -92,7 +92,7 @@ if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $th
     | <a href="categories.php">Categories</a>
     | <a href="licence.php">Licence</a>
     | <a href="help.php">Help</a>
-    | <a href="index.php?action=logout">Sign out</a>
+    | <?= nano_admin_logout_form() ?>
   </div>
 </div>
 

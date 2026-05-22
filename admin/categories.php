@@ -64,7 +64,7 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
     | <a href="settings.php">Settings</a>
     | <a href="licence.php">Licence</a>
     | <a href="help.php">Help</a>
-    | <a href="index.php?action=logout">Sign out</a>
+    | <?= nano_admin_logout_form() ?>
   </div>
 </div>
 
@@ -105,7 +105,7 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
       <button type="submit" <?= $reencoder_available ? '' : 'disabled' ?>><?= $img_url !== null ? 'Replace' : 'Upload' ?></button>
     </form>
 <?php if ($img_url !== null): ?>
-    <form method="post" action="?action=delete" class="category-image-remove" onsubmit="return confirm('Remove the image for <?= nano_admin_e($cat) ?>?');">
+    <form method="post" action="?action=delete" class="category-image-remove" onsubmit="return confirm('Remove this category image?');">
       <?= nano_admin_csrf_field() ?>
       <input type="hidden" name="slug" value="<?= nano_admin_e($cat) ?>">
       <button type="submit" class="danger">Remove</button>

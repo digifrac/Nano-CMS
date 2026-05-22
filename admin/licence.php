@@ -27,8 +27,13 @@ nano_admin_require_login();
 
 $cfg       = nano_admin_load_config();
 $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
-$host      = (string)($_SERVER['HTTP_HOST'] ?? '');
-$is_dev    = nano_is_dev_host($host);
+// Verify against the canonical host (from base_url), the same identity
+// the frontend's footer renderer uses. The browser-supplied HTTP_HOST is
+// kept only for the "you're accessing via a dev URL" banner below; it
+// no longer drives licence verification.
+$verify_host = nano_licence_canonical_host();
+$request_host = (string)($_SERVER['HTTP_HOST'] ?? '');
+$is_dev = nano_is_dev_host($verify_host !== '' ? $verify_host : $request_host);
 $flash     = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $flash = ['ok', 'Licence removed. The "Powered by Nano CMS" footer will reappear on production pages.'];
     } else {
         $new_key = trim((string)($_POST['licence_key'] ?? ''));
-        $result  = nano_licence_inspect($new_key, $host);
+        $result  = nano_licence_inspect($new_key, $verify_host);
         if ($result['ok']) {
             $cfg['licence_key'] = $new_key;
             nano_admin_save_config($cfg);
@@ -60,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* Re-load so the status display reflects whatever just got saved. */
 $cfg          = nano_admin_load_config();
 $current_key  = (string)($cfg['licence_key'] ?? '');
-$status       = nano_licence_inspect($current_key, $host);
+$status       = nano_licence_inspect($current_key, $verify_host);
 $has_licence  = $current_key !== '';
 ?>
 <!DOCTYPE html>
@@ -80,7 +85,7 @@ $has_licence  = $current_key !== '';
     | <a href="categories.php">Categories</a>
     | <a href="settings.php">Settings</a>
     | <a href="help.php">Help</a>
-    | <a href="index.php?action=logout">Sign out</a>
+    | <?= nano_admin_logout_form() ?>
   </div>
 </div>
 
@@ -91,7 +96,7 @@ $has_licence  = $current_key !== '';
 <section class="settings-form">
   <h2>Current status</h2>
 <?php if ($is_dev): ?>
-  <p class="help"><strong>Development host detected (<code><?= nano_admin_e($host) ?></code>).</strong> The footer attribution is suppressed on <code>localhost</code>, <code>*.test</code>, <code>*.local</code>, and hosts with a port. Verification still runs against your real licence below; this banner just explains why no footer appears here even without a licence.</p>
+  <p class="help"><strong>Development host detected (<code><?= nano_admin_e($verify_host !== '' ? $verify_host : $request_host) ?></code>).</strong> The footer attribution is suppressed on <code>localhost</code>, <code>*.test</code>, <code>*.local</code>, and hosts with a port. Verification still runs against your real licence below; this banner just explains why no footer appears here even without a licence.</p>
 <?php endif; ?>
 
 <?php if (!$has_licence): ?>
@@ -104,7 +109,7 @@ $has_licence  = $current_key !== '';
     Footer attribution hidden.</p>
 <?php else: ?>
   <p><strong>Licence present but not valid for this host.</strong> Reason: <?= nano_admin_e((string)$status['reason']) ?></p>
-  <p class="help">The licence will not suppress the footer until either you paste one that covers <code><?= nano_admin_e($host) ?></code>, or you remove the current one.</p>
+  <p class="help">The licence will not suppress the footer until either you paste one that covers <code><?= nano_admin_e($verify_host !== '' ? $verify_host : '(base_url unset)') ?></code>, or you remove the current one.</p>
 <?php endif; ?>
 </section>
 

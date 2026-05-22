@@ -521,8 +521,12 @@ function nano_render_meta_tags_for_post(array $fm): string
         }
         $ld['publisher'] = $publisher;
     }
+    // JSON_HEX_TAG/AMP/APOS/QUOT guarantee no `<`, `&`, `'`, `"` slip into
+    // the inline <script> as literal characters - any admin-supplied field
+    // (title, description, author) that happens to contain `</script>` or
+    // similar can't break out of the JSON-LD block.
     $tags[] = '<script type="application/ld+json">'
-        . json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
         . '</script>';
 
     return implode("\n", $tags);
@@ -591,8 +595,12 @@ function nano_render_meta_tags_for_index(?string $category = null, int $page = 1
         'description' => $desc,
         'url' => $url,
     ];
+    // JSON_HEX_TAG/AMP/APOS/QUOT guarantee no `<`, `&`, `'`, `"` slip into
+    // the inline <script> as literal characters - any admin-supplied field
+    // (title, description, author) that happens to contain `</script>` or
+    // similar can't break out of the JSON-LD block.
     $tags[] = '<script type="application/ld+json">'
-        . json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
         . '</script>';
 
     return implode("\n", $tags);

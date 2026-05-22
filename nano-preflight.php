@@ -10,6 +10,18 @@
 
 declare(strict_types=1);
 
+// Self-gate: refuse to run once the site is set up. Pre-setup the operator
+// hasn't created bootstrap.php yet; post-setup it's there, and this file's
+// one and only job is done. Leaving the file deployed should not leak host
+// fingerprints (PHP version, paths, php.ini) to a passing visitor who hits
+// the URL. The "DELETE this file" warning at the bottom of the rendered
+// page still applies - this is just a second line of defence for operators
+// who forget.
+if (is_file(__DIR__ . '/bootstrap.php')) {
+    http_response_code(404);
+    exit;
+}
+
 function row(string $name, bool $ok, string $value, string $note = ''): void
 {
     $cls = $ok ? 'ok' : 'fail';

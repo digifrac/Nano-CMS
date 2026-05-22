@@ -10,6 +10,8 @@ require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/core.php';
 require_once __DIR__ . '/licence.php';
 
+header('Content-Type: text/html; charset=UTF-8');
+
 $category_raw = isset($_GET['category']) ? (string)$_GET['category'] : null;
 $category = null;
 if ($category_raw !== null) {

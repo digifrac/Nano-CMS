@@ -105,6 +105,14 @@ Delete the ZIP.
 
 ### 3f. Run the setup wizard
 
+> **Run setup immediately after uploading `bootstrap.php`.** The setup
+> page is unauthenticated by necessity (there is no password yet), so it
+> only stays open for **10 minutes after `bootstrap.php` was uploaded**.
+> If you walk away first and finish later, the window will have closed
+> and `setup.php` will refuse. Re-upload `bootstrap.php` to open a new
+> window. Whoever wins the race owns the site - don't let that be a
+> stranger.
+
 Visit `https://example.com/blog/admin/setup.php` over HTTPS.
 
 Fill in:
