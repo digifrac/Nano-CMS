@@ -14,6 +14,14 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     exit;
 }
 
+/**
+ * Project version. Tracked alongside admin/core.php's NANO_ADMIN_VERSION:
+ * both constants carry the same value because they belong to the same
+ * release, even though the two codebases ship as separate zips.
+ * When bumping for a release, edit both.
+ */
+const NANO_VERSION = '1.3.1';
+
 require_once __DIR__ . '/lib/Parsedown.php';
 
 /* ------------------------------------------------------------------------- */

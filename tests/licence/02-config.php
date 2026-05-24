@@ -1,7 +1,7 @@
 <?php
 /**
- * Tests for the v1.3.0 config schema bump:
- *   - NANO_ADMIN_VERSION is 1.3.0
+ * Tests for the v1.3.x config schema:
+ *   - NANO_ADMIN_VERSION is the current version constant
  *   - Saving and reloading config preserves the new licence_key field
  *   - nano_admin_version_check refuses when last_used > current
  *   - Allows an older config (clean upgrade path)
@@ -22,7 +22,7 @@ require_once __DIR__ . '/_helpers.php';
 require_once $repo . '/admin/core.php';
 
 nano_section('admin version constant');
-nano_check('NANO_ADMIN_VERSION === 1.3.0', NANO_ADMIN_VERSION === '1.3.0');
+nano_check('NANO_ADMIN_VERSION === ' . NANO_ADMIN_VERSION, is_string(NANO_ADMIN_VERSION) && preg_match('/^\d+\.\d+\.\d+$/', NANO_ADMIN_VERSION) === 1);
 
 nano_section('config round-trip with licence_key field');
 $initial = [
@@ -43,7 +43,8 @@ nano_check('config persisted as valid JSON',           is_array($read));
 nano_check('format_version is 1.3',                    ($read['format_version'] ?? null) === '1.3');
 nano_check('licence_key field present',                array_key_exists('licence_key', $read));
 nano_check('licence_key defaults to empty string',     ($read['licence_key'] ?? null) === '');
-nano_check('admin_version_last_used bumped to 1.3.0',  ($read['admin_version_last_used'] ?? null) === '1.3.0');
+nano_check('admin_version_last_used bumped to ' . NANO_ADMIN_VERSION,
+    ($read['admin_version_last_used'] ?? null) === NANO_ADMIN_VERSION);
 
 nano_section('version compatibility check (subprocess)');
 $child = '<?php
@@ -70,13 +71,13 @@ $cmd = function (string $last_used) use ($script, $cfg_path, $rate_path, $repo):
     )) ?? '';
 };
 
-$out = $cmd('1.4.0');
-nano_check('refuses when last_used > current (1.4.0 vs 1.3.0)',
+$out = $cmd('9.0.0');
+nano_check('refuses when last_used > current (9.0.0 vs ' . NANO_ADMIN_VERSION . ')',
     strpos($out, 'NO_REFUSAL') === false
-    && strpos($out, 'last edited with admin version 1.4.0') !== false);
+    && strpos($out, 'last edited with admin version 9.0.0') !== false);
 
 $out2 = $cmd('1.2.0');
-nano_check('allows upgrade from older config (1.2.0 -> 1.3.0)',
+nano_check('allows upgrade from older config (1.2.0 -> ' . NANO_ADMIN_VERSION . ')',
     strpos($out2, 'NO_REFUSAL') !== false);
 
 /* Cleanup */

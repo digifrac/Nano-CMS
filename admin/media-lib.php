@@ -18,6 +18,8 @@ const NANO_ADMIN_MEDIA_EXTENSIONS = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpe
 const NANO_ADMIN_THUMB_DEFAULT_WIDTH = 600;
 const NANO_ADMIN_THUMB_DEFAULT_HEIGHT = 400;
 const NANO_ADMIN_THUMB_SUFFIX = '-thumb';
+const NANO_ADMIN_IMAGE_QUALITY_DEFAULT = 85;
+const NANO_ADMIN_SOURCE_MAX_WIDTH_DEFAULT = 1600;
 
 /* ------------------------------------------------------------------------ */
 /* Path + filename helpers                                                   */
@@ -253,6 +255,96 @@ function nano_admin_cat_thumb_dimensions(): array
 }
 
 /**
+ * JPEG or WebP encode quality from config.json. Range 60-95.
+ * Defaults to 85 for both formats when unset or out of range.
+ */
+function nano_admin_image_quality(string $ext): int
+{
+    $cfg = nano_admin_load_config();
+    $key = ($ext === 'webp') ? 'image_quality_webp' : 'image_quality_jpeg';
+    $q = (int)($cfg[$key] ?? NANO_ADMIN_IMAGE_QUALITY_DEFAULT);
+    if ($q < 60 || $q > 95) $q = NANO_ADMIN_IMAGE_QUALITY_DEFAULT;
+    return $q;
+}
+
+/**
+ * Maximum width in pixels for re-encoded source images. Sources wider
+ * than this are downscaled at upload time. Range 400-4000. Default 1600.
+ * Prevents 4000px phone photos becoming multi-megabyte heroes.
+ */
+function nano_admin_source_max_width(): int
+{
+    $cfg = nano_admin_load_config();
+    $w = (int)($cfg['source_max_width'] ?? NANO_ADMIN_SOURCE_MAX_WIDTH_DEFAULT);
+    if ($w < 400 || $w > 4000) $w = NANO_ADMIN_SOURCE_MAX_WIDTH_DEFAULT;
+    return $w;
+}
+
+/**
+ * Apply EXIF orientation to a GD image resource. Returns a (possibly
+ * new) image resource. Caller is responsible for freeing the OLD one
+ * if a new resource is returned. JPEG only (other formats don't carry
+ * EXIF in the formats Nano CMS supports).
+ *
+ * Without this, portrait phone photos display sideways because
+ * re-encoding strips the orientation tag without applying the rotation.
+ *
+ * @param \GdImage $img
+ * @return \GdImage
+ */
+function nano_admin_apply_exif_orientation($img, string $src)
+{
+    if (!function_exists('exif_read_data')) return $img;
+    $exif = @exif_read_data($src);
+    if (!$exif || empty($exif['Orientation'])) return $img;
+    switch ((int)$exif['Orientation']) {
+        case 2: imageflip($img, IMG_FLIP_HORIZONTAL); return $img;
+        case 3: return imagerotate($img, 180, 0) ?: $img;
+        case 4: imageflip($img, IMG_FLIP_VERTICAL); return $img;
+        case 5:
+            $r = imagerotate($img, -90, 0);
+            if ($r === false) return $img;
+            imageflip($r, IMG_FLIP_HORIZONTAL);
+            return $r;
+        case 6: return imagerotate($img, -90, 0) ?: $img;
+        case 7:
+            $r = imagerotate($img, 90, 0);
+            if ($r === false) return $img;
+            imageflip($r, IMG_FLIP_HORIZONTAL);
+            return $r;
+        case 8: return imagerotate($img, 90, 0) ?: $img;
+    }
+    return $img;
+}
+
+/**
+ * Resample a GD image down to $width if currently wider, preserving
+ * aspect ratio. Returns the existing image unchanged if already within
+ * the cap or if resampling fails. Caller frees the OLD image when a
+ * new one is returned.
+ *
+ * @param \GdImage $img
+ * @return \GdImage
+ */
+function nano_admin_resize_to_width($img, int $width)
+{
+    $sw = imagesx($img);
+    $sh = imagesy($img);
+    if ($sw <= $width) return $img;
+    $new_h = (int)round($sh * $width / $sw);
+    if ($new_h < 1) return $img;
+    $resized = imagecreatetruecolor($width, $new_h);
+    if ($resized === false) return $img;
+    imagealphablending($resized, false);
+    imagesavealpha($resized, true);
+    if (!imagecopyresampled($resized, $img, 0, 0, 0, 0, $width, $new_h, $sw, $sh)) {
+        imagedestroy($resized);
+        return $img;
+    }
+    return $resized;
+}
+
+/**
  * Crop+resize $src into a thumbnail at $dest. Cover-crop with an
  * upper-bias of 35% (matches the .nano-blog-card image object-position
  * so the visual is consistent across full-size hero and small thumb).
@@ -260,6 +352,8 @@ function nano_admin_cat_thumb_dimensions(): array
  */
 function nano_admin_media_generate_thumb(string $src, string $dest, int $width, int $height, string $ext): bool
 {
+    $quality_jpg = nano_admin_image_quality('jpg');
+    $quality_webp = nano_admin_image_quality('webp');
     if (extension_loaded('gd')) {
         $img = match ($ext) {
             'jpg', 'jpeg' => @imagecreatefromjpeg($src),
@@ -284,7 +378,7 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
                     $crop_w = $sw;
                     $crop_h = (int)round($sw / $tgt_aspect);
                     $crop_x = 0;
-                    // 35% from top - keeps subjects in the upper third visible.
+                    // 35% from top, keeps subjects in the upper third visible.
                     $crop_y = (int)round(($sh - $crop_h) * 0.35);
                 }
                 $thumb = imagecreatetruecolor($width, $height);
@@ -297,10 +391,10 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
                     return false;
                 }
                 $ok = match ($ext) {
-                    'jpg', 'jpeg' => @imagejpeg($thumb, $dest, 85),
+                    'jpg', 'jpeg' => @imagejpeg($thumb, $dest, $quality_jpg),
                     'png'         => @imagepng($thumb, $dest, 6),
                     'gif'         => @imagegif($thumb, $dest),
-                    'webp'        => function_exists('imagewebp') && @imagewebp($thumb, $dest, 85),
+                    'webp'        => function_exists('imagewebp') && @imagewebp($thumb, $dest, $quality_webp),
                     default       => false,
                 };
                 imagedestroy($thumb);
@@ -317,6 +411,11 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
             // upper-bias closely enough for a fallback.
             $im->cropThumbnailImage($width, $height);
             $im->stripImage();
+            if ($ext === 'jpg' || $ext === 'jpeg') {
+                $im->setImageCompressionQuality($quality_jpg);
+            } elseif ($ext === 'webp') {
+                $im->setImageCompressionQuality($quality_webp);
+            }
             $im->writeImage($dest);
             $im->clear();
             return true;
@@ -329,13 +428,19 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
 
 /**
  * Decode + re-encode the image into $dest. Strips any embedded payload
- * (EXIF, ICC, smuggled PHP) by going through a pixel round-trip. Tries
- * GD first - it's the standard PHP image extension and almost always
- * available - then falls back to Imagick. Returns false if neither is
- * loaded or if the source can't be decoded as the claimed type.
+ * (EXIF, ICC, smuggled PHP) by going through a pixel round-trip. Also
+ * applies EXIF orientation (JPEGs only, so portrait phone photos render
+ * upright) and downscales to source_max_width if the source is wider.
+ * Tries GD first (standard PHP image extension), falls back to Imagick.
+ * Returns false if neither is loaded or if the source can't be decoded
+ * as the claimed type.
  */
 function nano_admin_media_reencode(string $src, string $ext, string $dest): bool
 {
+    $max_width = nano_admin_source_max_width();
+    $quality_jpg = nano_admin_image_quality('jpg');
+    $quality_webp = nano_admin_image_quality('webp');
+
     if (extension_loaded('gd')) {
         $img = match ($ext) {
             'jpg', 'jpeg' => @imagecreatefromjpeg($src),
@@ -346,15 +451,27 @@ function nano_admin_media_reencode(string $src, string $ext, string $dest): bool
         };
         if ($img !== false) {
             try {
+                if ($ext === 'jpg' || $ext === 'jpeg') {
+                    $oriented = nano_admin_apply_exif_orientation($img, $src);
+                    if ($oriented !== $img) {
+                        imagedestroy($img);
+                        $img = $oriented;
+                    }
+                }
+                $resized = nano_admin_resize_to_width($img, $max_width);
+                if ($resized !== $img) {
+                    imagedestroy($img);
+                    $img = $resized;
+                }
                 if ($ext === 'png') {
                     imagealphablending($img, false);
                     imagesavealpha($img, true);
                 }
                 $ok = match ($ext) {
-                    'jpg', 'jpeg' => @imagejpeg($img, $dest, 85),
+                    'jpg', 'jpeg' => @imagejpeg($img, $dest, $quality_jpg),
                     'png'         => @imagepng($img, $dest, 6),
                     'gif'         => @imagegif($img, $dest),
-                    'webp'        => function_exists('imagewebp') && @imagewebp($img, $dest, 85),
+                    'webp'        => function_exists('imagewebp') && @imagewebp($img, $dest, $quality_webp),
                     default       => false,
                 };
                 return (bool)$ok;
@@ -366,6 +483,17 @@ function nano_admin_media_reencode(string $src, string $ext, string $dest): bool
     if (extension_loaded('imagick')) {
         try {
             $im = new Imagick($src);
+            if (method_exists($im, 'autoOrient')) {
+                $im->autoOrient();
+            }
+            if ($im->getImageWidth() > $max_width) {
+                $im->scaleImage($max_width, 0);
+            }
+            if ($ext === 'jpg' || $ext === 'jpeg') {
+                $im->setImageCompressionQuality($quality_jpg);
+            } elseif ($ext === 'webp') {
+                $im->setImageCompressionQuality($quality_webp);
+            }
             $im->stripImage();
             $im->writeImage($dest);
             $im->clear();

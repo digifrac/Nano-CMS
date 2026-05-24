@@ -40,9 +40,19 @@ rather than silently corrupting data.
   Fracture. When present and valid for the request host, the
   "Powered by Nano CMS" footer attribution is suppressed. Empty or
   absent = unlicensed, footer renders as usual.
+- *(1.3.1)* Three optional image-pipeline fields added to `config.json`:
+  `source_max_width` (default 1600) caps the pixel width of re-encoded
+  source images so phone photos are downscaled at upload; `image_quality_jpeg`
+  and `image_quality_webp` (both default 85, range 60-95) make encode
+  quality configurable. Existing installs unchanged: the defaults match
+  the previously-hardcoded values for quality, and the dimension cap
+  only affects new uploads.
+- *(1.3.1)* Pipeline fix: EXIF orientation is now applied to JPEG
+  uploads before re-encoding. Portrait phone photos no longer display
+  sideways. Imagick path uses `autoOrient()` where available.
 
-Existing 1.0, 1.1, and 1.2 installs remain compatible. All new fields and
-conventions degrade gracefully when absent.
+Existing 1.0, 1.1, 1.2, and 1.3 installs remain compatible. All new fields
+and conventions degrade gracefully when absent.
 
 ---
 
@@ -302,7 +312,7 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
   "licence_key": "",
   "password_hash": "$2y$10$...",
   "created": "2026-05-06T10:30:00Z",
-  "admin_version_last_used": "1.3.0"
+  "admin_version_last_used": "1.3.1"
 }
 ```
 
@@ -321,6 +331,9 @@ Lives **outside webroot** at the path declared by `NANO_CONFIG_PATH` in
 | `thumb_height`            | integer       | Height in pixels of auto-generated article thumbnails. Range 100-2400. Default `400`. Optional, added in 1.1. |
 | `cat_thumb_width`         | integer       | Width in pixels of auto-generated category-image thumbnails. Range 100-2400. Falls back to `thumb_width` when absent. Optional, added in 1.1. |
 | `cat_thumb_height`        | integer       | Height in pixels of auto-generated category-image thumbnails. Range 100-2400. Falls back to `thumb_height` when absent. Optional, added in 1.1. |
+| `source_max_width`        | integer       | Maximum pixel width for re-encoded source images. Sources wider than this are downscaled at upload time. Range 400-4000. Default `1600`. Prevents large phone photos from being served at full resolution. Optional, added in 1.3.1. |
+| `image_quality_jpeg`      | integer       | JPEG encode quality for re-encoded sources and thumbnails. Range 60-95. Default `85`. Optional, added in 1.3.1. |
+| `image_quality_webp`      | integer       | WebP encode quality for re-encoded sources and thumbnails. Range 60-95. Default `85`. Optional, added in 1.3.1. |
 | `licence_key`             | string        | Ed25519 `base64(payload).base64(signature)` licence issued by Digital Fracture. Suppresses the footer attribution when present and valid for the request host. Empty / missing = unlicensed. Optional, added in 1.3. |
 | `password_hash`           | string        | bcrypt hash from PHP `password_hash()`. Single password per site.   |
 | `created`                 | ISO 8601 UTC  | Set by setup wizard. Informational.                                 |

@@ -17,6 +17,12 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     exit;
 }
 
+/**
+ * Project version. Tracked alongside the frontend's NANO_VERSION:
+ * both constants carry the same value because they belong to the same
+ * release, even though the two codebases ship as separate zips.
+ * When bumping for a release, edit both.
+ */
 const NANO_ADMIN_VERSION = '1.3.1';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
