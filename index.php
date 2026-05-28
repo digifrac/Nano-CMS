@@ -72,6 +72,7 @@ if ($category !== null) {
         ? nano_media_url(trim((string)$cat_record['image']))
         : null;
     $cat_pos = ($cat_record !== null && (($cat_record['image_position'] ?? '') === 'right')) ? 'right' : 'left';
+    $cat_bg = ($cat_record !== null) ? (string)($cat_record['image_bg'] ?? '') : '';
     $cat_desc_html = $cat_description !== '' ? nano_render_markdown($cat_description) : '';
     // Meta description must stay plain text even when the description is markdown.
     $cat_meta_desc = $cat_desc_html !== ''
@@ -122,7 +123,7 @@ ob_start();
   <header class="nano-blog-category-header nano-blog-image-<?= nano_e($cat_pos) ?> <?= $has_banner ? 'has-banner' : 'no-banner' ?>">
 <?php if ($has_banner): ?>
     <figure class="nano-blog-category-banner">
-      <img src="<?= nano_e($cat_image) ?>" alt="<?= nano_e($heading) ?>" loading="lazy">
+      <img src="<?= nano_e($cat_image) ?>" alt="<?= nano_e($heading) ?>"<?= nano_image_bg_attr($cat_bg) ?> loading="lazy">
     </figure>
 <?php endif; ?>
 <?php if ($has_desc): ?>
@@ -138,7 +139,7 @@ ob_start();
     <article class="nano-blog-card<?= $card_img !== null ? ' has-image' : '' ?>">
       <a href="<?= nano_e(nano_post_url((string)$fm['slug'], (string)$fm['category'])) ?>">
 <?php if ($card_img !== null): ?>
-        <img src="<?= nano_e($card_img) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
+        <img src="<?= nano_e($card_img) ?>" alt="<?= nano_e(nano_card_image_alt($fm)) ?>"<?= nano_image_bg_attr($fm['image_bg'] ?? '') ?> loading="lazy">
 <?php endif; ?>
         <div class="nano-blog-card-text">
           <h2><?= nano_e((string)$fm['title']) ?></h2>
@@ -178,7 +179,7 @@ ob_start();
 <?php if ($hero_post !== null): $hero_img = nano_card_image_url($hero_post); ?>
   <a class="nano-blog-hero<?= $hero_img !== null ? ' has-image' : '' ?>" href="<?= nano_e(nano_post_url((string)$hero_post['slug'], (string)$hero_post['category'])) ?>" style="<?= $article_grid_style ?>">
 <?php if ($hero_img !== null): ?>
-    <img src="<?= nano_e($hero_img) ?>" alt="<?= nano_e((string)($hero_post['image_alt'] ?? $hero_post['title'])) ?>" loading="lazy">
+    <img src="<?= nano_e($hero_img) ?>" alt="<?= nano_e(nano_card_image_alt($hero_post)) ?>"<?= nano_image_bg_attr($hero_post['image_bg'] ?? '') ?> loading="lazy">
 <?php endif; ?>
     <div class="nano-blog-hero-body">
       <h2><?= nano_e((string)$hero_post['title']) ?></h2>
@@ -199,7 +200,7 @@ ob_start();
 ?>
       <a class="nano-blog-category-card<?= $cat_image !== null ? ' has-image' : '' ?>" href="<?= nano_e(nano_category_url($c['slug'])) ?>">
 <?php if ($cat_image !== null): ?>
-        <img src="<?= nano_e($cat_image) ?>" alt="<?= nano_e($c['label']) ?>" loading="lazy">
+        <img src="<?= nano_e($cat_image) ?>" alt="<?= nano_e($c['label']) ?>"<?= nano_image_bg_attr($c['image_bg'] ?? '') ?> loading="lazy">
 <?php endif; ?>
         <div class="nano-blog-category-card-text">
           <h2><?= nano_e($c['label']) ?></h2>
@@ -218,7 +219,7 @@ ob_start();
       <article class="nano-blog-card<?= $fp_img !== null ? ' has-image' : '' ?>">
         <a href="<?= nano_e(nano_post_url((string)$fp['slug'], (string)$fp['category'])) ?>">
 <?php if ($fp_img !== null): ?>
-          <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e((string)($fp['image_alt'] ?? $fp['title'])) ?>" loading="lazy">
+          <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e(nano_card_image_alt($fp)) ?>"<?= nano_image_bg_attr($fp['image_bg'] ?? '') ?> loading="lazy">
 <?php endif; ?>
           <div class="nano-blog-card-text">
             <h2><?= nano_e((string)$fp['title']) ?></h2>
@@ -247,6 +248,6 @@ $page_description = nano_e(
         ? ($cat_meta_desc !== '' ? $cat_meta_desc : 'Posts in the ' . $category . ' category.')
         : $site_name . ' - browse by topic.'
 );
-$meta_tags = nano_render_meta_tags_for_index($category, $page) . nano_runtime_styles();
+$meta_tags = nano_render_meta_tags_for_index($category, $page);
 
 require __DIR__ . '/template.php';

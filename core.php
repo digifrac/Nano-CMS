@@ -50,38 +50,18 @@ function nano_config(): array
 }
 
 /**
- * Inline <style> emitting the card-image background custom properties from
- * config, so article and category card images can sit on an operator-chosen
- * colour (e.g. behind the transparent areas of a PNG). Appended to $meta_tags
- * by index.php/post.php so it rides into <head> on any template that renders
- * the meta block (which every working template must, for canonical/OG/JSON-LD)
- * - no per-template wiring needed. Returns '' when neither colour is set.
- * Mirrors Nano Cart's card_image_bg.
+ * Return an inline ` style="background:#hex"` attribute fragment for an image
+ * whose record/frontmatter carries an `image_bg` colour (e.g. to show behind
+ * the transparent areas of a PNG), or '' when unset or not a valid hex. Each
+ * article and category sets its own colour - per-image, like Nano Cart's
+ * image_bg - so it is applied directly on the <img> rather than globally.
  */
-function nano_runtime_styles(): string
+function nano_image_bg_attr(?string $hex): string
 {
-    $cfg = nano_config();
-    $hex = static function ($v): string {
-        $v = trim((string)$v);
-        return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $v) ? $v : '';
-    };
-    $art = $hex($cfg['card_image_bg'] ?? '');
-    $cat = $hex($cfg['cat_image_bg'] ?? '');
-    $lead = $hex($cfg['article_image_bg'] ?? '');
-    if ($art === '' && $cat === '' && $lead === '') {
-        return '';
-    }
-    $decls = '';
-    if ($art !== '') {
-        $decls .= '--nano-blog-card-image-bg:' . $art . ';';
-    }
-    if ($cat !== '') {
-        $decls .= '--nano-blog-cat-image-bg:' . $cat . ';';
-    }
-    if ($lead !== '') {
-        $decls .= '--nano-blog-article-image-bg:' . $lead . ';';
-    }
-    return '<style>.nano-blog{' . $decls . '}</style>';
+    $hex = trim((string)$hex);
+    return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $hex)
+        ? ' style="background:' . $hex . '"'
+        : '';
 }
 
 /* ------------------------------------------------------------------------- */
@@ -175,6 +155,24 @@ function nano_card_image_url(array $fm): ?string
         return nano_thumb_url($image);
     }
     return null;
+}
+
+/**
+ * Alt text for the card image returned by nano_card_image_url(): when a
+ * separate `thumbnail` is set, prefer its `thumbnail_alt`; otherwise fall
+ * back to the hero `image_alt`, then the post title.
+ */
+function nano_card_image_alt(array $fm): string
+{
+    $thumb = trim((string)($fm['thumbnail'] ?? ''));
+    if ($thumb !== '') {
+        $talt = trim((string)($fm['thumbnail_alt'] ?? ''));
+        if ($talt !== '') {
+            return $talt;
+        }
+    }
+    $alt = trim((string)($fm['image_alt'] ?? ''));
+    return $alt !== '' ? $alt : (string)($fm['title'] ?? '');
 }
 
 /**
@@ -531,6 +529,7 @@ function nano_list_categories_with_counts(): array
             $by_slug[$slug]['label'] = (string)$rec['name'];
         }
         $by_slug[$slug]['description'] = (string)($rec['description'] ?? '');
+        $by_slug[$slug]['image_bg'] = (string)($rec['image_bg'] ?? '');
         if (array_key_exists('sort_order', $rec)) {
             $by_slug[$slug]['sort_order'] = (int)$rec['sort_order'];
         }

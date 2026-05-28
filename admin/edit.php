@@ -62,7 +62,9 @@ $form = [
     'description' => (string)($original_fm['description'] ?? ''),
     'image'       => (string)($original_fm['image'] ?? ''),
     'image_alt'   => (string)($original_fm['image_alt'] ?? ''),
+    'image_bg'    => (string)($original_fm['image_bg'] ?? ''),
     'thumbnail'   => (string)($original_fm['thumbnail'] ?? ''),
+    'thumbnail_alt' => (string)($original_fm['thumbnail_alt'] ?? ''),
     'draft'       => !empty($original_fm['draft']),
     'hero'        => !empty($original_fm['hero']),
     'featured'    => !empty($original_fm['featured']),
@@ -74,7 +76,7 @@ $form = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     nano_admin_require_csrf();
 
-    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'thumbnail'] as $key) {
+    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt'] as $key) {
         $form[$key] = trim((string)($_POST[$key] ?? ''));
     }
     $form['draft'] = !empty($_POST['draft']);
@@ -97,6 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = ucfirst($required) . ' is required.';
         }
     }
+    if ($form['image_bg'] !== '' && !preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $form['image_bg'])) {
+        $errors[] = 'Image background must be a hex colour like #ffffff, or left blank.';
+    }
 
     // Auto-`updated`: bump to today when body or any other field changed,
     // unless the user has manually overridden the field on this save.
@@ -105,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_touched_updated = ($form['updated'] !== $orig_updated);
         if (!$user_touched_updated) {
             $changed = false;
-            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt', 'thumbnail'] as $key) {
+            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt'] as $key) {
                 if ($form[$key] !== (string)($original_fm[$key] ?? '')) {
                     $changed = true;
                     break;
@@ -133,7 +138,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => $form['description'],
             'image'       => $form['image'],
             'image_alt'   => $form['image_alt'],
+            'image_bg'    => $form['image_bg'],
             'thumbnail'   => $form['thumbnail'],
+            'thumbnail_alt' => $form['thumbnail_alt'],
             'draft'       => $form['draft'],
             'hero'        => $form['hero'],
             'featured'    => $form['featured'],
@@ -235,7 +242,17 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
     <p class="nano-cms-admin-help">Separate image used on category-archive cards. Leave blank to auto-derive from the hero image.</p>
   </div>
   <div>
-    <label>Image alt text<input type="text" name="image_alt" value="<?= nano_admin_e($form['image_alt']) ?>"></label>
+    <label>Hero image alt text<input type="text" name="image_alt" value="<?= nano_admin_e($form['image_alt']) ?>"></label>
+    <p class="nano-cms-admin-help">Describes the hero/lead image for screen readers and search. Falls back to the title if blank.</p>
+  </div>
+  <div>
+    <label>Thumbnail alt text<input type="text" name="thumbnail_alt" value="<?= nano_admin_e($form['thumbnail_alt'] ?? '') ?>"></label>
+    <p class="nano-cms-admin-help">Alt text for the card thumbnail when it's a separate image. Falls back to the hero alt text, then the title.</p>
+  </div>
+  <div>
+    <label for="nano-image-bg">Image background colour</label>
+    <input type="text" name="image_bg" id="nano-image-bg" value="<?= nano_admin_e($form['image_bg'] ?? '') ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
+    <p class="nano-cms-admin-help">Hex colour shown behind this article's images (hero, lead, and card) - e.g. through the transparent areas of a PNG. Leave blank for transparent.</p>
   </div>
   <div class="full nano-cms-admin-checkbox-row">
     <label><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>

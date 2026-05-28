@@ -36,6 +36,7 @@ $form = [
     'description' => (string)($existing['description'] ?? ''),
     'image'       => (string)($existing['image'] ?? ''),
     'image_position' => (($existing['image_position'] ?? '') === 'right') ? 'right' : 'left',
+    'image_bg'    => (string)($existing['image_bg'] ?? ''),
     'sort_order'  => isset($existing['sort_order']) ? (string)(int)$existing['sort_order'] : '',
 ];
 $errors = [];
@@ -46,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form['description'] = trim((string)($_POST['description'] ?? ''));
     $form['image']       = trim((string)($_POST['image'] ?? ''));
     $form['image_position'] = (($_POST['image_position'] ?? '') === 'right') ? 'right' : 'left';
+    $form['image_bg'] = trim((string)($_POST['image_bg'] ?? ''));
     $form['sort_order'] = trim((string)($_POST['sort_order'] ?? ''));
     $slug = $is_new ? nano_admin_safe_slug((string)($_POST['slug'] ?? '')) : $get_slug;
     $form['slug'] = $slug;
@@ -65,6 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($form['sort_order'] !== '' && !preg_match('/^\d{1,6}$/', $form['sort_order'])) {
         $errors[] = 'Sort order must be a whole number (0 or higher), or left blank.';
     }
+    if ($form['image_bg'] !== '' && !preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $form['image_bg'])) {
+        $errors[] = 'Image background must be a hex colour like #ffffff, or left blank.';
+    }
 
     if (empty($errors)) {
         nano_admin_save_category([
@@ -73,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => $form['description'],
             'image'       => $form['image'],
             'image_position' => $form['image_position'],
+            'image_bg'    => $form['image_bg'],
             'sort_order'  => $form['sort_order'],
         ]);
         header('Location: categories.php?msg=' . ($is_new ? 'created' : 'saved'));
@@ -133,6 +139,10 @@ echo nano_admin_header($is_new ? 'New category' : 'Edit category', 'categories')
 </div>
 <div class="nano-cms-admin-imgprev" data-prev-for="cat-image"></div>
 <p class="nano-cms-admin-help">Shown on the homepage category card and the category page header. Optional.</p>
+
+<label for="cat-image-bg">Image background colour</label>
+<input type="text" name="image_bg" id="cat-image-bg" value="<?= nano_admin_e($form['image_bg']) ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
+<p class="nano-cms-admin-help">Hex colour shown behind this category's card and banner images - e.g. through the transparent areas of a PNG. Leave blank for transparent.</p>
 
 <label>Image position
   <select name="image_position">

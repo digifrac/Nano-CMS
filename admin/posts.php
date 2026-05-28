@@ -18,8 +18,9 @@ if (!defined('NANO_BOOTSTRAPPED')) {
 // admin must live on a code path that doesn't reach generators.php.
 
 const NANO_ADMIN_FRONTMATTER_FIELDS = [
-    'title', 'slug', 'date', 'updated', 'category',
-    'description', 'image', 'image_alt', 'thumbnail', 'draft', 'hero', 'featured',
+    'title', 'slug', 'date', 'updated', 'category', 'description',
+    'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt',
+    'draft', 'hero', 'featured',
 ];
 
 const NANO_ADMIN_FRONTMATTER_REQUIRED = [

@@ -105,7 +105,7 @@ ob_start();
   </header>
 <?php if (!empty($fm['image'])): ?>
   <figure class="nano-blog-figure">
-    <img src="<?= nano_e(nano_media_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
+    <img src="<?= nano_e(nano_media_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>"<?= nano_image_bg_attr($fm['image_bg'] ?? '') ?> loading="lazy">
   </figure>
 <?php endif; ?>
   <div class="nano-blog-content">
@@ -118,6 +118,6 @@ $content = ob_get_clean();
 
 $page_title = nano_e((string)$fm['title'] . ($site_name !== '' ? ' - ' . $site_name : ''));
 $page_description = nano_e((string)$fm['description']);
-$meta_tags = nano_render_meta_tags_for_post($fm) . nano_runtime_styles();
+$meta_tags = nano_render_meta_tags_for_post($fm);
 
 require __DIR__ . '/template.php';
