@@ -34,6 +34,7 @@
   --nano-color-text: #1a1a1a;
   --nano-color-text-muted: #666;
   --nano-color-bg: #ffffff;
+  --nano-color-bg-soft: #f6f8fa;
   --nano-color-border: #e5e5e5;
   --nano-color-accent: #0066cc;
   --nano-color-link-hover: #999999;
@@ -215,16 +216,24 @@
 }
 .nano-blog-category a { color: inherit; }
 .nano-blog-breadcrumb {
-  margin: 0 0 var(--nano-spacing-unit) 0;
-  font-size: 0.875em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.75rem 0;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.875rem;
   color: var(--nano-color-text-muted);
+  background: var(--nano-color-bg-soft);
+  border: 1px solid var(--nano-color-border);
+  border-radius: var(--nano-radius);
 }
 .nano-blog-breadcrumb a {
   color: var(--nano-color-text-muted);
   text-decoration: none;
 }
-.nano-blog-breadcrumb a:hover { color: var(--nano-color-link-hover); }
-.nano-blog-breadcrumb span[aria-hidden] { margin: 0 0.4em; opacity: 0.6; }
+.nano-blog-breadcrumb a:hover { color: var(--nano-color-text); text-decoration: underline; }
+.nano-blog-breadcrumb span[aria-hidden] { margin: 0; color: var(--nano-color-border); opacity: 1; }
 .nano-blog-hero { margin: 0 0 calc(var(--nano-spacing-unit) * 2) 0; }
 .nano-blog-draft-banner {
   background: #fff8c4;
@@ -344,6 +353,7 @@
     --nano-color-text: #e8e8e8;
     --nano-color-text-muted: #999;
     --nano-color-bg: #121212;
+    --nano-color-bg-soft: #1c1c1c;
     --nano-color-border: #2a2a2a;
     --nano-color-accent: #5aa8ff;
   }
