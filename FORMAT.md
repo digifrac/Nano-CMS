@@ -147,6 +147,8 @@ Or: [video:vimeo:123456789]
 | `image_alt`   | string   | no       | Alt text for hero image. Falls back to `title` if absent.  |
 | `thumbnail`   | string   | no       | Optional separate filename used on article cards. Falls back to `image`'s auto-thumbnail when absent. Added in 1.2. |
 | `draft`       | boolean  | no       | `true` hides post from public output. Defaults to `false`. |
+| `hero`        | boolean  | no       | `true` shows the post large at the top of the homepage. Only one post is the hero - saving a post as hero clears the flag on others. Emitted only when true. |
+| `featured`    | boolean  | no       | `true` includes the post in the homepage "Featured" row (the hero is excluded from it). Emitted only when true. |
 
 **`updated` semantics:** the admin auto-sets this to today's date
 whenever the body or any frontmatter field changes on save. The user

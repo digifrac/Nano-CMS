@@ -19,7 +19,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
 
 const NANO_ADMIN_FRONTMATTER_FIELDS = [
     'title', 'slug', 'date', 'updated', 'category',
-    'description', 'image', 'image_alt', 'thumbnail', 'draft',
+    'description', 'image', 'image_alt', 'thumbnail', 'draft', 'hero', 'featured',
 ];
 
 const NANO_ADMIN_FRONTMATTER_REQUIRED = [
@@ -153,6 +153,10 @@ function nano_admin_parse_frontmatter(string $raw): array
     }
     $out['draft'] = isset($out['draft'])
         && in_array(strtolower((string)$out['draft']), ['true', 'yes', '1'], true);
+    foreach (['hero', 'featured'] as $flag) {
+        $out[$flag] = isset($out[$flag])
+            && in_array(strtolower((string)$out[$flag]), ['true', 'yes', '1'], true);
+    }
     return $out;
 }
 
@@ -175,6 +179,14 @@ function nano_admin_serialize_post(array $fm, string $body): string
         $value = $fm[$key];
         if ($key === 'draft') {
             $lines[] = 'draft: ' . (!empty($value) ? 'true' : 'false');
+            continue;
+        }
+        // hero/featured are optional booleans: emitted only when true so
+        // they don't clutter the frontmatter of ordinary posts.
+        if ($key === 'hero' || $key === 'featured') {
+            if (!empty($value)) {
+                $lines[] = $key . ': true';
+            }
             continue;
         }
         $value = (string)$value;
@@ -399,6 +411,12 @@ function nano_admin_save_post(array $fm, string $body, ?string $original_filepat
     }
     @chmod($target, 0644);
 
+    // Only one post can be the homepage hero. When this save sets hero,
+    // clear the flag on every other post so the homepage never has two.
+    if (!empty($fm['hero'])) {
+        nano_admin_clear_other_heroes($slug);
+    }
+
     // If renaming an existing post, remove the old file *after* the new
     // one is in place. realpath() comparison so a same-path save
     // (slug+date unchanged) is a no-op.
@@ -419,6 +437,37 @@ function nano_admin_save_post(array $fm, string $body, ?string $original_filepat
  * post exists. Caller is responsible for calling
  * nano_regenerate_static() afterwards.
  */
+/**
+ * Clear the `hero` flag on every post except $keep_slug, so the homepage
+ * hero is always unique. Rewrites each affected file in place (atomic
+ * tempfile + rename) without touching anything else in it.
+ */
+function nano_admin_clear_other_heroes(string $keep_slug): void
+{
+    foreach (nano_admin_list_posts(true) as $entry) {
+        $fm = $entry['frontmatter'];
+        if (empty($fm['hero'])) {
+            continue;
+        }
+        if ((string)($fm['slug'] ?? '') === $keep_slug) {
+            continue;
+        }
+        try {
+            $loaded = nano_admin_read_post($entry['filepath']);
+        } catch (RuntimeException $e) {
+            continue;
+        }
+        $loaded['frontmatter']['hero'] = false;
+        $contents = nano_admin_serialize_post($loaded['frontmatter'], $loaded['body']);
+        $tmp = $entry['filepath'] . '.tmp.' . bin2hex(random_bytes(4));
+        if (@file_put_contents($tmp, $contents) !== false && @rename($tmp, $entry['filepath'])) {
+            @chmod($entry['filepath'], 0644);
+        } elseif (is_file($tmp)) {
+            @unlink($tmp);
+        }
+    }
+}
+
 function nano_admin_delete_post(string $slug): void
 {
     $path = nano_admin_find_post_by_slug($slug);

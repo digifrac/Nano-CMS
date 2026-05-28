@@ -77,6 +77,26 @@ if ($category !== null) {
     }
     $categories = nano_list_categories_with_counts();
     $heading = $site_name;
+    // Homepage hero + featured articles. nano_list_posts() is published-only
+    // and newest-first, so the first hero we hit is the newest hero.
+    $hero_post = null;
+    $featured_posts = [];
+    foreach (nano_list_posts() as $entry) {
+        $fm = $entry['frontmatter'];
+        if ($hero_post === null && !empty($fm['hero'])) {
+            $hero_post = $fm;
+        }
+        if (!empty($fm['featured'])) {
+            $featured_posts[] = $fm;
+        }
+    }
+    if ($hero_post !== null) {
+        $hero_slug = (string)($hero_post['slug'] ?? '');
+        $featured_posts = array_values(array_filter(
+            $featured_posts,
+            static fn(array $p): bool => (string)($p['slug'] ?? '') !== $hero_slug
+        ));
+    }
 }
 
 ob_start();
@@ -137,9 +157,41 @@ ob_start();
 <?php endif; ?>
 <?php else: ?>
   <h1><?= nano_e($heading) ?></h1>
+<?php if ($hero_post !== null): $hero_img = nano_card_image_url($hero_post); ?>
+  <a class="nano-blog-hero<?= $hero_img !== null ? ' has-image' : '' ?>" href="<?= nano_e(nano_post_url((string)$hero_post['slug'], (string)$hero_post['category'])) ?>" style="<?= $article_grid_style ?>">
+<?php if ($hero_img !== null): ?>
+    <img src="<?= nano_e($hero_img) ?>" alt="<?= nano_e((string)($hero_post['image_alt'] ?? $hero_post['title'])) ?>" loading="lazy">
+<?php endif; ?>
+    <div class="nano-blog-hero-body">
+      <h2><?= nano_e((string)$hero_post['title']) ?></h2>
+      <time datetime="<?= nano_e((string)$hero_post['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$hero_post['date']))) ?></time>
+      <p><?= nano_e((string)$hero_post['description']) ?></p>
+    </div>
+  </a>
+<?php endif; ?>
+<?php if (!empty($featured_posts)): ?>
+  <h2 class="nano-blog-section-title">Featured</h2>
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $article_grid_style ?>">
+<?php foreach ($featured_posts as $fp): $fp_img = nano_card_image_url($fp); ?>
+    <article class="nano-blog-card<?= $fp_img !== null ? ' has-image' : '' ?>">
+      <a href="<?= nano_e(nano_post_url((string)$fp['slug'], (string)$fp['category'])) ?>">
+<?php if ($fp_img !== null): ?>
+        <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e((string)($fp['image_alt'] ?? $fp['title'])) ?>" loading="lazy">
+<?php endif; ?>
+        <div class="nano-blog-card-text">
+          <h2><?= nano_e((string)$fp['title']) ?></h2>
+          <time datetime="<?= nano_e((string)$fp['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fp['date']))) ?></time>
+          <p><?= nano_e((string)$fp['description']) ?></p>
+        </div>
+      </a>
+    </article>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
 <?php if (empty($categories)): ?>
   <p>No posts yet.</p>
 <?php else: ?>
+  <h2 class="nano-blog-section-title">Browse by topic</h2>
   <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>; <?= $category_grid_style ?>">
 <?php foreach ($categories as $c):
     $post_word = $c['count'] === 1 ? 'article' : 'articles';

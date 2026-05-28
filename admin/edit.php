@@ -64,6 +64,8 @@ $form = [
     'image_alt'   => (string)($original_fm['image_alt'] ?? ''),
     'thumbnail'   => (string)($original_fm['thumbnail'] ?? ''),
     'draft'       => !empty($original_fm['draft']),
+    'hero'        => !empty($original_fm['hero']),
+    'featured'    => !empty($original_fm['featured']),
     'body'        => $original_body,
 ];
 
@@ -76,6 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $form[$key] = trim((string)($_POST[$key] ?? ''));
     }
     $form['draft'] = !empty($_POST['draft']);
+    $form['hero'] = !empty($_POST['hero']);
+    $form['featured'] = !empty($_POST['featured']);
     $form['body'] = (string)($_POST['body'] ?? '');
 
     $intent_slug = nano_admin_safe_slug($form['slug']);
@@ -131,6 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'image_alt'   => $form['image_alt'],
             'thumbnail'   => $form['thumbnail'],
             'draft'       => $form['draft'],
+            'hero'        => $form['hero'],
+            'featured'    => $form['featured'],
         ];
         try {
             nano_admin_save_post($fm_to_save, $form['body'], $original_filepath);
@@ -239,6 +245,12 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
       <a href="<?= nano_admin_e($preview_url) ?>" target="_blank" rel="noopener">Preview as draft</a>
     </span>
 <?php endif; ?>
+  </div>
+  <div class="full nano-cms-admin-checkbox-row">
+    <label><input type="checkbox" name="hero" value="1"<?= $form['hero'] ? ' checked' : '' ?>> Hero (shown large at the top of the homepage &mdash; only one post can be the hero; setting this clears it on others)</label>
+  </div>
+  <div class="full nano-cms-admin-checkbox-row">
+    <label><input type="checkbox" name="featured" value="1"<?= $form['featured'] ? ' checked' : '' ?>> Featured (shown in the homepage &ldquo;Featured&rdquo; row)</label>
   </div>
   <div class="full">
     <label>Body (Markdown)</label>

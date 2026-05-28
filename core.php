@@ -276,6 +276,10 @@ function nano_parse_frontmatter(string $raw): array
 
     $out['draft'] = isset($out['draft'])
         && in_array(strtolower((string)$out['draft']), ['true', 'yes', '1'], true);
+    foreach (['hero', 'featured'] as $nano_flag) {
+        $out[$nano_flag] = isset($out[$nano_flag])
+            && in_array(strtolower((string)$out[$nano_flag]), ['true', 'yes', '1'], true);
+    }
 
     foreach (['title', 'slug', 'date', 'category', 'description'] as $required) {
         if (!isset($out[$required]) || $out[$required] === '') {

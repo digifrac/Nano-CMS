@@ -16,6 +16,9 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 - **Cart-style media manager.** The Media page is now a single-pane manager
   (drag-and-drop upload, thumbnail grid with "unused" badges, in-page
   delete + toasts).
+- **Homepage hero + featured articles.** New `hero` (one, unique) and
+  `featured` post flags render a large hero article and a "Featured" row at
+  the top of the blog homepage, above the category cards.
 
 ### Changed
 - Card thumbnails are generated from the original upload (single
