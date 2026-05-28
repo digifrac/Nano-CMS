@@ -15,10 +15,10 @@ const NANO_ADMIN_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
 const NANO_ADMIN_MEDIA_EXTENSIONS = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
                                      'png' => 'image/png', 'gif' => 'image/gif',
                                      'webp' => 'image/webp'];
-const NANO_ADMIN_THUMB_DEFAULT_WIDTH = 600;
-const NANO_ADMIN_THUMB_DEFAULT_HEIGHT = 400;
+const NANO_ADMIN_THUMB_DEFAULT_WIDTH = 1200;
+const NANO_ADMIN_THUMB_DEFAULT_HEIGHT = 800;
 const NANO_ADMIN_THUMB_SUFFIX = '-thumb';
-const NANO_ADMIN_IMAGE_QUALITY_DEFAULT = 85;
+const NANO_ADMIN_IMAGE_QUALITY_DEFAULT = 90;
 const NANO_ADMIN_SOURCE_MAX_WIDTH_DEFAULT = 1600;
 
 /* ------------------------------------------------------------------------ */
@@ -215,7 +215,7 @@ function nano_admin_media_save_upload(array $file): array
     // original via nano_thumb_url() when no thumbnail exists.
     [$tw, $th] = nano_admin_thumb_dimensions();
     $thumb_path = $dir . '/' . nano_admin_media_thumb_filename($name);
-    if (nano_admin_media_generate_thumb($dest, $thumb_path, $tw, $th, $ext)) {
+    if (nano_admin_media_generate_thumb($tmp, $thumb_path, $tw, $th, $ext)) {
         @chmod($thumb_path, 0644);
     }
     return ['ok' => true, 'filename' => $name, 'error' => null];
@@ -364,6 +364,10 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
         };
         if ($img !== false) {
             try {
+                if ($ext === 'jpg' || $ext === 'jpeg') {
+                    $oriented = nano_admin_apply_exif_orientation($img, $src);
+                    if ($oriented !== $img) { imagedestroy($img); $img = $oriented; }
+                }
                 $sw = imagesx($img);
                 $sh = imagesy($img);
                 if ($sw < 1 || $sh < 1) return false;
@@ -407,6 +411,7 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
     if (extension_loaded('imagick')) {
         try {
             $im = new Imagick($src);
+            if (method_exists($im, 'autoOrient')) { $im->autoOrient(); }
             // cropThumbnailImage centers by default; matches GD path's
             // upper-bias closely enough for a fallback.
             $im->cropThumbnailImage($width, $height);
@@ -586,7 +591,7 @@ function nano_admin_category_image_save_upload(string $slug, array $file): array
     @chmod($dest, 0644);
     [$tw, $th] = nano_admin_cat_thumb_dimensions();
     $thumb_path = $dir . '/' . nano_admin_media_thumb_filename($name);
-    if (nano_admin_media_generate_thumb($dest, $thumb_path, $tw, $th, $ext)) {
+    if (nano_admin_media_generate_thumb($tmp, $thumb_path, $tw, $th, $ext)) {
         @chmod($thumb_path, 0644);
     }
     return ['ok' => true, 'filename' => $name, 'error' => null];
