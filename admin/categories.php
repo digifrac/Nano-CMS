@@ -79,7 +79,7 @@ echo nano_admin_header('Categories', 'categories');
 <?php else: ?>
 <table class="nano-cms-admin-table">
 <thead>
-<tr><th>Image</th><th>Name</th><th>Slug</th><th>Posts</th><th>Record</th><th>Actions</th></tr>
+<tr><th>Image</th><th>Name</th><th>Slug</th><th>Order</th><th>Posts</th><th>Record</th><th>Actions</th></tr>
 </thead>
 <tbody>
 <?php foreach ($categories as $c): $thumb = $thumb_for($c['image']); ?>
@@ -93,6 +93,7 @@ echo nano_admin_header('Categories', 'categories');
 </td>
 <td><?= nano_admin_e($c['name']) ?></td>
 <td><code><?= nano_admin_e($c['slug']) ?></code></td>
+<td><?php if ($c['sort_order'] !== null): ?><?= (int)$c['sort_order'] ?><?php else: ?><span class="nano-cms-admin-help" style="margin:0">&mdash;</span><?php endif; ?></td>
 <td><?= (int)$c['count'] ?></td>
 <td><?php if ($c['has_record']): ?><span class="nano-cms-admin-pill nano-cms-admin-pill-published">managed</span><?php else: ?><span class="nano-cms-admin-pill">derived</span><?php endif; ?></td>
 <td class="nano-cms-admin-row-actions">

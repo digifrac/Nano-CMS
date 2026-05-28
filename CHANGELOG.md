@@ -5,6 +5,16 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 ## [Unreleased]
 
 ### Added
+- **Card image background colour (like Cart's).** Two optional settings -
+  one for article card/hero images, one for category card/banner images -
+  set a hex colour shown behind images (e.g. through the transparent areas
+  of a PNG). Emitted as CSS custom properties in the page head. Blank =
+  transparent.
+- **Category sort order.** Category records take an optional `sort_order`
+  number; the homepage category grid and the admin category manager order by
+  it (lower first), with un-numbered categories falling to the bottom
+  alphabetically - mirroring Cart. Articles remain date-sorted (newest
+  first), which suits a blog.
 - **Managed categories.** Optional `categories/<slug>.json` records (name,
   description, hero image) with a Create / Edit / Delete admin manager.
   Front-end category pages, cards, and breadcrumbs use the record when

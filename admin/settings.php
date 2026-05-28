@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $thumb_h = (int)($_POST['thumb_height'] ?? 0);
     $cat_thumb_w = (int)($_POST['cat_thumb_width'] ?? 0);
     $cat_thumb_h = (int)($_POST['cat_thumb_height'] ?? 0);
+    $card_image_bg = trim((string)($_POST['card_image_bg'] ?? ''));
+    $cat_image_bg  = trim((string)($_POST['cat_image_bg'] ?? ''));
     $errors = [];
     if ($new_site_name === '' || mb_strlen($new_site_name) > 80) {
         $errors[] = 'Site name must be 1-80 characters.';
@@ -57,6 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($thumb_h < 100 || $thumb_h > 2400) $errors[] = 'Article thumbnail height must be between 100 and 2400.';
     if ($cat_thumb_w < 100 || $cat_thumb_w > 2400) $errors[] = 'Category image width must be between 100 and 2400.';
     if ($cat_thumb_h < 100 || $cat_thumb_h > 2400) $errors[] = 'Category image height must be between 100 and 2400.';
+    $hex_re = '/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/';
+    if ($card_image_bg !== '' && !preg_match($hex_re, $card_image_bg)) $errors[] = 'Article card image background must be a hex colour like #ffffff, or left blank.';
+    if ($cat_image_bg !== '' && !preg_match($hex_re, $cat_image_bg)) $errors[] = 'Category image background must be a hex colour like #ffffff, or left blank.';
     if (empty($errors)) {
         $cfg['site_name'] = $new_site_name;
         $cfg['base_url'] = $new_base_url;
@@ -70,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cfg['thumb_height'] = $thumb_h;
         $cfg['cat_thumb_width'] = $cat_thumb_w;
         $cfg['cat_thumb_height'] = $cat_thumb_h;
+        $cfg['card_image_bg'] = $card_image_bg;
+        $cfg['cat_image_bg'] = $cat_image_bg;
         nano_admin_save_config($cfg);
         $site_name = $new_site_name; // refresh the page-title variable
         $flash = ['ok', 'Settings saved.'];
@@ -100,6 +107,8 @@ $publisher_name = (string)($cfg['publisher_name'] ?? '');
 $publisher_logo = (string)($cfg['publisher_logo'] ?? '');
 $posts_per_page = (int)($cfg['posts_per_page'] ?? 10);
 if ($posts_per_page < 1 || $posts_per_page > 50) $posts_per_page = 10;
+$card_image_bg = (string)($cfg['card_image_bg'] ?? '');
+$cat_image_bg = (string)($cfg['cat_image_bg'] ?? '');
 echo nano_admin_header('Settings', 'settings');
 ?>
 <?php if ($flash !== null): ?>
@@ -167,6 +176,10 @@ echo nano_admin_header('Settings', 'settings');
       <input type="number" name="thumb_height" min="100" max="2400" step="1" value="<?= (int)$thumb_height ?>" required>
     </label>
   </fieldset>
+  <label>Article card image background
+    <input type="text" name="card_image_bg" value="<?= nano_admin_e($card_image_bg) ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
+  </label>
+  <p class="nano-cms-admin-help">Hex colour shown behind article card and hero images - e.g. through the transparent areas of a PNG, or as a frame for non-filling images. Leave blank for transparent.</p>
 
   <h2>Category images</h2>
   <p class="nano-cms-admin-help">Category cards on the homepage can have their own hero image (managed on the Categories page). These dimensions are independent of article thumbnails so the two grids can be tuned separately.</p>
@@ -180,6 +193,10 @@ echo nano_admin_header('Settings', 'settings');
       <input type="number" name="cat_thumb_height" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_height ?>" required>
     </label>
   </fieldset>
+  <label>Category image background
+    <input type="text" name="cat_image_bg" value="<?= nano_admin_e($cat_image_bg) ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
+  </label>
+  <p class="nano-cms-admin-help">Hex colour shown behind category card and category-page banner images. Leave blank for transparent.</p>
 
   <div class="nano-cms-admin-form-actions">
     <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary">Save settings</button>

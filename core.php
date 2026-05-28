@@ -49,6 +49,35 @@ function nano_config(): array
     return $config;
 }
 
+/**
+ * Inline <style> emitting the card-image background custom properties from
+ * config, so article and category card images can sit on an operator-chosen
+ * colour (e.g. behind the transparent areas of a PNG). Output in <head> by
+ * template.php after the stylesheet, so it overrides the .nano-blog defaults.
+ * Returns '' when neither colour is set. Mirrors Nano Cart's card_image_bg.
+ */
+function nano_runtime_styles(): string
+{
+    $cfg = nano_config();
+    $hex = static function ($v): string {
+        $v = trim((string)$v);
+        return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $v) ? $v : '';
+    };
+    $art = $hex($cfg['card_image_bg'] ?? '');
+    $cat = $hex($cfg['cat_image_bg'] ?? '');
+    if ($art === '' && $cat === '') {
+        return '';
+    }
+    $decls = '';
+    if ($art !== '') {
+        $decls .= '--nano-blog-card-image-bg:' . $art . ';';
+    }
+    if ($cat !== '') {
+        $decls .= '--nano-blog-cat-image-bg:' . $cat . ';';
+    }
+    return '<style>.nano-blog{' . $decls . '}</style>';
+}
+
 /* ------------------------------------------------------------------------- */
 /* Escaping                                                                   */
 /* ------------------------------------------------------------------------- */
@@ -496,12 +525,19 @@ function nano_list_categories_with_counts(): array
             $by_slug[$slug]['label'] = (string)$rec['name'];
         }
         $by_slug[$slug]['description'] = (string)($rec['description'] ?? '');
+        if (array_key_exists('sort_order', $rec)) {
+            $by_slug[$slug]['sort_order'] = (int)$rec['sort_order'];
+        }
     }
 
     $cats = array_values($by_slug);
+    // Manual order first (sort_order on the category record, lower leads),
+    // then alphabetical by label for any without one. Mirrors Cart.
     usort($cats, static function (array $a, array $b): int {
-        if ($a['count'] !== $b['count']) {
-            return $b['count'] <=> $a['count'];
+        $oa = $a['sort_order'] ?? PHP_INT_MAX;
+        $ob = $b['sort_order'] ?? PHP_INT_MAX;
+        if ($oa !== $ob) {
+            return $oa <=> $ob;
         }
         return strcmp($a['label'], $b['label']);
     });

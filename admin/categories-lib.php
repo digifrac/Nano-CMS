@@ -75,6 +75,11 @@ function nano_admin_save_category(array $cat): bool
         'created'     => (string)($existing['created'] ?? $cat['created'] ?? $now),
         'updated'     => $now,
     ];
+    // Optional manual display order (lower leads). Stored only when set, so
+    // categories without one sink to the bottom alphabetically - mirrors Cart.
+    if (isset($cat['sort_order']) && $cat['sort_order'] !== '' && is_numeric($cat['sort_order'])) {
+        $record['sort_order'] = (int)$cat['sort_order'];
+    }
     $json = json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if ($json === false) {
         return false;
@@ -152,8 +157,18 @@ function nano_admin_all_categories(): array
             'image'       => (string)($rec['image'] ?? ''),
             'count'       => (int)($counts[$slug] ?? 0),
             'has_record'  => $rec !== null,
+            'sort_order'  => ($rec !== null && array_key_exists('sort_order', $rec)) ? (int)$rec['sort_order'] : null,
         ];
     }
-    usort($out, static fn($a, $b) => strcasecmp($a['name'], $b['name']));
+    // Manual order first (sort_order, lower leads), then alphabetical by name
+    // for any without one. Mirrors Cart's category ordering.
+    usort($out, static function ($a, $b) {
+        $oa = $a['sort_order'] ?? PHP_INT_MAX;
+        $ob = $b['sort_order'] ?? PHP_INT_MAX;
+        if ($oa !== $ob) {
+            return $oa <=> $ob;
+        }
+        return strcasecmp($a['name'], $b['name']);
+    });
     return $out;
 }

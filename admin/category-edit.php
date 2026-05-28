@@ -36,6 +36,7 @@ $form = [
     'description' => (string)($existing['description'] ?? ''),
     'image'       => (string)($existing['image'] ?? ''),
     'image_position' => (($existing['image_position'] ?? '') === 'right') ? 'right' : 'left',
+    'sort_order'  => isset($existing['sort_order']) ? (string)(int)$existing['sort_order'] : '',
 ];
 $errors = [];
 
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form['description'] = trim((string)($_POST['description'] ?? ''));
     $form['image']       = trim((string)($_POST['image'] ?? ''));
     $form['image_position'] = (($_POST['image_position'] ?? '') === 'right') ? 'right' : 'left';
+    $form['sort_order'] = trim((string)($_POST['sort_order'] ?? ''));
     $slug = $is_new ? nano_admin_safe_slug((string)($_POST['slug'] ?? '')) : $get_slug;
     $form['slug'] = $slug;
 
@@ -60,6 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($is_new && $slug !== '' && nano_admin_load_category($slug) !== null) {
         $errors[] = 'A category record for "' . $slug . '" already exists.';
     }
+    if ($form['sort_order'] !== '' && !preg_match('/^\d{1,6}$/', $form['sort_order'])) {
+        $errors[] = 'Sort order must be a whole number (0 or higher), or left blank.';
+    }
 
     if (empty($errors)) {
         nano_admin_save_category([
@@ -68,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => $form['description'],
             'image'       => $form['image'],
             'image_position' => $form['image_position'],
+            'sort_order'  => $form['sort_order'],
         ]);
         header('Location: categories.php?msg=' . ($is_new ? 'created' : 'saved'));
         exit;
@@ -135,6 +141,11 @@ echo nano_admin_header($is_new ? 'New category' : 'Edit category', 'categories')
   </select>
 </label>
 <p class="nano-cms-admin-help">Which side the banner image sits on (next to the description) in the category page header, on wide screens.</p>
+
+<label>Sort order
+  <input type="number" name="sort_order" min="0" max="999999" step="1" value="<?= nano_admin_e($form['sort_order']) ?>" placeholder="(blank)">
+</label>
+<p class="nano-cms-admin-help">Optional manual order for the homepage category grid - lower numbers come first. Leave blank to sort after the numbered ones, alphabetically by name.</p>
 
 <div class="nano-cms-admin-form-actions">
   <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary"><?= $is_new ? 'Create category' : 'Save category' ?></button>
