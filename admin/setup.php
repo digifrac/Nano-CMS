@@ -104,6 +104,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+// Auto-detect the blog's base URL from this request so the operator can't
+// fat-finger the path. setup.php lives at <base>/admin/setup.php, so
+// stripping that suffix off the script path yields the blog base - e.g.
+// /blog/admin/setup.php -> https://host/blog, /admin/setup.php -> https://host.
+$detected_base = '';
+$setup_host   = (string)($_SERVER['HTTP_HOST'] ?? '');
+$setup_script = (string)($_SERVER['SCRIPT_NAME'] ?? '');
+if ($setup_host !== '' && $setup_script !== '') {
+    $base_path = (string)preg_replace('#/admin/setup\.php$#', '', $setup_script);
+    $detected_base = 'https://' . $setup_host . $base_path;
+}
 echo nano_admin_header('First-time setup', '', false, 'nano-cms-admin-setup');
 ?>
 <p>Choose a password and enter the site details. This wizard runs only once.</p>
@@ -117,8 +128,8 @@ echo nano_admin_header('First-time setup', '', false, 'nano-cms-admin-setup');
 <label>Password (min <?= NANO_ADMIN_PASSWORD_MIN ?> chars)<input type="password" name="password" required></label>
 <label>Confirm password<input type="password" name="password_confirm" required></label>
 <label>Site name<input type="text" name="site_name" value="<?= nano_admin_e((string)($_POST['site_name'] ?? '')) ?>" required></label>
-<label>Base URL of the blog<input type="url" name="base_url" placeholder="https://example.com/blog" value="<?= nano_admin_e((string)($_POST['base_url'] ?? '')) ?>" required></label>
-<p class="nano-cms-admin-help">Full URL the blog is served at. Used for canonical links and the feed.</p>
+<label>Base URL of the blog<input type="url" name="base_url" placeholder="https://example.com/blog" value="<?= nano_admin_e((string)($_POST['base_url'] ?? $detected_base)) ?>" required></label>
+<p class="nano-cms-admin-help">Full URL the blog is served at, <strong>including any subfolder</strong> (e.g. <code>https://example.com/blog</code>, no trailing slash). Auto-filled from this page's address - only change it if it's wrong. Every link, image, the sitemap and feed are built from this.</p>
 <label>Author name<input type="text" name="author" value="<?= nano_admin_e((string)($_POST['author'] ?? '')) ?>" required></label>
 <label>Publisher name<input type="text" name="publisher_name" value="<?= nano_admin_e((string)($_POST['publisher_name'] ?? '')) ?>" required></label>
 <label>Publisher logo URL (optional)<input type="url" name="publisher_logo" value="<?= nano_admin_e((string)($_POST['publisher_logo'] ?? '')) ?>"></label>
