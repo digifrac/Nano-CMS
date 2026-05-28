@@ -234,7 +234,20 @@
 }
 .nano-blog-breadcrumb a:hover { color: var(--nano-color-text); text-decoration: underline; }
 .nano-blog-breadcrumb span[aria-hidden] { margin: 0; color: var(--nano-color-border); opacity: 1; }
-.nano-blog-category-intro { margin: 0 0 calc(var(--nano-spacing-unit) * 1.5); color: var(--nano-color-text-muted); max-width: 65ch; }
+
+/* Category page header: banner image + description, side by side on wide
+   screens with the image on the left (or right) - ported from Cart's
+   category header. */
+.nano-blog-category-header { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+.nano-blog-category-banner { margin: 0; border: 1px solid var(--nano-color-border); border-radius: var(--nano-radius); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); overflow: hidden; }
+.nano-blog-category-banner img { display: block; width: 100%; height: auto; }
+.nano-blog-category-description { color: var(--nano-color-text); align-self: start; }
+.nano-blog-category-description p:first-child { margin-top: 0; }
+.nano-blog-category-description p:last-child { margin-bottom: 0; }
+@media (min-width: 768px) {
+  .nano-blog-category-header.has-banner { grid-template-columns: 320px 1fr; gap: 2rem; }
+  .nano-blog-category-header.has-banner.nano-blog-image-right .nano-blog-category-banner { order: 2; }
+}
 
 /* Single-post lead image: full image at natural size (capped to the content
    column), no fixed-height box and no crop - mirrors Cart's gallery-main. */

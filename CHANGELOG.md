@@ -10,6 +10,12 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
   Front-end category pages, cards, and breadcrumbs use the record when
   present and fall back to today's derived behaviour when absent - posts
   are untouched (membership still comes from each post's `category:`).
+- **Category page header (like Cart's).** A category's archive page now shows
+  its banner image and a Markdown description side-by-side above the post grid,
+  with the image on the left or right (chosen per category in the editor). The
+  description supports headings/bold/lists; a plain-text version is used for the
+  meta description. Falls back to just the heading when no image/description is
+  set.
 - **Image picker in the editors.** Hero/thumbnail fields and the category
   image field get a "Choose..." media-library picker with preview, and the
   markdown toolbar gets an Image button that inserts `![](file)`.

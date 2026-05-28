@@ -71,6 +71,7 @@ function nano_admin_save_category(array $cat): bool
         'name'        => trim((string)($cat['name'] ?? '')),
         'description' => trim((string)($cat['description'] ?? '')),
         'image'       => trim((string)($cat['image'] ?? '')),
+        'image_position' => (($cat['image_position'] ?? '') === 'right') ? 'right' : 'left',
         'created'     => (string)($existing['created'] ?? $cat['created'] ?? $now),
         'updated'     => $now,
     ];

@@ -35,6 +35,7 @@ $form = [
     'name'        => (string)($existing['name'] ?? ($is_new ? '' : ucfirst(str_replace('-', ' ', $get_slug)))),
     'description' => (string)($existing['description'] ?? ''),
     'image'       => (string)($existing['image'] ?? ''),
+    'image_position' => (($existing['image_position'] ?? '') === 'right') ? 'right' : 'left',
 ];
 $errors = [];
 
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form['name']        = trim((string)($_POST['name'] ?? ''));
     $form['description'] = trim((string)($_POST['description'] ?? ''));
     $form['image']       = trim((string)($_POST['image'] ?? ''));
+    $form['image_position'] = (($_POST['image_position'] ?? '') === 'right') ? 'right' : 'left';
     $slug = $is_new ? nano_admin_safe_slug((string)($_POST['slug'] ?? '')) : $get_slug;
     $form['slug'] = $slug;
 
@@ -65,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name'        => $form['name'],
             'description' => $form['description'],
             'image'       => $form['image'],
+            'image_position' => $form['image_position'],
         ]);
         header('Location: categories.php?msg=' . ($is_new ? 'created' : 'saved'));
         exit;
@@ -113,9 +116,9 @@ echo nano_admin_header($is_new ? 'New category' : 'Edit category', 'categories')
 <?php endif; ?>
 
 <label>Description
-  <textarea name="description" rows="3"><?= nano_admin_e($form['description']) ?></textarea>
+  <textarea name="description" rows="5"><?= nano_admin_e($form['description']) ?></textarea>
 </label>
-<p class="nano-cms-admin-help">Shown on the category page and used as its meta description for search results. Optional.</p>
+<p class="nano-cms-admin-help">Shown in the category page header next to the image. Markdown is supported (headings, bold, lists). A plain-text version is used as the meta description for search results. Optional.</p>
 
 <label for="cat-image">Hero image (in /media/)</label>
 <div class="nano-cms-admin-imgfield">
@@ -124,6 +127,14 @@ echo nano_admin_header($is_new ? 'New category' : 'Edit category', 'categories')
 </div>
 <div class="nano-cms-admin-imgprev" data-prev-for="cat-image"></div>
 <p class="nano-cms-admin-help">Shown on the homepage category card and the category page header. Optional.</p>
+
+<label>Image position
+  <select name="image_position">
+    <option value="left"<?= $form['image_position'] === 'left' ? ' selected' : '' ?>>Left of the description</option>
+    <option value="right"<?= $form['image_position'] === 'right' ? ' selected' : '' ?>>Right of the description</option>
+  </select>
+</label>
+<p class="nano-cms-admin-help">Which side the banner image sits on (next to the description) in the category page header, on wide screens.</p>
 
 <div class="nano-cms-admin-form-actions">
   <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary"><?= $is_new ? 'Create category' : 'Save category' ?></button>

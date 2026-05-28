@@ -68,6 +68,15 @@ if ($category !== null) {
         ? (string)$cat_record['name']
         : ucfirst(str_replace('-', ' ', $category));
     $cat_description = $cat_record !== null ? trim((string)($cat_record['description'] ?? '')) : '';
+    $cat_image = ($cat_record !== null && trim((string)($cat_record['image'] ?? '')) !== '')
+        ? nano_media_url(trim((string)$cat_record['image']))
+        : null;
+    $cat_pos = ($cat_record !== null && (($cat_record['image_position'] ?? '') === 'right')) ? 'right' : 'left';
+    $cat_desc_html = $cat_description !== '' ? nano_render_markdown($cat_description) : '';
+    // Meta description must stay plain text even when the description is markdown.
+    $cat_meta_desc = $cat_desc_html !== ''
+        ? trim((string)preg_replace('/\s+/', ' ', strip_tags($cat_desc_html)))
+        : '';
 } else {
     // Bare homepage no longer paginates, so /page/N/ for N>1 is a 404.
     // Prevents duplicate-content SEO issues from query-string variants.
@@ -109,8 +118,17 @@ ob_start();
     <span aria-current="page"><?= nano_e($heading) ?></span>
   </nav>
   <h1><?= nano_e($heading) ?></h1>
-<?php if ($cat_description !== ''): ?>
-  <p class="nano-blog-category-intro"><?= nano_e($cat_description) ?></p>
+<?php $has_banner = $cat_image !== null; $has_desc = $cat_desc_html !== ''; if ($has_banner || $has_desc): ?>
+  <header class="nano-blog-category-header nano-blog-image-<?= nano_e($cat_pos) ?> <?= $has_banner ? 'has-banner' : 'no-banner' ?>">
+<?php if ($has_banner): ?>
+    <figure class="nano-blog-category-banner">
+      <img src="<?= nano_e($cat_image) ?>" alt="<?= nano_e($heading) ?>" loading="lazy">
+    </figure>
+<?php endif; ?>
+<?php if ($has_desc): ?>
+    <div class="nano-blog-category-description"><?= $cat_desc_html ?></div>
+<?php endif; ?>
+  </header>
 <?php endif; ?>
 <?php if (empty($slice)): ?>
   <p>No posts in this category yet.</p>
@@ -222,7 +240,7 @@ $page_title = nano_e(
 );
 $page_description = nano_e(
     $category !== null
-        ? ($cat_description !== '' ? $cat_description : 'Posts in the ' . $category . ' category.')
+        ? ($cat_meta_desc !== '' ? $cat_meta_desc : 'Posts in the ' . $category . ' category.')
         : $site_name . ' - browse by topic.'
 );
 $meta_tags = nano_render_meta_tags_for_index($category, $page);
