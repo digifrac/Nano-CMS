@@ -36,7 +36,6 @@ if (!defined('NANO_BOOTSTRAPPED')) {
   -->
   <link rel="stylesheet" href="/blog/assets/nano.css">
   <!-- <link rel="stylesheet" href="/blog/assets/theme-custom.css"> -->
-  <?= nano_runtime_styles() ?>
 
   <!-- Default web font (Inter), matching the Nano Cart storefront. nano.css's
        --nano-font-family points at it. To go system-font-only (zero third-party

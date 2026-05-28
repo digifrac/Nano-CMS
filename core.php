@@ -52,9 +52,11 @@ function nano_config(): array
 /**
  * Inline <style> emitting the card-image background custom properties from
  * config, so article and category card images can sit on an operator-chosen
- * colour (e.g. behind the transparent areas of a PNG). Output in <head> by
- * template.php after the stylesheet, so it overrides the .nano-blog defaults.
- * Returns '' when neither colour is set. Mirrors Nano Cart's card_image_bg.
+ * colour (e.g. behind the transparent areas of a PNG). Appended to $meta_tags
+ * by index.php/post.php so it rides into <head> on any template that renders
+ * the meta block (which every working template must, for canonical/OG/JSON-LD)
+ * - no per-template wiring needed. Returns '' when neither colour is set.
+ * Mirrors Nano Cart's card_image_bg.
  */
 function nano_runtime_styles(): string
 {

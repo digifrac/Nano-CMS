@@ -247,6 +247,6 @@ $page_description = nano_e(
         ? ($cat_meta_desc !== '' ? $cat_meta_desc : 'Posts in the ' . $category . ' category.')
         : $site_name . ' - browse by topic.'
 );
-$meta_tags = nano_render_meta_tags_for_index($category, $page);
+$meta_tags = nano_render_meta_tags_for_index($category, $page) . nano_runtime_styles();
 
 require __DIR__ . '/template.php';

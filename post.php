@@ -118,6 +118,6 @@ $content = ob_get_clean();
 
 $page_title = nano_e((string)$fm['title'] . ($site_name !== '' ? ' - ' . $site_name : ''));
 $page_description = nano_e((string)$fm['description']);
-$meta_tags = nano_render_meta_tags_for_post($fm);
+$meta_tags = nano_render_meta_tags_for_post($fm) . nano_runtime_styles();
 
 require __DIR__ . '/template.php';
