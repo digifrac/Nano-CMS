@@ -233,16 +233,20 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
   <button type="submit" name="save_action" value="list" class="nano-cms-admin-button nano-cms-admin-button-primary"><?= $is_new ? 'Create and return to list' : 'Save and return to list' ?></button>
   <button type="submit" name="save_action" value="continue" class="nano-cms-admin-button">Save and keep editing</button>
   <a href="index.php" class="nano-cms-admin-button nano-cms-admin-button-secondary">Cancel</a>
+<?php if (!$is_new): ?>
+  <button type="submit" form="nano-delete-form" class="nano-cms-admin-button nano-cms-admin-button-danger nano-cms-admin-delete-action">Delete this post</button>
+<?php endif; ?>
 </div>
 
 </form>
 
 <?php if (!$is_new): ?>
-<form method="post" action="index.php?action=delete"
+<?php /* Separate, un-nested form so the editor and delete actions never nest.
+         The Delete button above is associated with it via the HTML form= attribute. */ ?>
+<form id="nano-delete-form" method="post" action="index.php?action=delete"
       onsubmit="return confirm('Delete this post? This cannot be undone.');">
   <?= nano_admin_csrf_field() ?>
   <input type="hidden" name="slug" value="<?= nano_admin_e((string)$original_fm['slug']) ?>">
-  <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger">Delete this post</button>
 </form>
 <?php endif; ?>
 

@@ -419,6 +419,8 @@ body.nano-cms-admin {
   padding: 0.3rem 0.7rem;
   font-size: 0.85rem;
 }
+/* Push the editor's Delete button to the far right of the actions bar. */
+.nano-cms-admin-delete-action { margin-left: auto; }
 
 /* Tables: zebra-striped rows, hover highlight, comfy row height. */
 .nano-cms-admin-table {
@@ -725,8 +727,8 @@ body.nano-cms-admin {
   border-radius: var(--nano-cms-admin-radius);
   font-size: 0.95rem;
 }
-.nano-cms-admin-empty a { color: var(--nano-cms-admin-accent); text-decoration: none; font-weight: 500; }
-.nano-cms-admin-empty a:hover { text-decoration: underline; }
+.nano-cms-admin-empty a:not(.nano-cms-admin-button) { color: var(--nano-cms-admin-accent); text-decoration: none; font-weight: 500; }
+.nano-cms-admin-empty a:not(.nano-cms-admin-button):hover { text-decoration: underline; }
 
 /* Mobile: tighten paddings, allow tables to scroll horizontally. */
 @media (max-width: 600px) {
