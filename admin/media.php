@@ -83,6 +83,16 @@ function nano_cms_media_api_list(): void
     if (!nano_admin_media_dir_ok($dir)) { echo json_encode(['ok' => false, 'error' => 'Invalid folder.']); exit; }
     if ($dir !== '' && !is_dir(nano_admin_media_fs($dir))) { echo json_encode(['ok' => false, 'error' => 'Folder not found.']); exit; }
 
+    // Keep the two structural folders present at the media home, so the blog
+    // and the manager always have somewhere obvious to put article and
+    // category images. They cannot be deleted.
+    if ($dir === '') {
+        foreach (NANO_ADMIN_MEDIA_STRUCTURAL as $d) {
+            $p = nano_admin_media_fs($d);
+            if (!is_dir($p)) @mkdir($p, 0755, true);
+        }
+    }
+
     $base = nano_cms_media_base();
     $used = nano_admin_media_used_set();
 
@@ -93,7 +103,11 @@ function nano_cms_media_api_list(): void
     }
     $folders = [];
     foreach (nano_admin_media_subfolders($dir) as $sf) {
-        $folders[] = ['name' => $sf['name'], 'path' => $sf['path']];
+        $folders[] = [
+            'name'      => $sf['name'],
+            'path'      => $sf['path'],
+            'deletable' => !in_array($sf['path'], NANO_ADMIN_MEDIA_STRUCTURAL, true),
+        ];
     }
     $files = [];
     foreach (nano_admin_media_scan_dir($dir) as $f) {
@@ -172,53 +186,57 @@ echo nano_admin_header('Media', 'media');
 <div id="ncm-root" data-endpoint="media.php" data-csrf="<?= nano_admin_e(nano_admin_csrf_token()) ?>"></div>
 
 <style>
-.ncm-where { display: flex; align-items: center; gap: 0.5rem; background: var(--nano-cms-admin-bg); border: 1px solid var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius); padding: 0.6rem 0.85rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.ncm-where b { color: var(--nano-cms-admin-muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.ncm-crumb { display: flex; align-items: center; flex-wrap: wrap; gap: 0.1rem; }
-.ncm-cl { background: none; border: 0; color: var(--nano-cms-admin-accent); cursor: pointer; padding: 0.1rem 0.35rem; border-radius: 4px; font: inherit; }
-.ncm-cl:hover { background: var(--nano-cms-admin-accent-soft); text-decoration: underline; }
-.ncm-crumb > :last-child { color: var(--nano-cms-admin-text); font-weight: 700; }
-.ncm-sep { color: var(--nano-cms-admin-muted); }
-.ncm-toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.ncm-drop { border: 2px dashed var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius); padding: 1rem; text-align: center; color: var(--nano-cms-admin-muted); background: var(--nano-cms-admin-bg); margin-bottom: 1rem; }
-.ncm-drop.ncm-drop-on { border-color: var(--nano-cms-admin-accent); background: var(--nano-cms-admin-accent-soft); }
-.ncm-status { min-height: 1.1rem; font-size: 0.9rem; color: var(--nano-cms-admin-success-fg); margin-bottom: 0.75rem; }
-.ncm-status.ncm-err { color: var(--nano-cms-admin-danger); }
-.ncm-h { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--nano-cms-admin-muted); margin: 0.5rem 0 0.4rem; }
-.ncm-folders { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.ncm-folder { display: flex; align-items: center; border: 1px solid var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius-sm); background: var(--nano-cms-admin-panel); overflow: hidden; }
-.ncm-fopen { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.75rem; background: none; border: 0; cursor: pointer; font: inherit; color: var(--nano-cms-admin-text); }
-.ncm-fopen:hover { background: var(--nano-cms-admin-bg); }
-.ncm-fico { color: #c79a4a; }
-.ncm-fdel { border: 0; border-left: 1px solid var(--nano-cms-admin-border); background: var(--nano-cms-admin-bg); color: var(--nano-cms-admin-danger); cursor: pointer; padding: 0 0.6rem; align-self: stretch; }
-.ncm-fdel:hover { background: var(--nano-cms-admin-error-bg); }
-.ncm-target { outline: 2px dashed var(--nano-cms-admin-accent); outline-offset: 1px; }
-.ncm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
-.ncm-file { border: 1px solid var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius-sm); overflow: hidden; background: var(--nano-cms-admin-panel); }
-.ncm-file[draggable=true] { cursor: grab; }
-.ncm-drag { opacity: 0.45; }
-.ncm-thumb { aspect-ratio: 3 / 2; background: var(--nano-cms-admin-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.ncm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.ncm-broken img { display: none; } .ncm-broken::after { content: 'no preview'; color: var(--nano-cms-admin-muted); font-size: 0.72rem; }
-.ncm-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; padding: 0.35rem 0.45rem 0.15rem; }
-.ncm-fn { font-size: 0.72rem; word-break: break-all; font-family: ui-monospace, Menlo, Consolas, monospace; }
-.ncm-badge { flex: none; font-size: 0.62rem; padding: 0.05rem 0.35rem; border-radius: 10px; }
-.ncm-used { background: var(--nano-cms-admin-success-bg); color: var(--nano-cms-admin-success-fg); }
-.ncm-unused { background: var(--nano-cms-admin-bg); color: var(--nano-cms-admin-muted); }
-.ncm-fa { display: flex; justify-content: space-between; padding: 0.1rem 0.45rem 0.4rem; }
-.ncm-fa button { background: none; border: 0; color: var(--nano-cms-admin-accent); cursor: pointer; font-size: 0.75rem; padding: 0; }
-.ncm-fa button.ncm-del { color: var(--nano-cms-admin-danger); }
-.ncm-fa button:hover { text-decoration: underline; }
-.ncm-empty { color: var(--nano-cms-admin-muted); font-style: italic; }
-.ncm-toasts { position: fixed; bottom: 1rem; right: 1rem; display: flex; flex-direction: column; gap: 0.5rem; z-index: 1300; max-width: 24rem; }
-.ncm-toast { background: #1f2430; color: #fff; padding: 0.65rem 0.9rem; border-radius: var(--nano-cms-admin-radius-sm); font-size: 0.9rem; box-shadow: var(--nano-cms-admin-shadow-raised); opacity: 0; transform: translateY(10px); transition: opacity 0.2s, transform 0.2s; }
-.ncm-toast-show { opacity: 1; transform: none; }
-.ncm-toast-success { background: var(--nano-cms-admin-success-fg); } .ncm-toast-error { background: var(--nano-cms-admin-danger); }
-.ncm-mbg { position: fixed; inset: 0; background: rgba(20,24,31,0.5); display: flex; align-items: center; justify-content: center; z-index: 1400; padding: 1.5rem; }
-.ncm-modal { background: var(--nano-cms-admin-panel); border-radius: var(--nano-cms-admin-radius); max-width: 26rem; width: 100%; padding: 1.25rem; box-shadow: var(--nano-cms-admin-shadow-raised); }
-.ncm-modal p { margin: 0 0 1rem; white-space: pre-line; }
-.ncm-modal input { width: 100%; padding: 0.55rem 0.65rem; border: 1px solid var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius-sm); margin-bottom: 1rem; font: inherit; box-sizing: border-box; }
-.ncm-mbtns { display: flex; justify-content: flex-end; gap: 0.5rem; }
+/* Ported verbatim from the Nano Cart media manager so the two products
+   share an identical media UI (literal colours, not the admin tokens). */
+.ncm{border:1px solid #e5e5e5;border-radius:6px;background:#fff;margin-top:1rem;padding:1rem;display:flex;flex-direction:column;gap:.85rem}
+.ncm-where{display:flex;align-items:center;gap:.5rem;font-size:1.1rem;background:#f6f7f9;border:1px solid #e5e5e5;border-radius:6px;padding:.55rem .75rem;flex-wrap:wrap}
+.ncm-where b{color:#888;font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+.ncm-crumb{display:flex;align-items:center;flex-wrap:wrap;gap:.15rem}
+.ncm-cl{background:none;border:0;color:#0066cc;cursor:pointer;padding:.1rem .35rem;border-radius:4px;font:inherit;font-size:1.05rem}
+.ncm-cl:hover{background:#e6eefb;text-decoration:underline}
+.ncm-crumb> :last-child{color:#1a1a1a;font-weight:700}
+.ncm-sep{color:#aaa}
+.ncm-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.ncm-browse{background:none;border:0;color:#0066cc;cursor:pointer;font:inherit;padding:0;text-decoration:underline}
+.ncm-drop{border:2px dashed #cfd6df;border-radius:6px;padding:.85rem;text-align:center;color:#555;background:#fafbfc}
+.ncm-drop p{margin:.15rem 0}.ncm-drop small{color:#888}
+.ncm-drop-on{border-color:#0066cc;background:#eaf3ff}
+.ncm-status{min-height:1.1rem;font-size:.9rem;color:#2c7a2c}
+.ncm-status-err{color:#b00020}
+.ncm-h{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:#999;margin:.25rem 0 0}
+.ncm-folders{display:flex;flex-wrap:wrap;gap:.5rem}
+.ncm-folder{display:flex;align-items:center;border:1px solid #d9dde3;border-radius:6px;background:#fff;overflow:hidden}
+.ncm-fopen{display:flex;align-items:center;gap:.45rem;padding:.55rem .75rem;background:none;border:0;cursor:pointer;font:inherit;color:#1a1a1a}
+.ncm-fopen:hover{background:#f0f3f7}
+.ncm-fico{color:#c79a4a;display:inline-flex;align-items:center}
+.ncm-fdel{border:0;border-left:1px solid #e5e5e5;background:#fafafa;color:#b00020;cursor:pointer;padding:0 .65rem;font-size:1.1rem;align-self:stretch}
+.ncm-fdel:hover{background:#fbeaea}
+.ncm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.6rem}
+.ncm-empty{color:#888;font-style:italic}
+.ncm-file{border:1px solid #e5e5e5;border-radius:6px;overflow:hidden;background:#fff;position:relative}
+.ncm-file[draggable=true]{cursor:grab}
+.ncm-drag{opacity:.45}
+.ncm-thumb{aspect-ratio:4/3;background:#eef0f3 repeating-linear-gradient(45deg,#eef0f3 0 8px,#e7e9ec 8px 16px);display:flex;align-items:center;justify-content:center}
+.ncm-thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.ncm-broken img{display:none}.ncm-broken::after{content:'source missing';color:#b00020;font-size:.78rem}
+.ncm-meta{display:flex;align-items:center;justify-content:space-between;gap:.3rem;padding:.35rem .4rem .15rem}
+.ncm-fn{font-size:.8rem;word-break:break-all}
+.ncm-badge{flex:none;font-size:.65rem;padding:.05rem .35rem;border-radius:10px;cursor:help}
+.ncm-used{background:#e3f0e3;color:#2c7a2c}.ncm-unused{background:#f1f1f1;color:#999}
+.ncm-fa{display:flex;justify-content:space-between;padding:.15rem .4rem .45rem}
+.ncm-fa button{background:none;border:0;color:#0066cc;cursor:pointer;font-size:.78rem;padding:0}
+.ncm-fa button:hover{text-decoration:underline}
+.ncm-target{outline:2px dashed #0066cc;outline-offset:1px;background:#eaf3ff}
+.ncm-toasts{position:fixed;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:.5rem;z-index:1100;max-width:24rem}
+.ncm-toast{background:#1f2430;color:#fff;padding:.65rem .9rem;border-radius:6px;font-size:.9rem;box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s}
+.ncm-toast-show{opacity:1;transform:none}
+.ncm-toast-success{background:#1f7a1f}
+.ncm-toast-error{background:#b00020}
+.ncm-mbg{position:fixed;inset:0;background:rgba(20,24,31,.5);display:flex;align-items:center;justify-content:center;z-index:1200;padding:1.5rem}
+.ncm-modal{background:#fff;border-radius:8px;max-width:26rem;width:100%;padding:1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.ncm-modal p{margin:0 0 1rem;white-space:pre-line}
+.ncm-modal input{width:100%;padding:.55rem .65rem;border:1px solid #cfd6df;border-radius:5px;margin-bottom:1rem;font:inherit;box-sizing:border-box}
+.ncm-mbtns{display:flex;justify-content:flex-end;gap:.5rem}
 </style>
 
 <script>
@@ -268,17 +286,19 @@ echo nano_admin_header('Media', 'media');
   }
 
   root.innerHTML =
-      '<div class="ncm-where"><b>You are here</b><nav class="ncm-crumb"></nav></div>'
+      '<div class="ncm">'
+    + '<div class="ncm-where"><b>You are here</b><nav class="ncm-crumb"></nav></div>'
     + '<div class="ncm-toolbar">'
-    +   '<button type="button" class="nano-cms-admin-button nano-cms-admin-button-sm ncm-up">Up one level</button>'
-    +   '<button type="button" class="nano-cms-admin-button nano-cms-admin-button-sm ncm-new">New folder</button>'
+    +   '<button type="button" class="nano-cms-admin-button nano-cms-admin-button-secondary ncm-up">Up one level</button>'
+    +   '<button type="button" class="nano-cms-admin-button ncm-new">New folder</button>'
     + '</div>'
-    + '<div class="ncm-drop"><p>Drop images here or <button type="button" class="ncm-browse nano-cms-admin-button nano-cms-admin-button-sm">browse</button></p>'
-    +   '<p class="nano-cms-admin-help" style="margin:0">jpg / png / gif / webp, up to 5 MB. Re-encoded on upload.</p>'
+    + '<div class="ncm-drop"><p>Drop images here or <button type="button" class="ncm-browse">browse</button></p>'
+    +   '<p><small>jpg / png / gif / webp, up to 5 MB. Re-encoded on upload.</small></p>'
     +   '<input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" multiple hidden></div>'
     + '<div class="ncm-status" aria-live="polite"></div>'
     + '<div><p class="ncm-h">Folders</p><div class="ncm-folders"></div></div>'
-    + '<div><p class="ncm-h">Images</p><div class="ncm-grid"></div></div>';
+    + '<div><p class="ncm-h">Images</p><div class="ncm-grid"></div></div>'
+    + '</div>';
 
   var elCrumb = root.querySelector('.ncm-crumb'), elUp = root.querySelector('.ncm-up'), elNew = root.querySelector('.ncm-new'),
       elDrop = root.querySelector('.ncm-drop'), elStatus = root.querySelector('.ncm-status'),
@@ -292,7 +312,7 @@ echo nano_admin_header('Media', 'media');
   elDrop.addEventListener('dragleave', function () { elDrop.classList.remove('ncm-drop-on'); });
   elDrop.addEventListener('drop', function (e) { e.preventDefault(); elDrop.classList.remove('ncm-drop-on'); if (e.dataTransfer.files.length) upload(e.dataTransfer.files); });
 
-  function status(m, err) { elStatus.textContent = m || ''; elStatus.classList.toggle('ncm-err', !!err); }
+  function status(m, err) { elStatus.textContent = m || ''; elStatus.classList.toggle('ncm-status-err', !!err); }
   function load(d) { status('Loading...'); api('list', { dir: d }).then(function (res) { if (!res.ok) { status(''); toast(res.error, 'error'); return; } dir = res.dir; data = res; render(res); status(''); }); }
 
   function crumbBtn(label, path) {
@@ -320,9 +340,11 @@ echo nano_admin_header('Media', 'media');
       open.addEventListener('dragleave', function () { wrap.classList.remove('ncm-target'); });
       open.addEventListener('drop', function (e) { e.preventDefault(); wrap.classList.remove('ncm-target'); if (dragPath) move(dragPath, f.path); });
       wrap.appendChild(open);
-      var del = el('button', 'ncm-fdel', '&times;'); del.title = 'Delete this folder and everything in it';
-      del.addEventListener('click', function () { deleteFolder(f); });
-      wrap.appendChild(del);
+      if (f.deletable) {
+        var del = el('button', 'ncm-fdel', '&times;'); del.title = 'Delete this folder and everything in it';
+        del.addEventListener('click', function () { deleteFolder(f); });
+        wrap.appendChild(del);
+      }
       elFolders.appendChild(wrap);
     });
 

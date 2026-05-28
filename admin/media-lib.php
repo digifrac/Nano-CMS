@@ -18,6 +18,8 @@ const NANO_ADMIN_MEDIA_EXTENSIONS = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpe
 const NANO_ADMIN_THUMB_DEFAULT_WIDTH = 1200;
 const NANO_ADMIN_THUMB_DEFAULT_HEIGHT = 800;
 const NANO_ADMIN_THUMB_SUFFIX = '-thumb';
+// Permanent media folders the manager always keeps and never lets you delete.
+const NANO_ADMIN_MEDIA_STRUCTURAL = ['article-images', 'category-images'];
 const NANO_ADMIN_IMAGE_QUALITY_DEFAULT = 90;
 const NANO_ADMIN_SOURCE_MAX_WIDTH_DEFAULT = 1600;
 
@@ -761,6 +763,9 @@ function nano_admin_media_deletefolder(string $path): array
 {
     $path = trim($path, '/');
     if ($path === '' || !nano_admin_media_dir_ok($path)) return ['ok' => false, 'error' => 'Invalid folder.'];
+    if (in_array($path, NANO_ADMIN_MEDIA_STRUCTURAL, true)) {
+        return ['ok' => false, 'error' => 'This folder is part of Nano CMS and cannot be deleted.'];
+    }
     $abs = nano_admin_media_fs($path);
     if (!is_dir($abs) || !nano_admin_media_contained($abs)) return ['ok' => false, 'error' => 'Folder not found.'];
     nano_admin_media_rmtree($abs);

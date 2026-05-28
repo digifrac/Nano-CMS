@@ -18,7 +18,11 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
   drag an image onto a folder to move it, rename, delete, "unused" badges,
   and toasts. Images can live in folders and posts/categories reference them
   by path; moving or renaming an image updates the posts and category records
-  that reference it.
+  that reference it. Two permanent folders (`article-images`,
+  `category-images`) can't be deleted. Styled with Nano Cart's media CSS
+  verbatim so the two products' media managers look identical.
+- Homepage sections (hero / Featured / Browse by topic) are separated by
+  divider rules.
 - **Homepage hero + featured articles.** New `hero` (one, unique) and
   `featured` post flags render a large hero article and a "Featured" row at
   the top of the blog homepage, above the category cards.
