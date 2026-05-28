@@ -67,7 +67,8 @@ function nano_runtime_styles(): string
     };
     $art = $hex($cfg['card_image_bg'] ?? '');
     $cat = $hex($cfg['cat_image_bg'] ?? '');
-    if ($art === '' && $cat === '') {
+    $lead = $hex($cfg['article_image_bg'] ?? '');
+    if ($art === '' && $cat === '' && $lead === '') {
         return '';
     }
     $decls = '';
@@ -76,6 +77,9 @@ function nano_runtime_styles(): string
     }
     if ($cat !== '') {
         $decls .= '--nano-blog-cat-image-bg:' . $cat . ';';
+    }
+    if ($lead !== '') {
+        $decls .= '--nano-blog-article-image-bg:' . $lead . ';';
     }
     return '<style>.nano-blog{' . $decls . '}</style>';
 }

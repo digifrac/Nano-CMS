@@ -254,7 +254,7 @@
 /* Single-post lead image: full image at natural size (capped to the content
    column), no fixed-height box and no crop - mirrors Cart's gallery-main. */
 .nano-blog-figure { margin: 0 0 calc(var(--nano-spacing-unit) * 1.5) 0; }
-.nano-blog-figure img { max-width: 100%; height: auto; display: block; border: 1px solid var(--nano-color-border); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); background: var(--nano-blog-card-image-bg, transparent); }
+.nano-blog-figure img { max-width: 100%; height: auto; display: block; border: 1px solid var(--nano-color-border); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); background: var(--nano-blog-article-image-bg, transparent); }
 
 /* Homepage hero article + section headings. */
 .nano-blog-section { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--nano-color-border-soft); }
