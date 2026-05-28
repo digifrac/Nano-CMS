@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $flash = ((string)($_GET['msg'] ?? '')) === 'saved' ? 'Post saved.' : null;
 $categories = nano_admin_categories();
 $preview_url = (!$is_new && $base_url !== '')
-    ? $base_url . '/' . rawurlencode((string)$original_fm['slug']) . '/?preview=' . rawurlencode(nano_admin_csrf_token())
+    ? $base_url . '/' . rawurlencode((string)$original_fm['category']) . '/' . rawurlencode((string)$original_fm['slug']) . '/?preview=' . rawurlencode(nano_admin_csrf_token())
     : null;
 echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
 ?>
