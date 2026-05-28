@@ -23,7 +23,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
  * release, even though the two codebases ship as separate zips.
  * When bumping for a release, edit both.
  */
-const NANO_ADMIN_VERSION = '1.4.0';
+const NANO_ADMIN_VERSION = '1.5.0';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;

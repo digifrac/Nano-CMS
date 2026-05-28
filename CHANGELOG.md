@@ -2,7 +2,7 @@
 
 Notable changes to Nano CMS. Earlier per-commit history lives in git.
 
-## [Unreleased]
+## [1.5.0] - 2026-05-28
 
 ### Added
 - **Per-image background colour (like Cart's image_bg).** Hex colours shown

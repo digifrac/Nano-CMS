@@ -20,7 +20,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
  * release, even though the two codebases ship as separate zips.
  * When bumping for a release, edit both.
  */
-const NANO_VERSION = '1.4.0';
+const NANO_VERSION = '1.5.0';
 
 require_once __DIR__ . '/lib/Parsedown.php';
 

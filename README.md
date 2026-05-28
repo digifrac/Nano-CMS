@@ -4,7 +4,7 @@ A flat-file PHP blog system for adding SEO-driven content to existing static HTM
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF4D00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/digitalfracture)
 
-> **Status: v1.4.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment, [UPGRADE.md](UPGRADE.md) for upgrading, and [CHANGELOG.md](CHANGELOG.md) for release history.
+> **Status: v1.5.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment, [UPGRADE.md](UPGRADE.md) for upgrading, and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 
@@ -24,7 +24,7 @@ It is deliberately **not** a general-purpose CMS. It does one thing - serve a bl
 - **Per-site config lives outside webroot.** Password hashes and site settings stored in a JSON file that's structurally unreachable via HTTP.
 - **No frameworks.** No Bootstrap, no Tailwind, no React, no jQuery, no build step. Hand-written PHP, scoped CSS, and minimal vanilla JavaScript.
 
-Total size: around 5000 lines of hand-written PHP, CSS, and minimal JS, and the whole CMS deploys in under 360KB on disk (vendored Parsedown included). For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
+Total size, honestly accounted: the front-end blog engine - `core.php`, `index.php`, `post.php`, `template.php`, `generators.php` - is about **1,400 lines** of PHP. With the universal portable admin app included it's roughly **7,500 lines** of hand-written PHP, scoped CSS, and vanilla JS. The bundled Parsedown Markdown library (~3,400 lines, vendored, not ours) plus the test suite and docs bring the whole repository to ~13,000. On disk the permanent front-end footprint is about **180 KB** (Parsedown included); the release zips are ~70 KB each. For comparison: Grav core is ~30k lines, Eleventy is ~10k, WordPress is ~500k - a CMS this small is the point.
 
 ---
 
@@ -160,6 +160,23 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 - HTTPS-only admin, CSRF on every POST, bcrypt + rate-limited login, browser-session cookies, idle-timeout sessions, password-hash-bound sessions
 - Image upload pipeline with GD/Imagick re-encode (defends against EXIF-payload smuggling)
 - Deployment guide ([INSTALL.md](INSTALL.md)) and pre-flight host check script
+
+## What's new in 1.5
+
+- **Managed categories.** Optional `categories/<slug>.json` records give a category a proper display name, Markdown description, hero image, manual sort order, and image position - edited in a new admin Categories manager. Categories with no record still work (derived from the posts that use them), so nothing has to be migrated.
+- **Category landing like a product page.** A category archive now shows a banner image and a Markdown description side-by-side (image left or right), with a divider above the post grid.
+- **Homepage hero + featured articles.** Optional `hero` (one, unique) and `featured` post flags render a large hero article and a "Featured articles" row above the "Categories" grid on the blog homepage.
+- **Folder-based media manager.** The Media page is a single-pane file browser over `/media`: breadcrumb, create/delete folders, drag-and-drop upload, drag-to-move, rename, and "unused" badges. Two permanent folders (`article-images`, `category-images`). Moving or renaming an image rewrites the posts and category records that reference it.
+- **Per-image background colour.** Each article (its hero image and, separately, its card thumbnail) and each category (card + banner) takes its own optional hex background, shown behind the transparent areas of a PNG - applied inline per image, no global setting.
+- **Separate thumbnail alt text** for the card image, distinct from the hero image's alt.
+- **Front-end typography & spacing parity** with the sibling Nano Cart storefront (Inter web font, heading sizes, section rhythm) so the two products feel consistent.
+
+## What's new in 1.4
+
+- **Web installer (`install.php`).** Creates the outside-webroot config directory (DOCUMENT_ROOT-aware, so it never lands inside an addon-domain webroot), writes `bootstrap.php`, and hands off to the setup wizard - then self-deletes via a one-click banner on the dashboard once setup is done.
+- **Admin redesigned** onto a shared sticky-header scaffold: one canonical nav with current-page highlighting, dashboard stat cards (published / drafts / categories), a quick-actions panel, zebra tables, and fieldset-grouped forms - all scoped under the `nano-cms-admin-*` class prefix. CSRF logout, HTTPS enforcement, rate limiting, and licensing are unchanged.
+- **Dashboard health-check panel** verifies PHP version, the image extension (GD/Imagick), `fileinfo`, that required front-end files are present, that `config.json` loads, and that `media/` is writable - catching a half-finished upgrade in the admin instead of via a dead public page.
+- **Editable base URL (and more) in Settings**, fixing the "category pages 404 after install" class of misconfiguration, plus an upgrade guide ([UPGRADE.md](UPGRADE.md)).
 
 ## What's new in 1.3
 
