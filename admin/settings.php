@@ -1,10 +1,9 @@
 <?php
 /**
- * Admin settings page. Lets the operator change site-level layout
- * options that don't fit in the per-post editor or media manager.
- *
- * Currently exposes cards_per_row only. Future settings can grow here
- * without adding new admin pages.
+ * Admin settings page. The single place to manage site-level config
+ * after setup: base URL, site name, author/publisher (used in article
+ * JSON-LD), posts per page, grid columns, and thumbnail sizes. All of
+ * these were previously only settable in the setup wizard.
  */
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/core.php';
@@ -26,6 +25,11 @@ $flash = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     nano_admin_require_csrf();
     $new_site_name = trim((string)($_POST['site_name'] ?? ''));
+    $new_base_url  = rtrim(trim((string)($_POST['base_url'] ?? '')), '/');
+    $new_author = trim((string)($_POST['author'] ?? ''));
+    $new_publisher_name = trim((string)($_POST['publisher_name'] ?? ''));
+    $new_publisher_logo = trim((string)($_POST['publisher_logo'] ?? ''));
+    $new_posts_per_page = (int)($_POST['posts_per_page'] ?? 0);
     $cats_raw = (int)($_POST['categories_per_row'] ?? 0);
     $arts_raw = (int)($_POST['articles_per_row'] ?? 0);
     $thumb_w = (int)($_POST['thumb_width'] ?? 0);
@@ -36,6 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($new_site_name === '' || mb_strlen($new_site_name) > 80) {
         $errors[] = 'Site name must be 1-80 characters.';
     }
+    if (!preg_match('#^https?://[A-Za-z0-9.\-]+(:\d+)?(/[A-Za-z0-9._~!\$&\'()*+,;=:@%/-]*)?$#', $new_base_url)) {
+        $errors[] = 'Base URL must be a plain http(s) URL like https://example.com/blog.';
+    }
+    if ($new_author === '') $errors[] = 'Author name is required.';
+    if ($new_publisher_name === '') $errors[] = 'Publisher name is required.';
+    if ($new_publisher_logo !== '' && !preg_match('#^https?://\S+$#', $new_publisher_logo)) {
+        $errors[] = 'Publisher logo must be a valid http(s) URL or left blank.';
+    }
+    if ($new_posts_per_page < 1 || $new_posts_per_page > 50) {
+        $errors[] = 'Posts per page must be between 1 and 50.';
+    }
     if ($cats_raw !== 3 && $cats_raw !== 4) $errors[] = 'Categories per row must be 3 or 4.';
     if ($arts_raw !== 3 && $arts_raw !== 4) $errors[] = 'Articles per row must be 3 or 4.';
     if ($thumb_w < 100 || $thumb_w > 2400) $errors[] = 'Article thumbnail width must be between 100 and 2400.';
@@ -44,6 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($cat_thumb_h < 100 || $cat_thumb_h > 2400) $errors[] = 'Category image height must be between 100 and 2400.';
     if (empty($errors)) {
         $cfg['site_name'] = $new_site_name;
+        $cfg['base_url'] = $new_base_url;
+        $cfg['author'] = $new_author;
+        $cfg['publisher_name'] = $new_publisher_name;
+        $cfg['publisher_logo'] = $new_publisher_logo;
+        $cfg['posts_per_page'] = $new_posts_per_page;
         $cfg['categories_per_row'] = $cats_raw;
         $cfg['articles_per_row'] = $arts_raw;
         $cfg['thumb_width'] = $thumb_w;
@@ -74,6 +94,12 @@ $cat_thumb_width = (int)($cfg['cat_thumb_width'] ?? $thumb_width);
 if ($cat_thumb_width < 100 || $cat_thumb_width > 2400) $cat_thumb_width = $thumb_width;
 $cat_thumb_height = (int)($cfg['cat_thumb_height'] ?? $thumb_height);
 if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $thumb_height;
+$base_url = rtrim((string)($cfg['base_url'] ?? ''), '/');
+$author = (string)($cfg['author'] ?? '');
+$publisher_name = (string)($cfg['publisher_name'] ?? '');
+$publisher_logo = (string)($cfg['publisher_logo'] ?? '');
+$posts_per_page = (int)($cfg['posts_per_page'] ?? 10);
+if ($posts_per_page < 1 || $posts_per_page > 50) $posts_per_page = 10;
 echo nano_admin_header('Settings', 'settings');
 ?>
 <?php if ($flash !== null): ?>
@@ -87,7 +113,30 @@ echo nano_admin_header('Settings', 'settings');
   <label>Site name
     <input type="text" name="site_name" value="<?= nano_admin_e($site_name) ?>" maxlength="80" required>
   </label>
-  <p class="nano-cms-admin-help">Shown in the <code>&lt;title&gt;</code> suffix, the RSS feed, and OpenGraph metadata. Set initially by the setup wizard; change it here whenever you rebrand.</p>
+  <p class="nano-cms-admin-help">Shown in the <code>&lt;title&gt;</code> suffix, the RSS feed, and OpenGraph metadata.</p>
+
+  <label>Base URL
+    <input type="url" name="base_url" value="<?= nano_admin_e($base_url) ?>" placeholder="https://example.com/blog" required>
+  </label>
+  <p class="nano-cms-admin-help">The full public URL the blog is served at, e.g. <code>https://example.com/blog</code> (no trailing slash). Every post link, category page, image URL, the sitemap and the feed are built from this - if it points at the wrong path, category pages 404 and images break. <strong>This is the value to fix if links are dropping the <code>/blog</code> path.</strong></p>
+
+  <label>Author name
+    <input type="text" name="author" value="<?= nano_admin_e($author) ?>" required>
+  </label>
+
+  <label>Publisher name
+    <input type="text" name="publisher_name" value="<?= nano_admin_e($publisher_name) ?>" required>
+  </label>
+
+  <label>Publisher logo URL (optional)
+    <input type="url" name="publisher_logo" value="<?= nano_admin_e($publisher_logo) ?>" placeholder="https://example.com/logo.png">
+  </label>
+  <p class="nano-cms-admin-help">Used in each post's article structured data (JSON-LD publisher logo) for search rich results. Leave blank if you don't have one.</p>
+
+  <label>Posts per page
+    <input type="number" name="posts_per_page" min="1" max="50" step="1" value="<?= (int)$posts_per_page ?>" required>
+  </label>
+  <p class="nano-cms-admin-help">How many posts appear per category-archive page (and in the RSS feed) before pagination.</p>
 
   <h2>Layout</h2>
   <label>Categories per row
