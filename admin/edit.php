@@ -10,6 +10,7 @@
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/core.php';
 require_once __DIR__ . '/posts.php';
+require_once __DIR__ . '/media-lib.php';
 require_once __DIR__ . '/../generators.php';
 
 nano_admin_assert_https();
@@ -153,6 +154,23 @@ $categories = nano_admin_categories();
 $preview_url = (!$is_new && $base_url !== '')
     ? $base_url . '/' . rawurlencode((string)$original_fm['category']) . '/' . rawurlencode((string)$original_fm['slug']) . '/?preview=' . rawurlencode(nano_admin_csrf_token())
     : null;
+
+// Media library for the image picker (Choose-from-library + body Image button).
+$media_dir = NANO_CONTENT_PATH . '/media';
+$media_for_js = [];
+foreach (nano_admin_list_media() as $m) {
+    $name = $m['filename'];
+    $thumb_name = nano_admin_media_thumb_filename($name);
+    $media_for_js[] = [
+        'name'  => $name,
+        'thumb' => is_file($media_dir . '/' . $thumb_name)
+            ? $base_url . '/media/' . $thumb_name
+            : $base_url . '/media/' . $name,
+    ];
+}
+$media_json = json_encode($media_for_js, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?: '[]';
+$media_base_json = json_encode($base_url . '/media', JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?: '""';
+
 echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
 ?>
 <?php if (!empty($errors)): ?>
@@ -194,11 +212,21 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
     <p class="nano-cms-admin-counter"><span id="desc-count">0</span> chars</p>
   </div>
   <div>
-    <label>Hero image filename (in /media/)<input type="text" name="image" value="<?= nano_admin_e($form['image']) ?>"></label>
-    <p class="nano-cms-admin-help">Full-size image shown at the top of the single-post page.</p>
+    <label for="nano-image">Hero image (in /media/)</label>
+    <div class="nano-cms-admin-imgfield">
+      <input type="text" name="image" id="nano-image" value="<?= nano_admin_e($form['image']) ?>" placeholder="filename.jpg">
+      <button type="button" class="nano-cms-admin-button nano-cms-admin-button-sm" data-pick="nano-image">Choose&hellip;</button>
+    </div>
+    <div class="nano-cms-admin-imgprev" data-prev-for="nano-image"></div>
+    <p class="nano-cms-admin-help">Full-size image shown at the top of the single-post page. Pick from the media library or type a filename.</p>
   </div>
   <div>
-    <label>Card thumbnail filename (optional)<input type="text" name="thumbnail" value="<?= nano_admin_e($form['thumbnail'] ?? '') ?>"></label>
+    <label for="nano-thumbnail">Card thumbnail (optional)</label>
+    <div class="nano-cms-admin-imgfield">
+      <input type="text" name="thumbnail" id="nano-thumbnail" value="<?= nano_admin_e($form['thumbnail'] ?? '') ?>" placeholder="filename.jpg">
+      <button type="button" class="nano-cms-admin-button nano-cms-admin-button-sm" data-pick="nano-thumbnail">Choose&hellip;</button>
+    </div>
+    <div class="nano-cms-admin-imgprev" data-prev-for="nano-thumbnail"></div>
     <p class="nano-cms-admin-help">Separate image used on category-archive cards. Leave blank to auto-derive from the hero image.</p>
   </div>
   <div>
@@ -222,6 +250,7 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
         <button type="button" data-md="heading">H</button>
         <button type="button" data-md="list">List</button>
         <button type="button" data-md="code">Code</button>
+        <button type="button" data-md-image title="Insert an image from the media library">Image</button>
       </div>
       <textarea id="nano-body" name="body" required><?= nano_admin_e($form['body']) ?></textarea>
     </div>
@@ -250,6 +279,10 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
 </form>
 <?php endif; ?>
 
+<script>
+window.NANO_MEDIA = <?= $media_json ?>;
+window.NANO_MEDIA_BASE = <?= $media_base_json ?>;
+</script>
 <script>
 (function () {
   var ta = document.getElementById('nano-body');
@@ -288,6 +321,82 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
       });
     });
   }
+  /* ----- Image manager: pick from the media library ----------------- */
+  var MEDIA = window.NANO_MEDIA || [];
+  var MEDIA_BASE = window.NANO_MEDIA_BASE || '';
+  function nanoEscAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+  function nanoEscHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function openMediaPicker(onPick) {
+    var bg = document.createElement('div'); bg.className = 'nano-cms-admin-pickbg';
+    var m = document.createElement('div'); m.className = 'nano-cms-admin-pickmodal';
+    m.innerHTML =
+        '<div class="nano-cms-admin-pickhead"><strong>Select an image from the library</strong>'
+      + '<button type="button" class="nano-cms-admin-pickclose" aria-label="Close">&times;</button></div>'
+      + '<div class="nano-cms-admin-pickgrid"></div>'
+      + '<div class="nano-cms-admin-pickfoot"><span>Upload new images in the Media tab.</span>'
+      + '<a class="nano-cms-admin-button nano-cms-admin-button-secondary nano-cms-admin-button-sm" href="media.php" target="_blank" rel="noopener">Open Media manager &#8599;</a></div>';
+    bg.appendChild(m); document.body.appendChild(bg);
+    function close(){ if (bg.parentNode) bg.parentNode.removeChild(bg); document.removeEventListener('keydown', onKey); }
+    function onKey(e){ if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    m.querySelector('.nano-cms-admin-pickclose').addEventListener('click', close);
+    bg.addEventListener('click', function (e) { if (e.target === bg) close(); });
+    var grid = m.querySelector('.nano-cms-admin-pickgrid');
+    if (!MEDIA.length) {
+      grid.innerHTML = '<p class="nano-cms-admin-pickempty">No images in the library yet. Upload some in the Media tab.</p>';
+    }
+    MEDIA.forEach(function (it) {
+      var cell = document.createElement('button'); cell.type = 'button'; cell.className = 'nano-cms-admin-pickcell';
+      cell.innerHTML = '<span class="nano-cms-admin-pickthumb"><img loading="lazy" src="' + nanoEscAttr(it.thumb) + '" alt=""></span>'
+        + '<span class="nano-cms-admin-pickname">' + nanoEscHtml(it.name) + '</span>';
+      cell.querySelector('img').addEventListener('error', function () { cell.querySelector('.nano-cms-admin-pickthumb').classList.add('nano-cms-admin-pickbroken'); });
+      cell.addEventListener('click', function () { onPick(it); close(); });
+      grid.appendChild(cell);
+    });
+  }
+
+  function updatePreview(input) {
+    var prev = document.querySelector('.nano-cms-admin-imgprev[data-prev-for="' + input.id + '"]');
+    if (!prev) return;
+    var v = input.value.trim();
+    if (!v) { prev.innerHTML = ''; return; }
+    var hit = null;
+    for (var i = 0; i < MEDIA.length; i++) { if (MEDIA[i].name === v) { hit = MEDIA[i]; break; } }
+    var src = hit ? hit.thumb : (MEDIA_BASE + '/' + v);
+    prev.innerHTML = '<img src="' + nanoEscAttr(src) + '" alt=""><button type="button" class="nano-cms-admin-imgclear">Clear</button>';
+    prev.querySelector('img').addEventListener('error', function () { this.style.display = 'none'; });
+    prev.querySelector('.nano-cms-admin-imgclear').addEventListener('click', function () { input.value = ''; updatePreview(input); });
+  }
+
+  document.querySelectorAll('[data-pick]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById(btn.getAttribute('data-pick'));
+      if (!input) return;
+      openMediaPicker(function (it) { input.value = it.name; updatePreview(input); });
+    });
+  });
+  document.querySelectorAll('.nano-cms-admin-imgprev[data-prev-for]').forEach(function (prev) {
+    var input = document.getElementById(prev.getAttribute('data-prev-for'));
+    if (!input) return;
+    input.addEventListener('input', function () { updatePreview(input); });
+    updatePreview(input);
+  });
+
+  var imgBtn = document.querySelector('.nano-cms-admin-md-toolbar [data-md-image]');
+  if (ta && imgBtn) {
+    imgBtn.addEventListener('click', function () {
+      openMediaPicker(function (it) {
+        var s = ta.selectionStart, e = ta.selectionEnd;
+        var sel = ta.value.substring(s, e);
+        var ins = '![' + sel + '](' + it.name + ')';
+        ta.value = ta.value.substring(0, s) + ins + ta.value.substring(e);
+        var pos = s + ins.length;
+        ta.focus(); ta.setSelectionRange(pos, pos);
+      });
+    });
+  }
+
   function wireCounter(inputSel, counterId) {
     var input = document.querySelector(inputSel);
     var counter = document.getElementById(counterId);

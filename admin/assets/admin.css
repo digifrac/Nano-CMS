@@ -730,6 +730,30 @@ body.nano-cms-admin {
 .nano-cms-admin-empty a:not(.nano-cms-admin-button) { color: var(--nano-cms-admin-accent); text-decoration: none; font-weight: 500; }
 .nano-cms-admin-empty a:not(.nano-cms-admin-button):hover { text-decoration: underline; }
 
+/* Editor image fields + media picker (post editor). */
+.nano-cms-admin-imgfield { display: flex; gap: 0.5rem; align-items: stretch; margin-top: 0.4rem; }
+.nano-cms-admin-imgfield input { margin-top: 0; }
+.nano-cms-admin-imgfield .nano-cms-admin-button { flex: 0 0 auto; }
+.nano-cms-admin-imgprev { margin-top: 0.5rem; display: flex; align-items: center; gap: 0.6rem; }
+.nano-cms-admin-imgprev:empty { display: none; }
+.nano-cms-admin-imgprev img { width: 110px; height: 73px; object-fit: cover; border: 1px solid var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius-sm); background: var(--nano-cms-admin-bg); }
+.nano-cms-admin-imgclear { background: none; border: 0; color: var(--nano-cms-admin-danger); cursor: pointer; font: inherit; text-decoration: underline; padding: 0; }
+
+.nano-cms-admin-pickbg { position: fixed; inset: 0; background: rgba(20, 24, 31, 0.55); display: flex; align-items: center; justify-content: center; z-index: 1200; padding: 1.5rem; }
+.nano-cms-admin-pickmodal { background: var(--nano-cms-admin-panel); border-radius: var(--nano-cms-admin-radius); width: min(56rem, 100%); max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--nano-cms-admin-shadow-raised); }
+.nano-cms-admin-pickhead { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; border-bottom: 1px solid var(--nano-cms-admin-border); }
+.nano-cms-admin-pickclose { background: none; border: 0; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--nano-cms-admin-muted); }
+.nano-cms-admin-pickclose:hover { color: var(--nano-cms-admin-text); }
+.nano-cms-admin-pickgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.7rem; padding: 1rem; overflow: auto; align-content: start; }
+.nano-cms-admin-pickempty { grid-column: 1 / -1; color: var(--nano-cms-admin-muted); font-style: italic; }
+.nano-cms-admin-pickcell { border: 1px solid var(--nano-cms-admin-border); border-radius: var(--nano-cms-admin-radius-sm); overflow: hidden; background: var(--nano-cms-admin-panel); cursor: pointer; padding: 0; font: inherit; text-align: center; transition: box-shadow 80ms ease, border-color 80ms ease; }
+.nano-cms-admin-pickcell:hover { border-color: var(--nano-cms-admin-accent); box-shadow: var(--nano-cms-admin-shadow-raised); }
+.nano-cms-admin-pickthumb { display: flex; align-items: center; justify-content: center; aspect-ratio: 3 / 2; background: var(--nano-cms-admin-bg); overflow: hidden; }
+.nano-cms-admin-pickthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nano-cms-admin-pickbroken::after { content: 'no preview'; color: var(--nano-cms-admin-muted); font-size: 0.72rem; }
+.nano-cms-admin-pickname { display: block; font-size: 0.72rem; padding: 0.3rem; word-break: break-all; color: var(--nano-cms-admin-muted); font-family: ui-monospace, Menlo, Consolas, monospace; }
+.nano-cms-admin-pickfoot { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 1rem; border-top: 1px solid var(--nano-cms-admin-border); font-size: 0.85rem; color: var(--nano-cms-admin-muted); }
+
 /* Mobile: tighten paddings, allow tables to scroll horizontally. */
 @media (max-width: 600px) {
   .nano-cms-admin-header { padding: 0.65rem 1rem; }
