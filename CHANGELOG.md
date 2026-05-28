@@ -37,3 +37,9 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 - Front-end `template.php` gains a paste-zone heads-up note (about the
   scoped, no-reset CSS) and an optional, commented-out default web-font
   block.
+
+### Fixed
+- Setup wizard rejected every base URL. The validation regex used `~` as
+  its delimiter while also containing a literal `~` in the character class,
+  so the pattern failed to compile and no URL could pass. Switched the
+  delimiter to `#`.

@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Stops a setup-time value like `javascript:alert(1)` from later
     // landing inside an href= attribute - htmlspecialchars escapes < and "
     // but doesn't neutralise a javascript: scheme.
-    if (!preg_match('~^https?://[A-Za-z0-9.\-]+(:\d+)?(/[A-Za-z0-9._~!\$&\'()*+,;=:@%/-]*)?$~', $base_url)) {
+    if (!preg_match('#^https?://[A-Za-z0-9.\-]+(:\d+)?(/[A-Za-z0-9._~!\$&\'()*+,;=:@%/-]*)?$#', $base_url)) {
         $errors[] = 'Base URL must be a plain http(s) URL like https://example.com/blog.';
     }
     if ($author === '') {
