@@ -6,6 +6,12 @@
 
 Options -Indexes
 
+# Serve the CMS entry point as the directory index, even if a stray
+# index.html (host "coming soon" placeholder, or a leftover upload) is
+# sitting beside it - otherwise the server shows index.html and the blog
+# never loads.
+DirectoryIndex index.php index.html
+
 <IfModule mod_headers.c>
     # Defence-in-depth response headers. `always` ensures they're set on
     # error responses too (404 pages etc), where mod_php otherwise can
