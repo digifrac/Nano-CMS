@@ -187,25 +187,6 @@ ob_start();
     </div>
   </a>
 <?php endif; ?>
-<?php if (!empty($featured_posts)): ?>
-  <h2 class="nano-blog-section-title">Featured articles</h2>
-  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $article_grid_style ?>">
-<?php foreach ($featured_posts as $fp): $fp_img = nano_card_image_url($fp); ?>
-    <article class="nano-blog-card<?= $fp_img !== null ? ' has-image' : '' ?>">
-      <a href="<?= nano_e(nano_post_url((string)$fp['slug'], (string)$fp['category'])) ?>">
-<?php if ($fp_img !== null): ?>
-        <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e((string)($fp['image_alt'] ?? $fp['title'])) ?>" loading="lazy">
-<?php endif; ?>
-        <div class="nano-blog-card-text">
-          <h2><?= nano_e((string)$fp['title']) ?></h2>
-          <time datetime="<?= nano_e((string)$fp['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fp['date']))) ?></time>
-          <p><?= nano_e((string)$fp['description']) ?></p>
-        </div>
-      </a>
-    </article>
-<?php endforeach; ?>
-  </div>
-<?php endif; ?>
 <?php if (empty($categories)): ?>
   <p>No posts yet.</p>
 <?php else: ?>
@@ -224,6 +205,25 @@ ob_start();
         <p class="nano-blog-category-count"><?= (int)$c['count'] ?> <?= $post_word ?></p>
       </div>
     </a>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
+<?php if (!empty($featured_posts)): ?>
+  <h2 class="nano-blog-section-title">Featured articles</h2>
+  <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $article_grid_style ?>">
+<?php foreach ($featured_posts as $fp): $fp_img = nano_card_image_url($fp); ?>
+    <article class="nano-blog-card<?= $fp_img !== null ? ' has-image' : '' ?>">
+      <a href="<?= nano_e(nano_post_url((string)$fp['slug'], (string)$fp['category'])) ?>">
+<?php if ($fp_img !== null): ?>
+        <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e((string)($fp['image_alt'] ?? $fp['title'])) ?>" loading="lazy">
+<?php endif; ?>
+        <div class="nano-blog-card-text">
+          <h2><?= nano_e((string)$fp['title']) ?></h2>
+          <time datetime="<?= nano_e((string)$fp['date']) ?>"><?= nano_e(date('j F Y', strtotime((string)$fp['date']))) ?></time>
+          <p><?= nano_e((string)$fp['description']) ?></p>
+        </div>
+      </a>
+    </article>
 <?php endforeach; ?>
   </div>
 <?php endif; ?>
