@@ -126,6 +126,7 @@ $draft_count     = count(array_filter($all_posts, static fn(array $p): bool => !
 $published_count = count($all_posts) - $draft_count;
 $category_count  = count($categories);
 $install_exists  = is_file(dirname(__DIR__) . '/install.php');
+$base_url        = rtrim((string)($cfg['base_url'] ?? ''), '/');
 
 $health          = nano_admin_health_checks();
 $health_problems = array_values(array_filter($health, static fn(array $c): bool => !$c['ok']));
@@ -222,6 +223,19 @@ if ($install_exists):
 </tbody>
 </table>
 <?php endif; ?>
+
+<section class="nano-cms-admin-section">
+  <h2 class="nano-cms-admin-section-title">Quick actions</h2>
+  <div class="nano-cms-admin-quick-actions">
+    <a class="nano-cms-admin-button nano-cms-admin-button-primary" href="edit.php">New post</a>
+    <a class="nano-cms-admin-button" href="media.php">Media</a>
+    <a class="nano-cms-admin-button" href="categories.php">Categories</a>
+    <a class="nano-cms-admin-button" href="settings.php">Edit settings</a>
+<?php if ($base_url !== ''): ?>
+    <a class="nano-cms-admin-button nano-cms-admin-button-secondary" href="<?= nano_admin_e($base_url) ?>/" target="_blank" rel="noopener">View blog</a>
+<?php endif; ?>
+  </div>
+</section>
 
 <section class="nano-cms-admin-section">
   <h2 class="nano-cms-admin-section-title">Health check</h2>

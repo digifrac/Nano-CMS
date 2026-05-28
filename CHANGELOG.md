@@ -15,6 +15,8 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
   hand-off). `INSTALL.md` now lists it as the primary install path, with
   the manual `bootstrap.example.php` copy kept as a fallback.
 - Dashboard stat cards: published posts, draft posts, and categories.
+- Dashboard quick-actions panel: new post, media, categories, edit settings,
+  view blog.
 - **Dashboard health-check panel.** Verifies PHP version, the image
   extension (GD/Imagick), `fileinfo`, that every required front-end file is
   present, that `config.json` loads, and that `media/` is writable - with a

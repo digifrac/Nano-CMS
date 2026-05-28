@@ -136,7 +136,7 @@ body.nano-cms-admin {
   border: 1px solid var(--nano-cms-admin-border);
   border-radius: var(--nano-cms-admin-radius);
   padding: 1.25rem;
-  margin-bottom: 1.5rem;
+  margin: 1.5rem 0;
   box-shadow: var(--nano-cms-admin-shadow-panel);
 }
 .nano-cms-admin-section-title {
