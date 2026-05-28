@@ -4,6 +4,23 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 
 ## [Unreleased]
 
+### Added
+- **Managed categories.** Optional `categories/<slug>.json` records (name,
+  description, hero image) with a Create / Edit / Delete admin manager.
+  Front-end category pages, cards, and breadcrumbs use the record when
+  present and fall back to today's derived behaviour when absent - posts
+  are untouched (membership still comes from each post's `category:`).
+- **Image picker in the editors.** Hero/thumbnail fields and the category
+  image field get a "Choose..." media-library picker with preview, and the
+  markdown toolbar gets an Image button that inserts `![](file)`.
+- **Cart-style media manager.** The Media page is now a single-pane manager
+  (drag-and-drop upload, thumbnail grid with "unused" badges, in-page
+  delete + toasts).
+
+### Changed
+- Card thumbnails are generated from the original upload (single
+  compression), default size 1200x800, quality 90 - sharper, less washed.
+
 ## [1.4.0] - 2026-05-28
 
 ### Added

@@ -62,6 +62,7 @@ and conventions degrade gracefully when absent.
 /blog/                              ← default install path inside webroot
   /posts/                           ← Markdown post files
   /media/                           ← uploaded images
+  /categories/                      ← optional category records (one JSON each)
 
 /blog-config/                       ← OUTSIDE webroot
   config.json                       ← site settings, password hash
@@ -288,6 +289,39 @@ php_flag engine off
     Deny from all
 </FilesMatch>
 ```
+
+---
+
+## Category records (`categories/<slug>.json`)
+
+Optional, additive metadata for a category. A category's *membership* is
+always driven by the `category:` field of the posts that use it - a record
+never changes that. A record only adds a display name, description, and hero
+image for the category's page and homepage card. A category with **no**
+record still works: its name is derived from the slug and its image falls
+back to the legacy `media/category-<slug>.<ext>` convention.
+
+```json
+{
+  "slug": "web-design",
+  "name": "Web Design",
+  "description": "Articles on building and styling websites.",
+  "image": "2026-05-28-a4f8b2.jpg",
+  "created": "2026-05-28T10:00:00Z",
+  "updated": "2026-05-28T10:00:00Z"
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `slug` | string | `[a-z0-9-]+`. The filename stem and the value posts reference. Authoritative; never rewritten. |
+| `name` | string | Display name (heading, card, breadcrumb). Required when a record exists. |
+| `description` | string | Shown on the category page; used as its meta description. Optional. |
+| `image` | string | A `/media/` filename (chosen in the editor). Optional; falls back to the `category-<slug>` convention then to none. |
+| `created` / `updated` | string | ISO-8601 UTC timestamps, maintained by the admin. |
+
+Records are managed in the admin Categories page; deleting a record reverts
+the category to plain derived behaviour (it does not touch posts).
 
 ---
 

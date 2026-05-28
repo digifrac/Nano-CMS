@@ -97,6 +97,12 @@ function nano_category_image_url(string $slug): ?string
     if ($slug === '' || !defined('NANO_CONTENT_PATH')) {
         return null;
     }
+    // A managed category record's image (a /media/ filename) takes precedence
+    // over the legacy category-<slug>.<ext> convention.
+    $rec = nano_load_category($slug);
+    if ($rec !== null && trim((string)($rec['image'] ?? '')) !== '') {
+        return nano_thumb_url((string)$rec['image']);
+    }
     static $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     $dir = NANO_CONTENT_PATH . '/media';
     foreach ($allowed_exts as $ext) {
@@ -428,6 +434,28 @@ function nano_list_posts(array $filters = []): array
  *     latest_date: string,
  * }>
  */
+/**
+ * Load a managed category record (categories/<slug>.json) or null if the
+ * category has no record yet. Records are optional metadata - a category
+ * works fine without one (it's still derived from the posts that use it).
+ */
+function nano_load_category(string $slug): ?array
+{
+    if ($slug === '' || !defined('NANO_CONTENT_PATH') || $slug !== nano_safe_slug($slug)) {
+        return null;
+    }
+    $path = NANO_CONTENT_PATH . '/categories/' . $slug . '.json';
+    if (!is_file($path)) {
+        return null;
+    }
+    $raw = file_get_contents($path);
+    if ($raw === false) {
+        return null;
+    }
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : null;
+}
+
 function nano_list_categories_with_counts(): array
 {
     $by_slug = [];
@@ -450,6 +478,20 @@ function nano_list_categories_with_counts(): array
             ];
         }
         $by_slug[$slug]['count']++;
+    }
+
+    // Overlay managed category records: a record's name becomes the display
+    // label and its description rides along, falling back to the derived
+    // label when no record exists.
+    foreach ($by_slug as $slug => $c) {
+        $rec = nano_load_category($slug);
+        if ($rec === null) {
+            continue;
+        }
+        if (trim((string)($rec['name'] ?? '')) !== '') {
+            $by_slug[$slug]['label'] = (string)$rec['name'];
+        }
+        $by_slug[$slug]['description'] = (string)($rec['description'] ?? '');
     }
 
     $cats = array_values($by_slug);

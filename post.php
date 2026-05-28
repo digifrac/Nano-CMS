@@ -80,7 +80,10 @@ if ((string)($fm['category'] ?? '') !== $url_category) {
 
 $cfg = nano_config();
 $site_name = (string)($cfg['site_name'] ?? '');
-$category_label = ucfirst(str_replace('-', ' ', (string)$fm['category']));
+$cat_record = nano_load_category((string)$fm['category']);
+$category_label = ($cat_record !== null && trim((string)($cat_record['name'] ?? '')) !== '')
+    ? (string)$cat_record['name']
+    : ucfirst(str_replace('-', ' ', (string)$fm['category']));
 
 ob_start();
 ?>

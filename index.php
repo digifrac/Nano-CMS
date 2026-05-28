@@ -23,6 +23,7 @@ if ($category_raw !== null) {
 }
 
 $page = max(1, (int)($_GET['page'] ?? 1));
+$cat_description = '';
 
 $cfg = nano_config();
 $site_name = (string)($cfg['site_name'] ?? 'Blog');
@@ -62,7 +63,11 @@ if ($category !== null) {
         exit;
     }
     $slice = array_slice($all, ($page - 1) * $posts_per_page, $posts_per_page);
-    $heading = ucfirst(str_replace('-', ' ', $category));
+    $cat_record = nano_load_category($category);
+    $heading = ($cat_record !== null && trim((string)($cat_record['name'] ?? '')) !== '')
+        ? (string)$cat_record['name']
+        : ucfirst(str_replace('-', ' ', $category));
+    $cat_description = $cat_record !== null ? trim((string)($cat_record['description'] ?? '')) : '';
 } else {
     // Bare homepage no longer paginates, so /page/N/ for N>1 is a 404.
     // Prevents duplicate-content SEO issues from query-string variants.
@@ -84,6 +89,9 @@ ob_start();
     <span aria-current="page"><?= nano_e($heading) ?></span>
   </nav>
   <h1><?= nano_e($heading) ?></h1>
+<?php if ($cat_description !== ''): ?>
+  <p class="nano-blog-category-intro"><?= nano_e($cat_description) ?></p>
+<?php endif; ?>
 <?php if (empty($slice)): ?>
   <p>No posts in this category yet.</p>
 <?php else: ?>
@@ -162,7 +170,7 @@ $page_title = nano_e(
 );
 $page_description = nano_e(
     $category !== null
-        ? 'Posts in the ' . $category . ' category.'
+        ? ($cat_description !== '' ? $cat_description : 'Posts in the ' . $category . ' category.')
         : $site_name . ' - browse by topic.'
 );
 $meta_tags = nano_render_meta_tags_for_index($category, $page);

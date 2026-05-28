@@ -47,6 +47,10 @@ TODO.md
 !/media/.gitkeep
 !/media/.htaccess
 
+# Managed category records - per-deployment content, like posts/media.
+/categories/*
+!/categories/.gitkeep
+
 # Per-client sample/test posts dropped at the repo root during live-host
 # verification. These belong to a specific client deployment, not the CMS.
 /sample-*.md

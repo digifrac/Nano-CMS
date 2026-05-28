@@ -234,6 +234,7 @@
 }
 .nano-blog-breadcrumb a:hover { color: var(--nano-color-text); text-decoration: underline; }
 .nano-blog-breadcrumb span[aria-hidden] { margin: 0; color: var(--nano-color-border); opacity: 1; }
+.nano-blog-category-intro { margin: 0 0 calc(var(--nano-spacing-unit) * 1.5); color: var(--nano-color-text-muted); max-width: 65ch; }
 .nano-blog-hero { margin: 0 0 calc(var(--nano-spacing-unit) * 2) 0; }
 .nano-blog-draft-banner {
   background: #fff8c4;

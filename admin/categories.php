@@ -1,15 +1,15 @@
 <?php
 /**
- * Admin categories page. Lists every category in use across the post
- * set and lets the operator attach (or remove) a hero image per
- * category. The image is displayed on each category card on the blog
- * homepage. Convention-only, no JSON metadata: the file's existence
- * at /media/category-<slug>.<ext> is the metadata.
+ * Admin category manager. Lists every category (managed records + any
+ * category used by a post), and lets the operator create, edit, and delete
+ * managed category records (name, description, hero image). Membership is
+ * still driven by each post's `category:` field - a record is metadata only.
  */
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/core.php';
 require_once __DIR__ . '/posts.php';
 require_once __DIR__ . '/media-lib.php';
+require_once __DIR__ . '/categories-lib.php';
 
 nano_admin_assert_https();
 
@@ -22,78 +22,93 @@ nano_admin_version_check();
 nano_admin_require_login();
 
 $cfg = nano_admin_load_config();
-$site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
-$action = (string)($_GET['action'] ?? '');
+$base_url = rtrim((string)($cfg['base_url'] ?? ''), '/');
 $flash = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_GET['action'] ?? '') === 'delete') {
     nano_admin_require_csrf();
     $slug = nano_admin_safe_slug((string)($_POST['slug'] ?? ''));
+    $counts = nano_admin_category_post_counts();
+    $in_use = (int)($counts[$slug] ?? 0);
     if ($slug === '') {
-        $flash = ['error', 'Missing or invalid category.'];
-    } elseif ($action === 'upload') {
-        $result = nano_admin_category_image_save_upload($slug, $_FILES['image'] ?? []);
-        $flash = $result['ok']
-            ? ['ok', 'Image saved for ' . $slug . '.']
-            : ['error', $result['error'] ?? 'Upload failed.'];
-    } elseif ($action === 'delete') {
-        $flash = nano_admin_category_image_delete($slug)
-            ? ['ok', 'Image removed for ' . $slug . '.']
-            : ['error', 'No image to remove.'];
+        $flash = ['error', 'Cannot delete: category missing.'];
+    } elseif (nano_admin_delete_category($slug)) {
+        $flash = $in_use > 0
+            ? ['warn', 'Removed the metadata for "' . $slug . '". The category still appears because ' . $in_use . ' post' . ($in_use === 1 ? '' : 's') . ' still use it - recategorise those posts to remove it fully.']
+            : ['ok', 'Category "' . $slug . '" deleted.'];
+    } else {
+        $flash = ['error', 'No managed record to delete for "' . $slug . '".'];
     }
 }
 
-$categories = nano_admin_categories();
-$base_url = rtrim((string)($cfg['base_url'] ?? ''), '/');
-$reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
+if ($flash === null && (string)($_GET['msg'] ?? '') !== '') {
+    $flash = match ((string)$_GET['msg']) {
+        'saved'   => ['ok', 'Category saved.'],
+        'created' => ['ok', 'Category created.'],
+        default   => null,
+    };
+}
+
+$categories = nano_admin_all_categories();
+$media_dir = NANO_CONTENT_PATH . '/media';
+
+$thumb_for = static function (string $image) use ($base_url, $media_dir): ?string {
+    if ($image === '') {
+        return null;
+    }
+    $thumb = nano_admin_media_thumb_filename($image);
+    return is_file($media_dir . '/' . $thumb)
+        ? $base_url . '/media/' . $thumb
+        : $base_url . '/media/' . $image;
+};
+
 echo nano_admin_header('Categories', 'categories');
 ?>
 <?php if ($flash !== null): ?>
 <?= nano_admin_flash($flash[0], $flash[1]) ?>
 <?php endif; ?>
 
-<?php if (!$reencoder_available): ?>
-<div class="nano-cms-admin-flash nano-cms-admin-flash-warning"><strong>Uploads disabled:</strong> GD or Imagick must be loaded to safely accept image uploads. Browsing still works.</div>
-<?php endif; ?>
+<div class="nano-cms-admin-actions">
+  <a class="nano-cms-admin-button nano-cms-admin-button-primary" href="category-edit.php">New category</a>
+</div>
 
-<p class="nano-cms-admin-help">A category is anything used in a post's <code>category:</code> frontmatter. Attach an image here and it appears on the homepage card for that topic. Removing an image leaves the card text-only.</p>
+<p class="nano-cms-admin-help">A category is anything a post's <code>category:</code> field points at. Give it a record here to set a proper name, description, and hero image for its page and homepage card. Categories without a record still work - they just use a name derived from the slug.</p>
 
 <?php if (empty($categories)): ?>
-<div class="nano-cms-admin-empty"><p>No categories yet. Create a post first.</p></div>
+<div class="nano-cms-admin-empty"><p>No categories yet. Create one, or write a post and give it a category.</p></div>
 <?php else: ?>
-<div class="nano-cms-admin-category-list">
-<?php foreach ($categories as $cat):
-    $img_filename = nano_admin_find_category_image($cat);
-    $img_url = $img_filename !== null ? $base_url . '/media/' . $img_filename : null;
-?>
-  <div class="nano-cms-admin-category-row">
-    <div class="nano-cms-admin-category-thumb">
-<?php if ($img_url !== null): ?>
-      <img src="<?= nano_admin_e($img_url) ?>" alt="">
+<table class="nano-cms-admin-table">
+<thead>
+<tr><th>Image</th><th>Name</th><th>Slug</th><th>Posts</th><th>Record</th><th>Actions</th></tr>
+</thead>
+<tbody>
+<?php foreach ($categories as $c): $thumb = $thumb_for($c['image']); ?>
+<tr>
+<td style="width:96px">
+<?php if ($thumb !== null): ?>
+  <img src="<?= nano_admin_e($thumb) ?>" alt="" style="width:84px;height:56px;object-fit:cover;border-radius:5px;display:block">
 <?php else: ?>
-      <span class="empty-thumb">No image</span>
+  <span class="nano-cms-admin-help" style="margin:0">&mdash;</span>
 <?php endif; ?>
-    </div>
-    <div class="nano-cms-admin-category-meta">
-      <strong><?= nano_admin_e(ucfirst(str_replace('-', ' ', $cat))) ?></strong>
-      <small><?= nano_admin_e($cat) ?></small>
-    </div>
-    <form method="post" action="?action=upload" enctype="multipart/form-data" class="nano-cms-admin-category-form">
-      <?= nano_admin_csrf_field() ?>
-      <input type="hidden" name="slug" value="<?= nano_admin_e($cat) ?>">
-      <input type="file" name="image" accept=".jpg,.jpeg,.png,.gif,.webp" <?= $reencoder_available ? 'required' : 'disabled' ?>>
-      <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-sm" <?= $reencoder_available ? '' : 'disabled' ?>><?= $img_url !== null ? 'Replace' : 'Upload' ?></button>
-    </form>
-<?php if ($img_url !== null): ?>
-    <form method="post" action="?action=delete" onsubmit="return confirm('Remove this category image?');">
-      <?= nano_admin_csrf_field() ?>
-      <input type="hidden" name="slug" value="<?= nano_admin_e($cat) ?>">
-      <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger nano-cms-admin-button-sm">Remove</button>
-    </form>
+</td>
+<td><?= nano_admin_e($c['name']) ?></td>
+<td><code><?= nano_admin_e($c['slug']) ?></code></td>
+<td><?= (int)$c['count'] ?></td>
+<td><?php if ($c['has_record']): ?><span class="nano-cms-admin-pill nano-cms-admin-pill-published">managed</span><?php else: ?><span class="nano-cms-admin-pill">derived</span><?php endif; ?></td>
+<td class="nano-cms-admin-row-actions">
+  <a href="category-edit.php?slug=<?= nano_admin_e($c['slug']) ?>"><?= $c['has_record'] ? 'Edit' : 'Add record' ?></a>
+<?php if ($c['has_record']): ?>
+  <form method="post" action="?action=delete" onsubmit="return confirm('Delete the managed record for &quot;<?= nano_admin_e($c['slug']) ?>&quot;?<?= $c['count'] > 0 ? ' The category will revert to a plain derived one (posts still use it).' : '' ?>');">
+    <?= nano_admin_csrf_field() ?>
+    <input type="hidden" name="slug" value="<?= nano_admin_e($c['slug']) ?>">
+    &middot; <button type="submit" class="nano-cms-admin-link-danger">Delete</button>
+  </form>
 <?php endif; ?>
-  </div>
+</td>
+</tr>
 <?php endforeach; ?>
-</div>
+</tbody>
+</table>
 <?php endif; ?>
 
 <?= nano_admin_render_footer() ?>
