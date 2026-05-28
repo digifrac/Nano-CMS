@@ -10,7 +10,7 @@
  *   theme-custom.css to re-theme the blog without editing this file.
  *   See template.php for how to wire the optional theme file in.
  *
- *     --nano-font-family       System font stack (no web fonts)
+ *     --nano-font-family       Inter (loaded in template.php), system fallback
  *     --nano-font-size-base    Body font size
  *     --nano-line-height       Body line height
  *     --nano-color-text        Primary text color
@@ -28,7 +28,7 @@
  */
 
 .nano-blog {
-  --nano-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --nano-font-family: "Inter", system-ui, sans-serif;
   --nano-font-size-base: 1.05rem;
   --nano-line-height: 1.65;
   --nano-color-text: #1a1a1a;
@@ -68,7 +68,7 @@
   margin: calc(var(--nano-spacing-unit) * 1.5) 0 var(--nano-spacing-unit);
   color: var(--nano-color-text);
 }
-.nano-blog h1 { font-size: 2rem; }
+.nano-blog h1 { font-size: 2.5rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
 .nano-blog h2 { font-size: 1.5rem; }
 .nano-blog h3 { font-size: 1.25rem; }
 .nano-blog h4 { font-size: 1.1rem; }
