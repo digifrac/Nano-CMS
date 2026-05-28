@@ -32,6 +32,11 @@ TODO.md
 
 /blog-test/
 
+# Local dev test suite (licence verification harness etc.). Run locally
+# during development; not shipped or tracked as CMS source.
+
+/tests/
+
 
 # -----------------------------------------------------------------------------
 # Per-deployment content - never commit (this is client data, not source)
