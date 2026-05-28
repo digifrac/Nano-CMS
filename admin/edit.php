@@ -164,14 +164,13 @@ $preview_url = (!$is_new && $base_url !== '')
 // Media library for the image picker (Choose-from-library + body Image button).
 $media_dir = NANO_CONTENT_PATH . '/media';
 $media_for_js = [];
-foreach (nano_admin_list_media() as $m) {
-    $name = $m['filename'];
-    $thumb_name = nano_admin_media_thumb_filename($name);
+foreach (nano_admin_media_all_images() as $path) {
+    $thumb_name = nano_admin_media_thumb_filename($path);
     $media_for_js[] = [
-        'name'  => $name,
+        'name'  => $path,
         'thumb' => is_file($media_dir . '/' . $thumb_name)
             ? $base_url . '/media/' . $thumb_name
-            : $base_url . '/media/' . $name,
+            : $base_url . '/media/' . $path,
     ];
 }
 $media_json = json_encode($media_for_js, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?: '[]';

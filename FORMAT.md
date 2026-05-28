@@ -230,6 +230,14 @@ No other shortcodes exist in v1.
 
 No other file types are accepted.
 
+Images may be organised into **free-form subfolders** under `/media/`
+(created in the media manager). Wherever a filename is stored - a post's
+`image`/`thumbnail`, a category record's `image`, or a Markdown
+`![](...)` - it may be a plain filename (`2026-05-28-a4f8b2.jpg`) or a
+media-relative path (`heroes/2026-05-28-a4f8b2.jpg`). Paths use `/`, never
+contain `..`, and each `-thumb` companion sits beside its source. Moving or
+renaming an image in the manager rewrites the references that point at it.
+
 **Filename convention:** all media uploaded through the admin is given
 a sanitized, randomized filename:
 

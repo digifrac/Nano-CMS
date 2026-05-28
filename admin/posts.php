@@ -377,9 +377,9 @@ function nano_admin_save_post(array $fm, string $body, ?string $original_filepat
         if ($value === '') {
             continue;
         }
-        if (!preg_match('/^[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|gif|webp)$/i', $value)) {
+        if (str_contains($value, '..') || !preg_match('#^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\.(?:jpg|jpeg|png|gif|webp)$#i', $value)) {
             throw new RuntimeException(
-                ucfirst($img_key) . ' must be a plain filename ending in .jpg, .jpeg, .png, .gif, or .webp.'
+                ucfirst($img_key) . ' must be a media filename or folder path ending in .jpg, .jpeg, .png, .gif, or .webp.'
             );
         }
     }

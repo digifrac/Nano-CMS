@@ -13,9 +13,12 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 - **Image picker in the editors.** Hero/thumbnail fields and the category
   image field get a "Choose..." media-library picker with preview, and the
   markdown toolbar gets an Image button that inserts `![](file)`.
-- **Cart-style media manager.** The Media page is now a single-pane manager
-  (drag-and-drop upload, thumbnail grid with "unused" badges, in-page
-  delete + toasts).
+- **Cart-style media manager with folders.** The Media page is a single-pane
+  file browser: a breadcrumb, create/delete folders, drag-and-drop upload,
+  drag an image onto a folder to move it, rename, delete, "unused" badges,
+  and toasts. Images can live in folders and posts/categories reference them
+  by path; moving or renaming an image updates the posts and category records
+  that reference it.
 - **Homepage hero + featured articles.** New `hero` (one, unique) and
   `featured` post flags render a large hero article and a "Featured" row at
   the top of the blog homepage, above the category cards.

@@ -169,7 +169,7 @@ function nano_admin_media_used_set(): array
  *
  * @return array{ok: bool, filename: ?string, error: ?string}
  */
-function nano_admin_media_save_upload(array $file): array
+function nano_admin_media_save_upload(array $file, string $subdir = ''): array
 {
     $err = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
     if ($err === UPLOAD_ERR_NO_FILE) return ['ok' => false, 'filename' => null, 'error' => 'No file selected.'];
@@ -198,8 +198,12 @@ function nano_admin_media_save_upload(array $file): array
     if ($actual_mime !== $expected_mime && !($ext === 'jpg' && $actual_mime === 'image/jpeg')) {
         return ['ok' => false, 'filename' => null, 'error' => "File contents do not match the .$ext extension."];
     }
-    $dir = nano_admin_media_dir();
-    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
+    $subdir = trim($subdir, '/');
+    if ($subdir !== '' && !nano_admin_media_dir_ok($subdir)) {
+        return ['ok' => false, 'filename' => null, 'error' => 'Invalid destination folder.'];
+    }
+    $dir = nano_admin_media_dir() . ($subdir !== '' ? '/' . $subdir : '');
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
         return ['ok' => false, 'filename' => null, 'error' => 'Media directory missing and cannot be created.'];
     }
     // Random filename collision is astronomically unlikely with 24 random
@@ -218,7 +222,8 @@ function nano_admin_media_save_upload(array $file): array
     if (nano_admin_media_generate_thumb($tmp, $thumb_path, $tw, $th, $ext)) {
         @chmod($thumb_path, 0644);
     }
-    return ['ok' => true, 'filename' => $name, 'error' => null];
+    // Return the media-relative path (folder/name or just name).
+    return ['ok' => true, 'filename' => ($subdir !== '' ? $subdir . '/' : '') . $name, 'error' => null];
 }
 
 /**
@@ -618,4 +623,232 @@ function nano_admin_category_image_delete(string $slug): bool
         if (is_file($thumb)) @unlink($thumb);
     }
     return $deleted;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Folders (Cart-style media browser)                                        */
+/* ------------------------------------------------------------------------ */
+
+function nano_admin_media_seg_ok(string $s): bool
+{
+    return (bool)preg_match('/^(?:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$/', $s);
+}
+
+/** A media-relative directory. '' is the media home; up to 3 levels deep. */
+function nano_admin_media_dir_ok(string $rel): bool
+{
+    $rel = trim($rel, '/');
+    if ($rel === '') return true;
+    if (str_contains($rel, '..')) return false;
+    $parts = explode('/', $rel);
+    if (count($parts) > 3) return false;
+    foreach ($parts as $p) {
+        if (!nano_admin_media_seg_ok($p)) return false;
+    }
+    return true;
+}
+
+/** A media-relative file path (folder segments + a basename with extension). */
+function nano_admin_media_path_ok(string $rel): bool
+{
+    $rel = trim($rel, '/');
+    if ($rel === '' || str_contains($rel, '..')) return false;
+    $parts = explode('/', $rel);
+    $file = (string)array_pop($parts);
+    $ext = strtolower((string)pathinfo($file, PATHINFO_EXTENSION));
+    if (!isset(NANO_ADMIN_MEDIA_EXTENSIONS[$ext])) return false;
+    if (!nano_admin_media_seg_ok(strtolower((string)pathinfo($file, PATHINFO_FILENAME)))) return false;
+    foreach ($parts as $p) {
+        if (!nano_admin_media_seg_ok($p)) return false;
+    }
+    return count($parts) <= 3;
+}
+
+function nano_admin_media_fs(string $relative): string
+{
+    return rtrim(nano_admin_media_dir() . '/' . trim($relative, '/'), '/');
+}
+
+function nano_admin_media_contained(string $abs): bool
+{
+    $root = realpath(nano_admin_media_dir());
+    $real = realpath($abs);
+    if ($root === false || $real === false) return false;
+    return $real === $root || str_starts_with($real, $root . DIRECTORY_SEPARATOR);
+}
+
+/** Immediate subfolders of a media-relative folder. */
+function nano_admin_media_subfolders(string $dir): array
+{
+    $abs = nano_admin_media_fs($dir);
+    $out = [];
+    if (!is_dir($abs)) return $out;
+    foreach (scandir($abs) ?: [] as $e) {
+        if ($e === '.' || $e === '..') continue;
+        if (!is_dir($abs . '/' . $e) || !nano_admin_media_seg_ok($e)) continue;
+        $out[] = ['name' => $e, 'path' => ($dir !== '' ? $dir . '/' : '') . $e];
+    }
+    usort($out, static fn($a, $b) => strcmp($a['name'], $b['name']));
+    return $out;
+}
+
+/** Image source files (non-thumb) directly inside a media-relative folder. */
+function nano_admin_media_scan_dir(string $dir): array
+{
+    $abs = nano_admin_media_fs($dir);
+    $files = [];
+    if (!is_dir($abs)) return $files;
+    foreach (scandir($abs) ?: [] as $entry) {
+        if ($entry === '' || $entry[0] === '.') continue;
+        if (!is_file($abs . '/' . $entry)) continue;
+        $ext = strtolower((string)pathinfo($entry, PATHINFO_EXTENSION));
+        if (!isset(NANO_ADMIN_MEDIA_EXTENSIONS[$ext])) continue;
+        if (nano_admin_media_is_thumb($entry)) continue;
+        if ($dir === '' && nano_admin_media_is_category_image($entry)) continue;
+        $files[] = [
+            'name'  => $entry,
+            'path'  => ($dir !== '' ? $dir . '/' : '') . $entry,
+            'bytes' => (int)filesize($abs . '/' . $entry),
+            'mtime' => (int)filemtime($abs . '/' . $entry),
+        ];
+    }
+    usort($files, static fn($a, $b) => $b['mtime'] <=> $a['mtime']);
+    return $files;
+}
+
+/** Every image path across all folders (flat), for the editor picker. */
+function nano_admin_media_all_images(string $dir = ''): array
+{
+    $out = [];
+    foreach (nano_admin_media_scan_dir($dir) as $f) {
+        $out[] = $f['path'];
+    }
+    foreach (nano_admin_media_subfolders($dir) as $sf) {
+        $out = array_merge($out, nano_admin_media_all_images($sf['path']));
+    }
+    return $out;
+}
+
+function nano_admin_media_mkdir(string $parent, string $name): array
+{
+    $parent = trim($parent, '/');
+    $name = strtolower(trim($name));
+    if (!nano_admin_media_dir_ok($parent)) return ['ok' => false, 'error' => 'Invalid parent folder.'];
+    if (!nano_admin_media_seg_ok($name)) return ['ok' => false, 'error' => 'Folder name: lowercase letters, numbers and hyphens.'];
+    $rel = ($parent !== '' ? $parent . '/' : '') . $name;
+    if (!nano_admin_media_dir_ok($rel)) return ['ok' => false, 'error' => 'Too many levels of folders here.'];
+    $abs = nano_admin_media_fs($rel);
+    if (is_dir($abs)) return ['ok' => false, 'error' => 'A folder named "' . $name . '" already exists here.'];
+    if (!@mkdir($abs, 0755, true) && !is_dir($abs)) return ['ok' => false, 'error' => 'Could not create the folder.'];
+    return ['ok' => true, 'created' => $rel];
+}
+
+function nano_admin_media_rmtree(string $dir): void
+{
+    foreach (scandir($dir) ?: [] as $e) {
+        if ($e === '.' || $e === '..') continue;
+        $p = $dir . '/' . $e;
+        if (is_dir($p)) {
+            nano_admin_media_rmtree($p);
+        } else {
+            @unlink($p);
+        }
+    }
+    @rmdir($dir);
+}
+
+function nano_admin_media_deletefolder(string $path): array
+{
+    $path = trim($path, '/');
+    if ($path === '' || !nano_admin_media_dir_ok($path)) return ['ok' => false, 'error' => 'Invalid folder.'];
+    $abs = nano_admin_media_fs($path);
+    if (!is_dir($abs) || !nano_admin_media_contained($abs)) return ['ok' => false, 'error' => 'Folder not found.'];
+    nano_admin_media_rmtree($abs);
+    return ['ok' => true, 'removed' => $path];
+}
+
+function nano_admin_media_move(string $path, string $to): array
+{
+    $path = trim($path, '/');
+    $to = trim($to, '/');
+    if (!nano_admin_media_path_ok($path)) return ['ok' => false, 'error' => 'Invalid file.'];
+    if (!nano_admin_media_dir_ok($to)) return ['ok' => false, 'error' => 'Invalid destination folder.'];
+    $name = basename($path);
+    $parent = strpos($path, '/') !== false ? substr($path, 0, strrpos($path, '/')) : '';
+    if ($to === $parent) return ['ok' => true, 'unchanged' => true];
+    $src = nano_admin_media_fs($path);
+    if (!is_file($src) || !nano_admin_media_contained($src)) return ['ok' => false, 'error' => 'File not found.'];
+    $dest_dir = nano_admin_media_fs($to);
+    if (!is_dir($dest_dir) && !@mkdir($dest_dir, 0755, true) && !is_dir($dest_dir)) return ['ok' => false, 'error' => 'Destination folder missing.'];
+    $new_rel = ($to !== '' ? $to . '/' : '') . $name;
+    if (is_file(nano_admin_media_fs($new_rel))) return ['ok' => false, 'error' => 'A file named "' . $name . '" already exists there.'];
+    if (!@rename($src, nano_admin_media_fs($new_rel))) return ['ok' => false, 'error' => 'Could not move the file.'];
+    $old_thumb = nano_admin_media_fs(nano_admin_media_thumb_filename($path));
+    if (is_file($old_thumb)) @rename($old_thumb, nano_admin_media_fs(nano_admin_media_thumb_filename($new_rel)));
+    return ['ok' => true, 'refs' => nano_admin_media_rewrite_ref($path, $new_rel)];
+}
+
+function nano_admin_media_rename(string $path, string $newname): array
+{
+    $path = trim($path, '/');
+    if (!nano_admin_media_path_ok($path)) return ['ok' => false, 'error' => 'Invalid file.'];
+    $ext = strtolower((string)pathinfo($path, PATHINFO_EXTENSION));
+    $newbase = strtolower(trim($newname));
+    if (!nano_admin_media_seg_ok($newbase)) return ['ok' => false, 'error' => 'Name: lowercase letters, numbers and hyphens.'];
+    $parent = strpos($path, '/') !== false ? substr($path, 0, strrpos($path, '/')) : '';
+    $src = nano_admin_media_fs($path);
+    if (!is_file($src) || !nano_admin_media_contained($src)) return ['ok' => false, 'error' => 'File not found.'];
+    $new_rel = ($parent !== '' ? $parent . '/' : '') . $newbase . '.' . $ext;
+    if ($new_rel === $path) return ['ok' => true, 'unchanged' => true];
+    if (is_file(nano_admin_media_fs($new_rel))) return ['ok' => false, 'error' => 'A file named "' . $newbase . '" already exists here.'];
+    if (!@rename($src, nano_admin_media_fs($new_rel))) return ['ok' => false, 'error' => 'Could not rename the file.'];
+    $old_thumb = nano_admin_media_fs(nano_admin_media_thumb_filename($path));
+    if (is_file($old_thumb)) @rename($old_thumb, nano_admin_media_fs(nano_admin_media_thumb_filename($new_rel)));
+    return ['ok' => true, 'refs' => nano_admin_media_rewrite_ref($path, $new_rel)];
+}
+
+function nano_admin_media_delete_path(string $path): array
+{
+    $path = trim($path, '/');
+    if (!nano_admin_media_path_ok($path)) return ['ok' => false, 'error' => 'Invalid file.'];
+    $src = nano_admin_media_fs($path);
+    if (!is_file($src) || !nano_admin_media_contained($src)) return ['ok' => false, 'error' => 'File not found.'];
+    if (!@unlink($src)) return ['ok' => false, 'error' => 'Could not delete the file.'];
+    $thumb = nano_admin_media_fs(nano_admin_media_thumb_filename($path));
+    if (is_file($thumb)) @unlink($thumb);
+    return ['ok' => true, 'deleted' => $path];
+}
+
+/**
+ * When an image is moved or renamed, update every reference to it: post
+ * frontmatter and bodies (raw string swap of the path) and managed category
+ * records (image field). Returns the number of files updated.
+ */
+function nano_admin_media_rewrite_ref(string $old, string $new): int
+{
+    if ($old === '' || $old === $new) return 0;
+    $changed = 0;
+    foreach (nano_admin_list_posts(true) as $entry) {
+        $fp = $entry['filepath'];
+        $content = (string)file_get_contents($fp);
+        if (strpos($content, $old) === false) continue;
+        $updated = str_replace($old, $new, $content);
+        if ($updated === $content) continue;
+        $tmp = $fp . '.tmp.' . bin2hex(random_bytes(4));
+        if (@file_put_contents($tmp, $updated) !== false && @rename($tmp, $fp)) {
+            @chmod($fp, 0644);
+            $changed++;
+        } elseif (is_file($tmp)) {
+            @unlink($tmp);
+        }
+    }
+    if (function_exists('nano_admin_list_category_records') && function_exists('nano_admin_save_category')) {
+        foreach (nano_admin_list_category_records() as $rec) {
+            if ((string)($rec['image'] ?? '') === $old) {
+                $rec['image'] = $new;
+                if (nano_admin_save_category($rec)) $changed++;
+            }
+        }
+    }
+    return $changed;
 }
