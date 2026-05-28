@@ -104,7 +104,7 @@ restoring the backup from step 1 reverts cleanly.
 
 ## Version-specific notes
 
-### Unreleased
+### 1.4.0
 
 Admin redesign and web installer. No data migration.
 

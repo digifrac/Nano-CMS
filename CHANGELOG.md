@@ -4,6 +4,8 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-05-28
+
 ### Added
 - **Web installer (`install.php`).** Creates the outside-webroot config
   directory (DOCUMENT_ROOT-aware, so it never lands inside an addon-domain
