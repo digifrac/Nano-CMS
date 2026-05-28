@@ -210,9 +210,40 @@ error_reporting(E_ALL);
 Reload, read the error, fix it, **remove the lines**.
 
 **"Nano CMS admin requires HTTPS"** - the host isn't sending HTTPS
-indicators. Either the request really is HTTP (fix the URL), or the host
-is behind a proxy that doesn't set `HTTP_X_FORWARDED_PROTO`. Talk to the
-host.
+indicators to PHP. First make sure you're actually on `https://` (fix the
+URL if not). If you genuinely are on HTTPS but still see this, the site is
+almost certainly behind a reverse proxy or CDN (Cloudflare, AWS ALB/ELB,
+an nginx/Apache gateway) that terminates TLS and talks to PHP over plain
+HTTP. In that setup PHP sees no `HTTPS` flag - only an
+`X-Forwarded-Proto: https` header from the proxy.
+
+To make the admin trust that header, set `NANO_TRUST_PROXY` to `true` in
+`bootstrap.php`:
+
+```php
+define('NANO_TRUST_PROXY', true);
+```
+
+**Only enable this if all of the following are true:**
+
+- The site really is behind a reverse proxy or CDN you trust.
+- That proxy **strips any client-supplied `X-Forwarded-*` headers** and
+  sets its own. Ask the host to confirm this if you're not sure.
+
+**Do not enable it** on plain shared hosting with no proxy, or if you
+can't confirm the proxy rewrites forwarded headers. The flag is off by
+default for a reason: when nothing trustworthy sets `X-Forwarded-Proto`,
+an attacker can send `X-Forwarded-Proto: https` over plain HTTP and slip
+past the HTTPS gate - defeating the `Secure` cookie flag and exposing the
+admin password and session to sniffing. The same applies to login rate
+limiting, which keys off the client IP: behind a proxy that doesn't
+forward the real client IP, every request looks like it comes from the
+proxy, so the 5-failures-per-15-minutes lockout never bites. A proxy that
+sets `X-Forwarded-*` correctly fixes both; an untrusted one breaks both.
+
+If in doubt, leave it `false` and ask your host two questions: "Am I
+behind a reverse proxy?" and "Does it rewrite `X-Forwarded-Proto`?" Only
+flip it to `true` once both answers are yes.
 
 **"directory does not exist"** on setup submit - the path in
 `NANO_CONFIG_PATH` points at a directory that doesn't exist. Create it.
