@@ -176,6 +176,20 @@ function nano_card_image_alt(array $fm): string
 }
 
 /**
+ * Background colour for the card image returned by nano_card_image_url():
+ * the separate thumbnail's `thumbnail_bg` when a thumbnail is set, otherwise
+ * the hero image's `image_bg`. The colour follows whichever image is shown.
+ */
+function nano_card_image_bg(array $fm): string
+{
+    $thumb = trim((string)($fm['thumbnail'] ?? ''));
+    if ($thumb !== '') {
+        return (string)($fm['thumbnail_bg'] ?? '');
+    }
+    return (string)($fm['image_bg'] ?? '');
+}
+
+/**
  * Return the URL of the auto-generated thumbnail for a media file
  * (e.g. `2026-05-06-a4f8b2-thumb.jpg`) when one exists on disk, or
  * the original file URL as a fallback. Used by article cards to keep

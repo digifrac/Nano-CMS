@@ -65,6 +65,7 @@ $form = [
     'image_bg'    => (string)($original_fm['image_bg'] ?? ''),
     'thumbnail'   => (string)($original_fm['thumbnail'] ?? ''),
     'thumbnail_alt' => (string)($original_fm['thumbnail_alt'] ?? ''),
+    'thumbnail_bg' => (string)($original_fm['thumbnail_bg'] ?? ''),
     'draft'       => !empty($original_fm['draft']),
     'hero'        => !empty($original_fm['hero']),
     'featured'    => !empty($original_fm['featured']),
@@ -76,7 +77,7 @@ $form = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     nano_admin_require_csrf();
 
-    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt'] as $key) {
+    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt', 'thumbnail_bg'] as $key) {
         $form[$key] = trim((string)($_POST[$key] ?? ''));
     }
     $form['draft'] = !empty($_POST['draft']);
@@ -100,7 +101,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if ($form['image_bg'] !== '' && !preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $form['image_bg'])) {
-        $errors[] = 'Image background must be a hex colour like #ffffff, or left blank.';
+        $errors[] = 'Hero image background must be a hex colour like #ffffff, or left blank.';
+    }
+    if ($form['thumbnail_bg'] !== '' && !preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $form['thumbnail_bg'])) {
+        $errors[] = 'Card thumbnail background must be a hex colour like #ffffff, or left blank.';
     }
 
     // Auto-`updated`: bump to today when body or any other field changed,
@@ -110,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_touched_updated = ($form['updated'] !== $orig_updated);
         if (!$user_touched_updated) {
             $changed = false;
-            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt'] as $key) {
+            foreach (['title', 'slug', 'date', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt', 'thumbnail_bg'] as $key) {
                 if ($form[$key] !== (string)($original_fm[$key] ?? '')) {
                     $changed = true;
                     break;
@@ -141,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'image_bg'    => $form['image_bg'],
             'thumbnail'   => $form['thumbnail'],
             'thumbnail_alt' => $form['thumbnail_alt'],
+            'thumbnail_bg' => $form['thumbnail_bg'],
             'draft'       => $form['draft'],
             'hero'        => $form['hero'],
             'featured'    => $form['featured'],
@@ -250,9 +255,14 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
     <p class="nano-cms-admin-help">Alt text for the card thumbnail when it's a separate image. Falls back to the hero alt text, then the title.</p>
   </div>
   <div>
-    <label for="nano-image-bg">Image background colour</label>
+    <label for="nano-image-bg">Hero image background colour</label>
     <input type="text" name="image_bg" id="nano-image-bg" value="<?= nano_admin_e($form['image_bg'] ?? '') ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
-    <p class="nano-cms-admin-help">Hex colour shown behind this article's images (hero, lead, and card) - e.g. through the transparent areas of a PNG. Leave blank for transparent.</p>
+    <p class="nano-cms-admin-help">Hex colour behind the hero/lead image (the large image on the post page, and on cards that derive their thumbnail from it). Leave blank for transparent.</p>
+  </div>
+  <div>
+    <label for="nano-thumbnail-bg">Card thumbnail background colour</label>
+    <input type="text" name="thumbnail_bg" id="nano-thumbnail-bg" value="<?= nano_admin_e($form['thumbnail_bg'] ?? '') ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
+    <p class="nano-cms-admin-help">Hex colour behind the separate card thumbnail (when one is set above). Leave blank for transparent.</p>
   </div>
   <div class="full nano-cms-admin-checkbox-row">
     <label><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>

@@ -19,7 +19,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
 
 const NANO_ADMIN_FRONTMATTER_FIELDS = [
     'title', 'slug', 'date', 'updated', 'category', 'description',
-    'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt',
+    'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt', 'thumbnail_bg',
     'draft', 'hero', 'featured',
 ];
 

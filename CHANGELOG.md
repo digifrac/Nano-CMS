@@ -5,12 +5,13 @@ Notable changes to Nano CMS. Earlier per-commit history lives in git.
 ## [Unreleased]
 
 ### Added
-- **Per-image background colour (like Cart's image_bg).** Each article and
-  each category takes its own hex `image_bg`, shown behind that item's images
-  (e.g. through the transparent areas of a PNG). An article's colour covers
-  its hero, lead, and card images; a category's covers its card and banner.
-  Set in the post / category editor, applied inline per image. Blank =
-  transparent.
+- **Per-image background colour (like Cart's image_bg).** Hex colours shown
+  behind images (e.g. through the transparent areas of a PNG), set in the
+  editor and applied inline per image. Articles have two independent colours:
+  a hero-image background (`image_bg`, behind the lead image and any card
+  derived from it) and a card-thumbnail background (`thumbnail_bg`, behind a
+  separate thumbnail). Categories take one `image_bg` for their card and
+  banner. Blank = transparent.
 - **Separate thumbnail alt text.** Articles get a `thumbnail_alt` field used
   for the card image when a separate thumbnail is set, falling back to the
   hero image's alt text, then the title.

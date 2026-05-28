@@ -139,7 +139,7 @@ ob_start();
     <article class="nano-blog-card<?= $card_img !== null ? ' has-image' : '' ?>">
       <a href="<?= nano_e(nano_post_url((string)$fm['slug'], (string)$fm['category'])) ?>">
 <?php if ($card_img !== null): ?>
-        <img src="<?= nano_e($card_img) ?>" alt="<?= nano_e(nano_card_image_alt($fm)) ?>"<?= nano_image_bg_attr($fm['image_bg'] ?? '') ?> loading="lazy">
+        <img src="<?= nano_e($card_img) ?>" alt="<?= nano_e(nano_card_image_alt($fm)) ?>"<?= nano_image_bg_attr(nano_card_image_bg($fm)) ?> loading="lazy">
 <?php endif; ?>
         <div class="nano-blog-card-text">
           <h2><?= nano_e((string)$fm['title']) ?></h2>
@@ -179,7 +179,7 @@ ob_start();
 <?php if ($hero_post !== null): $hero_img = nano_card_image_url($hero_post); ?>
   <a class="nano-blog-hero<?= $hero_img !== null ? ' has-image' : '' ?>" href="<?= nano_e(nano_post_url((string)$hero_post['slug'], (string)$hero_post['category'])) ?>" style="<?= $article_grid_style ?>">
 <?php if ($hero_img !== null): ?>
-    <img src="<?= nano_e($hero_img) ?>" alt="<?= nano_e(nano_card_image_alt($hero_post)) ?>"<?= nano_image_bg_attr($hero_post['image_bg'] ?? '') ?> loading="lazy">
+    <img src="<?= nano_e($hero_img) ?>" alt="<?= nano_e(nano_card_image_alt($hero_post)) ?>"<?= nano_image_bg_attr(nano_card_image_bg($hero_post)) ?> loading="lazy">
 <?php endif; ?>
     <div class="nano-blog-hero-body">
       <h2><?= nano_e((string)$hero_post['title']) ?></h2>
@@ -219,7 +219,7 @@ ob_start();
       <article class="nano-blog-card<?= $fp_img !== null ? ' has-image' : '' ?>">
         <a href="<?= nano_e(nano_post_url((string)$fp['slug'], (string)$fp['category'])) ?>">
 <?php if ($fp_img !== null): ?>
-          <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e(nano_card_image_alt($fp)) ?>"<?= nano_image_bg_attr($fp['image_bg'] ?? '') ?> loading="lazy">
+          <img src="<?= nano_e($fp_img) ?>" alt="<?= nano_e(nano_card_image_alt($fp)) ?>"<?= nano_image_bg_attr(nano_card_image_bg($fp)) ?> loading="lazy">
 <?php endif; ?>
           <div class="nano-blog-card-text">
             <h2><?= nano_e((string)$fp['title']) ?></h2>
