@@ -37,6 +37,16 @@ if (!defined('NANO_BOOTSTRAPPED')) {
   <link rel="stylesheet" href="/blog/assets/nano.css">
   <!-- <link rel="stylesheet" href="/blog/assets/theme-custom.css"> -->
 
+  <!--
+    OPTIONAL default web font (Inter), matching the Nano Cart storefront.
+    Off by default: Nano CMS ships system-font-only to stay zero-dependency
+    and private (no third-party request). Uncomment all three lines to opt
+    in, then point --nano-font-family at it in theme-custom.css.
+  -->
+  <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+  <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
+  <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"> -->
+
   <!-- =========================================================== -->
   <!-- BEGIN: paste from client's static site <head> below          -->
   <!-- (link tags for CSS, fonts, favicon, analytics, etc.)         -->
@@ -53,6 +63,15 @@ if (!defined('NANO_BOOTSTRAPPED')) {
   <!-- =========================================================== -->
   <!-- BEGIN: paste client's site header HTML below                 -->
   <!-- =========================================================== -->
+  <!--
+    Heads-up: Nano CMS's CSS is scoped to .nano-blog and deliberately does
+    NOT set a global box-sizing or line-height reset, so it never restyles
+    your existing site. Anything you paste in this header (and the footer
+    zone below) is styled by YOUR site's CSS and inherits the browser
+    defaults (box-sizing: content-box, line-height: normal), not the blog's.
+    If your header uses max-width + padding, give it box-sizing: border-box;
+    and set a line-height, or it can render a different size than you expect.
+  -->
 
 
 

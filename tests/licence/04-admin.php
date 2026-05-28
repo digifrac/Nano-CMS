@@ -1,9 +1,17 @@
 <?php
 /**
- * Tests for the admin Licence page and nav links:
- *   - admin/licence.php parses cleanly
- *   - every other admin nav links to licence.php
- *   - licence.php's own nav links to everything else and not to itself
+ * Tests for the admin shell and nav.
+ *
+ * The admin nav is no longer hand-copied into each page; it is rendered
+ * once by nano_admin_header() in admin/core.php, which highlights the
+ * current page instead of removing its link. These tests assert that
+ * shared-scaffold design:
+ *   - every admin file parses
+ *   - the canonical nav in core.php links to every section (incl. licence)
+ *   - the current page is highlighted (nav-current), not dropped
+ *   - every admin page delegates its chrome to nano_admin_header()
+ *   - no page still hand-rolls the old class="bar" nav
+ *   - each page passes its correct current-nav key
  */
 declare(strict_types=1);
 
@@ -12,26 +20,45 @@ require_once __DIR__ . '/_helpers.php';
 $repo  = dirname(__DIR__, 2);
 $admin = $repo . '/admin';
 
-nano_section('php -l (syntax) on every modified/new admin file');
-$files = ['licence.php', 'settings.php', 'help.php', 'media.php', 'categories.php', 'edit.php', 'index.php'];
-foreach ($files as $f) {
+$pages = ['index.php', 'media.php', 'categories.php', 'settings.php', 'licence.php', 'help.php', 'edit.php'];
+
+nano_section('php -l (syntax) on every admin file');
+foreach (array_merge(['core.php', 'setup.php'], $pages) as $f) {
     $out = shell_exec(sprintf('php -l %s 2>&1', escapeshellarg("$admin/$f"))) ?? '';
     nano_check("admin/$f parses", strpos($out, 'No syntax errors') !== false, trim($out));
 }
 
-nano_section('nav links: every admin page links to licence.php');
-foreach (['settings.php', 'help.php', 'media.php', 'categories.php', 'edit.php', 'index.php'] as $f) {
-    $contents = file_get_contents("$admin/$f");
-    nano_check("admin/$f links to licence.php",
-        strpos($contents, 'href="licence.php"') !== false);
+nano_section('canonical nav in core.php links to every section');
+$core = (string)file_get_contents("$admin/core.php");
+nano_check('core.php defines nano_admin_header()',
+    strpos($core, 'function nano_admin_header') !== false);
+foreach (['index.php', 'media.php', 'categories.php', 'settings.php', 'licence.php', 'help.php'] as $target) {
+    nano_check("nav targets $target", strpos($core, "'$target'") !== false);
+}
+nano_check('current page is highlighted, not removed (nav-current)',
+    strpos($core, 'nano-cms-admin-nav-current') !== false);
+
+nano_section('every admin page delegates its chrome to the shared scaffold');
+foreach ($pages as $f) {
+    $contents = (string)file_get_contents("$admin/$f");
+    nano_check("admin/$f calls nano_admin_header()",
+        strpos($contents, 'nano_admin_header(') !== false);
+    nano_check("admin/$f no longer hand-rolls class=\"bar\" nav",
+        strpos($contents, 'class="bar"') === false);
 }
 
-nano_section('licence.php nav: links to everything else, not to itself');
-$lic      = file_get_contents("$admin/licence.php");
-$nav_end  = strpos($lic, '</div>', strpos($lic, 'class="bar"')) ?: strlen($lic);
-$nav_block = substr($lic, 0, $nav_end);
-
-foreach (['index.php', 'media.php', 'categories.php', 'settings.php', 'help.php'] as $other) {
-    nano_check("licence nav contains $other", strpos($nav_block, "href=\"$other\"") !== false);
+nano_section('each page passes its correct current-nav key');
+$expected = [
+    'index.php'      => "'posts'",
+    'media.php'      => "'media'",
+    'categories.php' => "'categories'",
+    'settings.php'   => "'settings'",
+    'licence.php'    => "'licence'",
+    'help.php'       => "'help'",
+    'edit.php'       => "'posts'", // editing a post lives under Posts
+];
+foreach ($expected as $f => $key) {
+    $contents = (string)file_get_contents("$admin/$f");
+    nano_check("admin/$f marks current nav $key",
+        strpos($contents, $key) !== false);
 }
-nano_check('licence nav has NO self-link', strpos($nav_block, 'href="licence.php"') === false);

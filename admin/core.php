@@ -58,10 +58,143 @@ function nano_admin_render_footer(): string
         $rendered[] = '<a href="' . nano_admin_e($url) . '" target="_blank" rel="noopener noreferrer">'
             . nano_admin_e($label) . '</a>';
     }
-    return '<footer class="admin-footer">'
-        . '<p class="admin-links">' . implode(' &middot; ', $rendered) . '</p>'
-        . '<p class="admin-version">Nano CMS v' . nano_admin_e(NANO_ADMIN_VERSION) . '</p>'
-        . '</footer>';
+    return '</main>'
+        . '<footer class="nano-cms-admin-footer">'
+        . '<p>Nano CMS v' . nano_admin_e(NANO_ADMIN_VERSION) . ' admin. Remove this folder when done editing.</p>'
+        . '<p>' . implode(' &middot; ', $rendered) . '</p>'
+        . '</footer>'
+        . '</body></html>';
+}
+
+/**
+ * Open an admin page: doctype, head (admin.css cache-busted by version),
+ * <body class="nano-cms-admin">, the sticky header (brand + nav + logout)
+ * and the page-title bar, then an open <main>. Paired with
+ * nano_admin_render_footer(), which closes </main></body></html>.
+ *
+ * One canonical nav rendered identically on every page; the current page
+ * is highlighted via $current_nav (key match) rather than removed, so the
+ * bar never changes shape between pages.
+ *
+ * $show_chrome = false drops the nav header and page-title (used by the
+ * login and setup screens, which are reached before / without a session);
+ * pass an extra body class such as 'nano-cms-admin-login' to narrow the
+ * column.
+ */
+function nano_admin_header(
+    string $page_title,
+    string $current_nav = '',
+    bool $show_chrome = true,
+    string $extra_body_class = ''
+): string {
+    $title = nano_admin_e($page_title . ' - Nano CMS admin');
+    $css   = 'assets/admin.css?v=' . rawurlencode(NANO_ADMIN_VERSION);
+    $body  = 'nano-cms-admin' . ($extra_body_class !== '' ? ' ' . $extra_body_class : '');
+
+    $html = '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        . '<meta name="robots" content="noindex,nofollow">'
+        . '<title>' . $title . '</title>'
+        . '<link rel="stylesheet" href="' . nano_admin_e($css) . '">'
+        . '</head><body class="' . nano_admin_e($body) . '">';
+
+    if ($show_chrome) {
+        $items = [
+            'posts'      => ['Posts',      'index.php'],
+            'media'      => ['Media',      'media.php'],
+            'categories' => ['Categories', 'categories.php'],
+            'settings'   => ['Settings',   'settings.php'],
+            'licence'    => ['Licence',    'licence.php'],
+            'help'       => ['Help',       'help.php'],
+        ];
+        $nav = '';
+        foreach ($items as $key => [$label, $url]) {
+            $cls = 'nano-cms-admin-nav-link' . ($key === $current_nav ? ' nano-cms-admin-nav-current' : '');
+            $nav .= '<a class="' . $cls . '" href="' . nano_admin_e($url) . '">' . nano_admin_e($label) . '</a>';
+        }
+        $html .= '<header class="nano-cms-admin-header">'
+            . '<a class="nano-cms-admin-brand" href="index.php">Nano CMS</a>'
+            . '<nav class="nano-cms-admin-nav">' . $nav . '</nav>'
+            . nano_admin_logout_form()
+            . '</header>';
+    }
+
+    $html .= '<main class="nano-cms-admin-main">';
+    if ($show_chrome && $page_title !== '') {
+        $html .= '<h1 class="nano-cms-admin-page-title">' . nano_admin_e($page_title) . '</h1>';
+    }
+    return $html;
+}
+
+/**
+ * Render a flash/notice block. $type is 'ok'/'success', 'error', or
+ * 'warn'/'warning'. Text is escaped; for messages that need markup (e.g.
+ * a list of validation errors) build the block inline using the same
+ * classes.
+ */
+function nano_admin_flash(string $type, string $message): string
+{
+    $cls = match ($type) {
+        'error'           => 'nano-cms-admin-flash-error',
+        'warn', 'warning' => 'nano-cms-admin-flash-warning',
+        default           => 'nano-cms-admin-flash-success',
+    };
+    return '<div class="nano-cms-admin-flash ' . $cls . '">' . nano_admin_e($message) . '</div>';
+}
+
+/**
+ * Installation health checks, surfaced on the admin dashboard. Catches a
+ * half-finished upgrade (a file that did not upload, a missing extension,
+ * an unwritable media dir) here in the admin, instead of via a dead public
+ * page. Mirrors the Nano Cart dashboard health panel.
+ *
+ * @return list<array{label:string, ok:bool, detail:string}>
+ */
+function nano_admin_health_checks(): array
+{
+    $root = defined('NANO_CONTENT_PATH') ? NANO_CONTENT_PATH : dirname(__DIR__);
+    $checks = [];
+
+    $php_ok = version_compare(PHP_VERSION, '8.0', '>=');
+    $checks[] = ['label' => 'PHP version', 'ok' => $php_ok,
+        'detail' => $php_ok ? PHP_VERSION : PHP_VERSION . ' - 8.0 or newer required'];
+
+    $gd = extension_loaded('gd');
+    $imagick = extension_loaded('imagick');
+    $reenc = $gd || $imagick;
+    $which = trim(($gd ? 'GD' : '') . ($gd && $imagick ? ' + ' : '') . ($imagick ? 'Imagick' : ''));
+    $checks[] = ['label' => 'Image re-encoder (GD or Imagick)', 'ok' => $reenc,
+        'detail' => $reenc ? $which . ' available' : 'missing - media uploads will be refused'];
+
+    $finfo = extension_loaded('fileinfo');
+    $checks[] = ['label' => 'fileinfo extension', 'ok' => $finfo,
+        'detail' => $finfo ? 'loaded' : 'missing - upload MIME validation cannot run'];
+
+    $required = [
+        'core.php', 'index.php', 'post.php', 'template.php',
+        'generators.php', 'licence.php', 'lib/Parsedown.php', '.htaccess',
+    ];
+    $missing = [];
+    foreach ($required as $f) {
+        if (!is_file($root . '/' . $f)) {
+            $missing[] = $f;
+        }
+    }
+    $checks[] = ['label' => 'Required front-end files', 'ok' => empty($missing),
+        'detail' => empty($missing) ? 'all present' : 'missing: ' . implode(', ', $missing)];
+
+    $cfg_ok = defined('NANO_CONFIG_PATH') && is_file(NANO_CONFIG_PATH)
+        && is_array(json_decode((string)@file_get_contents(NANO_CONFIG_PATH), true));
+    $checks[] = ['label' => 'Configuration', 'ok' => $cfg_ok,
+        'detail' => $cfg_ok ? 'config.json loads' : 'config.json missing or invalid'];
+
+    $media = $root . '/media';
+    $media_target = is_dir($media) ? $media : dirname($media);
+    $media_ok = is_writable($media_target);
+    $checks[] = ['label' => 'Media folder writable', 'ok' => $media_ok,
+        'detail' => $media_ok ? 'writable' : 'not writable - uploads will fail'];
+
+    return $checks;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -193,10 +326,9 @@ function nano_admin_csrf_field(): string
  */
 function nano_admin_logout_form(): string
 {
-    $btn_style = 'background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;';
-    return '<form method="post" action="index.php?action=logout" style="display:inline;margin:0;padding:0;">'
+    return '<form method="post" action="index.php?action=logout" class="nano-cms-admin-logout-form" style="margin:0 0 0 auto;">'
          . nano_admin_csrf_field()
-         . '<button type="submit" style="' . $btn_style . '">Sign out</button>'
+         . '<button type="submit" class="nano-cms-admin-logout">Sign out</button>'
          . '</form>';
 }
 

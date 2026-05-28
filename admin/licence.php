@@ -67,36 +67,16 @@ $cfg          = nano_admin_load_config();
 $current_key  = (string)($cfg['licence_key'] ?? '');
 $status       = nano_licence_inspect($current_key, $verify_host);
 $has_licence  = $current_key !== '';
+echo nano_admin_header('Licence', 'licence');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Licence - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1>Licence</h1>
-  <div>
-    <a href="index.php">All posts</a>
-    | <a href="media.php">Media</a>
-    | <a href="categories.php">Categories</a>
-    | <a href="settings.php">Settings</a>
-    | <a href="help.php">Help</a>
-    | <?= nano_admin_logout_form() ?>
-  </div>
-</div>
-
 <?php if ($flash !== null): ?>
-<div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
+<?= nano_admin_flash($flash[0], $flash[1]) ?>
 <?php endif; ?>
 
-<section class="settings-form">
-  <h2>Current status</h2>
+<section class="nano-cms-admin-section">
+  <h2 class="nano-cms-admin-section-title">Current status</h2>
 <?php if ($is_dev): ?>
-  <p class="help"><strong>Development host detected (<code><?= nano_admin_e($verify_host !== '' ? $verify_host : $request_host) ?></code>).</strong> The footer attribution is suppressed on <code>localhost</code>, <code>*.test</code>, <code>*.local</code>, and hosts with a port. Verification still runs against your real licence below; this banner just explains why no footer appears here even without a licence.</p>
+  <p class="nano-cms-admin-help"><strong>Development host detected (<code><?= nano_admin_e($verify_host !== '' ? $verify_host : $request_host) ?></code>).</strong> The footer attribution is suppressed on <code>localhost</code>, <code>*.test</code>, <code>*.local</code>, and hosts with a port. Verification still runs against your real licence below; this banner just explains why no footer appears here even without a licence.</p>
 <?php endif; ?>
 
 <?php if (!$has_licence): ?>
@@ -109,40 +89,42 @@ $has_licence  = $current_key !== '';
     Footer attribution hidden.</p>
 <?php else: ?>
   <p><strong>Licence present but not valid for this host.</strong> Reason: <?= nano_admin_e((string)$status['reason']) ?></p>
-  <p class="help">The licence will not suppress the footer until either you paste one that covers <code><?= nano_admin_e($verify_host !== '' ? $verify_host : '(base_url unset)') ?></code>, or you remove the current one.</p>
+  <p class="nano-cms-admin-help">The licence will not suppress the footer until either you paste one that covers <code><?= nano_admin_e($verify_host !== '' ? $verify_host : '(base_url unset)') ?></code>, or you remove the current one.</p>
 <?php endif; ?>
 </section>
 
-<form method="post" class="settings-form">
+<form method="post" class="nano-cms-admin-form">
   <?= nano_admin_csrf_field() ?>
   <input type="hidden" name="action" value="save">
 
   <h2>Paste a licence key</h2>
-  <p class="help">Paste the <code>base64.base64</code> licence string Digital Fracture emailed you, then click <strong>Verify and save</strong>. Verification runs locally - no network calls, no phone-home.</p>
+  <p class="nano-cms-admin-help">Paste the <code>base64.base64</code> licence string Digital Fracture emailed you, then click <strong>Verify and save</strong>. Verification runs locally - no network calls, no phone-home.</p>
   <label>Licence key
     <textarea name="licence_key" rows="6" cols="80" placeholder="eyJwcm9kdWN0IjoibmFuby1jbXMi....abcdef"><?= nano_admin_e($current_key) ?></textarea>
   </label>
-  <button type="submit">Verify and save</button>
+  <div class="nano-cms-admin-form-actions">
+    <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary">Verify and save</button>
+  </div>
 </form>
 
 <?php if ($has_licence): ?>
-<form method="post" class="settings-form" onsubmit="return confirm('Remove the current licence? The footer attribution will reappear on production pages.');">
+<form method="post" class="nano-cms-admin-form" onsubmit="return confirm('Remove the current licence? The footer attribution will reappear on production pages.');">
   <?= nano_admin_csrf_field() ?>
   <input type="hidden" name="action" value="remove">
   <h2>Remove licence</h2>
-  <p class="help">Clears the <code>licence_key</code> field in <code>config.json</code>. The licence file itself is not destroyed - you can paste it back any time.</p>
-  <button type="submit">Remove licence</button>
+  <p class="nano-cms-admin-help">Clears the <code>licence_key</code> field in <code>config.json</code>. The licence file itself is not destroyed - you can paste it back any time.</p>
+  <div class="nano-cms-admin-form-actions">
+    <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger">Remove licence</button>
+  </div>
 </form>
 <?php endif; ?>
 
-<section class="settings-form">
-  <h2>Where to buy</h2>
+<section class="nano-cms-admin-section">
+  <h2 class="nano-cms-admin-section-title">Where to buy</h2>
   <p>£29 per domain. £69 for an agency 3-pack. £249 unlimited.
     <a href="https://digitalfracture.co.uk/nano-licence.html" target="_blank" rel="noopener">Buy at Digital Fracture &rarr;</a>
   </p>
-  <p class="help">Licences are signed offline with Ed25519 and verified locally against the public key embedded in this build. There is no licence server. Lost a key? Email Digital Fracture; re-issue is free.</p>
+  <p class="nano-cms-admin-help">Licences are signed by the Digital Fracture licence server (Ed25519) and verified locally against the public key embedded in this build, so there is no phone-home at verification time. Lost a key? Email Digital Fracture; re-issue is free.</p>
 </section>
 
 <?= nano_admin_render_footer() ?>
-</body>
-</html>

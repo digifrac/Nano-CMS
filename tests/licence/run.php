@@ -14,7 +14,7 @@ require_once __DIR__ . '/_helpers.php';
 
 $start = microtime(true);
 
-foreach (['01-verify.php', '02-config.php', '03-footer.php', '04-admin.php'] as $f) {
+foreach (['01-verify.php', '02-config.php', '03-footer.php', '04-admin.php', '05-admin-render.php'] as $f) {
     echo "\n==================================================\n";
     echo "  $f\n";
     echo "==================================================\n";

@@ -1,438 +1,743 @@
-/*
- * Nano CMS admin stylesheet.
- *
- * Loaded by every admin page. Hand-written, no framework, no build
- * step. Theming is intentionally minimal - the admin is internal
- * tooling that lives on the server only while publishing, so it
- * prioritises clarity over branding.
- *
- * Body width variants (set by each page):
- *   <body class="login"> ..... 360px (just a password field)
- *   <body class="setup"> ..... 540px (first-time wizard form)
- *   <body>              ..... 920px (dashboard / editor / media)
- */
+/* Nano CMS admin - scoped stylesheet, all classes nano-cms-admin- prefix.
+   Hand-written, no framework, no build step. Mirrors the Nano Cart admin
+   so operators of either product feel at home. Clean, form-heavy, not
+   flashy; designed to stay usable on a phone for emergency edits.
 
-/* --- Reset / base ---------------------------------------------------- */
+   Body width is handled by the shared scaffold in admin/core.php:
+   nano_admin_header() sets <body class="nano-cms-admin">; the login and
+   setup screens add nano-cms-admin-login / nano-cms-admin-setup to narrow
+   the main column. */
 
-body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.5;
-    color: #1a1a1a;
-    background: #fff;
-    max-width: 920px;
-    margin: 1.5rem auto;
-    padding: 0 1rem;
-}
-body.login { max-width: 360px; margin-top: 4rem; }
-body.setup { max-width: 540px; margin-top: 2rem; }
-
-h1 { font-size: 1.5rem; margin: 0; }
-body.login h1, body.setup h1 { font-size: 1.25rem; }
-
-a { color: #0066cc; text-decoration: none; }
-a:hover { color: #999999; }
-
-code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    background: #f5f5f5;
-    padding: 0.05rem 0.3rem;
-    border-radius: 2px;
-    font-size: 0.9em;
+:root {
+  --nano-cms-admin-text:   #1f2328;
+  --nano-cms-admin-muted:  #57606a;
+  --nano-cms-admin-bg:     #f1f4f8;
+  --nano-cms-admin-panel:  #ffffff;
+  --nano-cms-admin-border: #d0d7de;
+  --nano-cms-admin-border-soft: #e6e8eb;
+  --nano-cms-admin-accent: #0066cc;
+  --nano-cms-admin-accent-hover: #004fa3;
+  --nano-cms-admin-accent-soft:  #e7f0fb;
+  --nano-cms-admin-danger: #cf222e;
+  --nano-cms-admin-danger-hover: #a30c1c;
+  --nano-cms-admin-success-bg: #dafbe1;
+  --nano-cms-admin-success-fg: #1a7f37;
+  --nano-cms-admin-error-bg:   #ffebe9;
+  --nano-cms-admin-error-fg:   #82071e;
+  --nano-cms-admin-warning-bg: #fff8c5;
+  --nano-cms-admin-warning-fg: #7d4e00;
+  --nano-cms-admin-radius:    8px;
+  --nano-cms-admin-radius-sm: 5px;
+  --nano-cms-admin-shadow:        0 1px 2px rgba(15, 23, 42, 0.05);
+  --nano-cms-admin-shadow-panel:  0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --nano-cms-admin-shadow-raised: 0 4px 12px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.05);
+  --nano-cms-admin-font:      system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* --- Top bar (page header) ------------------------------------------ */
-
-.bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-.bar a { margin-left: 0.5rem; }
-
-/* --- Forms ----------------------------------------------------------- */
-
-label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.875rem;
-    margin: 0 0 0.25rem;
-}
-body.login label, body.setup label { margin: 1rem 0 0.25rem; }
-
-input[type=text],
-input[type=password],
-input[type=date],
-input[type=email],
-input[type=url],
-input[type=number],
-textarea,
-select {
-    width: 100%;
-    padding: 0.5rem;
-    box-sizing: border-box;
-    font-size: 1rem;
-    font-family: inherit;
+body.nano-cms-admin {
+  margin: 0;
+  font-family: var(--nano-cms-admin-font);
+  color: var(--nano-cms-admin-text);
+  background: var(--nano-cms-admin-bg);
+  line-height: 1.5;
+  font-size: 15px;
 }
 
-textarea {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    min-height: 22rem;
+.nano-cms-admin * { box-sizing: border-box; }
+
+/* Header / nav. Sticky for fast navigation; subtle shadow lifts it
+   above the scrolled content so it always feels distinct. */
+.nano-cms-admin-header {
+  background: var(--nano-cms-admin-panel);
+  border-bottom: 1px solid var(--nano-cms-admin-border);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  box-shadow: var(--nano-cms-admin-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nano-cms-admin-brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--nano-cms-admin-text);
+  text-decoration: none;
+  margin-right: 1rem;
+  letter-spacing: -0.01em;
+}
+.nano-cms-admin-nav {
+  display: flex;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+}
+.nano-cms-admin-nav-link {
+  color: var(--nano-cms-admin-muted);
+  text-decoration: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--nano-cms-admin-radius-sm);
+  font-weight: 500;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.nano-cms-admin-nav-link:hover {
+  color: var(--nano-cms-admin-text);
+  background: var(--nano-cms-admin-bg);
+}
+.nano-cms-admin-nav-current {
+  color: var(--nano-cms-admin-accent);
+  background: var(--nano-cms-admin-accent-soft);
+}
+.nano-cms-admin-nav-current:hover {
+  color: var(--nano-cms-admin-accent-hover);
+  background: var(--nano-cms-admin-accent-soft);
+}
+.nano-cms-admin-logout {
+  margin-left: auto;
+  color: var(--nano-cms-admin-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--nano-cms-admin-radius-sm);
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.nano-cms-admin-logout:hover {
+  color: var(--nano-cms-admin-danger);
+  background: var(--nano-cms-admin-error-bg);
 }
 
-button, .button {
-    padding: 0.5rem 1.25rem;
-    font-size: 1rem;
-    font-family: inherit;
-    cursor: pointer;
-    background: #f5f5f5;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+/* Main layout. The page-title has a coloured accent bar on the left so
+   it reads as a heading distinct from any section beneath. */
+.nano-cms-admin-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem;
 }
-body.login button, body.setup button { margin-top: 1rem; }
-
-.help { font-size: 0.875rem; color: #666; margin: 0.15rem 0 0; }
-.counter { font-size: 0.75rem; color: #666; margin-top: 0.15rem; }
-
-/* --- Editor: 2-column grid + toolbar + actions ---------------------- */
-
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem 1rem;
-}
-.grid > .full { grid-column: 1 / -1; }
-.checkbox-row { display: flex; align-items: center; gap: 0.5rem; }
-.checkbox-row label { margin: 0; }
-.checkbox-row .preview-link { margin-left: auto; }
-
-.delete-form { margin-top: 1.5rem; }
-.delete-form .danger {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    background: #fff;
-    color: #c00;
-    border: 1px solid #c00;
-    border-radius: 4px;
+.nano-cms-admin-page-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  padding-left: 0.85rem;
+  border-left: 4px solid var(--nano-cms-admin-accent);
+  line-height: 1.2;
 }
 
-.md-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin: 0.5rem 0 0.25rem;
+/* Sections: lifted panels with a distinct header band. The title uses
+   negative margins to span the full panel width as a header while the
+   section keeps normal padding for its content. */
+.nano-cms-admin-section {
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--nano-cms-admin-shadow-panel);
 }
-.md-toolbar button {
-    padding: 0.25rem 0.6rem;
-    font-size: 0.875rem;
+.nano-cms-admin-section-title {
+  margin: -1.25rem -1.25rem 1.25rem;
+  padding: 0.7rem 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nano-cms-admin-muted);
+  background: linear-gradient(to bottom, var(--nano-cms-admin-bg), var(--nano-cms-admin-panel));
+  border-bottom: 1px solid var(--nano-cms-admin-border-soft);
+  border-radius: var(--nano-cms-admin-radius) var(--nano-cms-admin-radius) 0 0;
+}
+.nano-cms-admin-section > :last-child { margin-bottom: 0; }
+.nano-cms-admin-actions {
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.nano-cms-admin-footer {
+  text-align: center;
+  padding: 2rem 1rem 2.5rem;
+  color: var(--nano-cms-admin-muted);
+  font-size: 0.85rem;
+}
+.nano-cms-admin-footer p { margin: 0.35rem 0; }
+.nano-cms-admin-footer a { color: var(--nano-cms-admin-muted); }
+.nano-cms-admin-footer a:hover { color: var(--nano-cms-admin-text); }
+
+/* Flash messages: coloured left bar for at-a-glance status. */
+.nano-cms-admin-flash {
+  padding: 0.85rem 1rem 0.85rem 1.1rem;
+  border-radius: var(--nano-cms-admin-radius);
+  margin-bottom: 1.25rem;
+  border: 1px solid transparent;
+  border-left-width: 4px;
+  box-shadow: var(--nano-cms-admin-shadow);
+}
+.nano-cms-admin-flash p { margin: 0.35rem 0; }
+.nano-cms-admin-flash p:first-child { margin-top: 0; }
+.nano-cms-admin-flash p:last-child { margin-bottom: 0; }
+.nano-cms-admin-flash-success {
+  background: var(--nano-cms-admin-success-bg);
+  color: var(--nano-cms-admin-success-fg);
+  border-color: var(--nano-cms-admin-success-fg);
+}
+.nano-cms-admin-flash-error {
+  background: var(--nano-cms-admin-error-bg);
+  color: var(--nano-cms-admin-error-fg);
+  border-color: var(--nano-cms-admin-error-fg);
+}
+.nano-cms-admin-flash-warning {
+  background: var(--nano-cms-admin-warning-bg);
+  color: var(--nano-cms-admin-warning-fg);
+  border-color: var(--nano-cms-admin-warning-fg);
+}
+.nano-cms-admin-flash ul { margin: 0.35rem 0 0 1.25rem; padding: 0; }
+
+/* Stats grid (dashboard). Each stat is a small lifted panel with an
+   accent strip on top. */
+.nano-cms-admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.nano-cms-admin-stat {
+  position: relative;
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  padding: 1.25rem 1rem 1rem;
+  text-align: center;
+  box-shadow: var(--nano-cms-admin-shadow-panel);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+  overflow: hidden;
+}
+.nano-cms-admin-stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--nano-cms-admin-accent), #4a9eff);
+}
+.nano-cms-admin-stat:hover {
+  box-shadow: var(--nano-cms-admin-shadow-raised);
+  transform: translateY(-1px);
+}
+.nano-cms-admin-stat-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nano-cms-admin-text);
+  line-height: 1;
+}
+.nano-cms-admin-stat-label {
+  color: var(--nano-cms-admin-muted);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
 }
 
-.actions {
-    margin-top: 1.25rem;
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.actions .primary {
-    padding: 0.5rem 1.5rem;
-    font-size: 1rem;
-    background: #0066cc;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-}
-.actions .danger {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    background: #fff;
-    color: #c00;
-    border: 1px solid #c00;
-    border-radius: 4px;
-}
-.actions a { margin-left: auto; }
-
-/* --- Dashboard: filter toolbar + new-post button -------------------- */
-
-.toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-    margin: 0.5rem 0 1.5rem;
-    padding: 0.75rem 1rem;
-    background: #f5f5f5;
-    border-radius: 4px;
-}
-.toolbar .new {
-    margin-left: auto;
-    padding: 0.4rem 0.9rem;
-    background: #0066cc;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-}
-.toolbar select { width: auto; padding: 0.3rem 0.5rem; }
-
-/* --- Post-list table ------------------------------------------------ */
-
-table { width: 100%; border-collapse: collapse; }
-th, td {
-    text-align: left;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid #eee;
-    vertical-align: top;
-}
-th { background: #fafafa; font-size: 0.875rem; }
-
-.row-actions { white-space: nowrap; }
-.row-actions form { display: inline; }
-.row-actions button {
-    background: none;
-    border: none;
-    color: #c00;
-    cursor: pointer;
-    padding: 0;
-    font: inherit;
+.nano-cms-admin-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-/* --- Tags ----------------------------------------------------------- */
+/* Forms. The form itself is a panel; long forms get h2 subheadings that
+   act as in-form section dividers. */
+.nano-cms-admin-form {
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--nano-cms-admin-shadow-panel);
+}
+.nano-cms-admin-form h2 {
+  margin: 2rem 0 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nano-cms-admin-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--nano-cms-admin-accent-soft);
+}
+.nano-cms-admin-form h2:first-of-type { margin-top: 0; }
+.nano-cms-admin-form label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: var(--nano-cms-admin-text);
+}
+.nano-cms-admin-form input[type=text],
+.nano-cms-admin-form input[type=url],
+.nano-cms-admin-form input[type=email],
+.nano-cms-admin-form input[type=password],
+.nano-cms-admin-form input[type=date],
+.nano-cms-admin-form input[type=number],
+.nano-cms-admin-form select,
+.nano-cms-admin-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--nano-cms-admin-text);
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius-sm);
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.03);
+  transition: border-color 100ms ease, box-shadow 100ms ease;
+}
+.nano-cms-admin-form input:focus,
+.nano-cms-admin-form select:focus,
+.nano-cms-admin-form textarea:focus {
+  outline: none;
+  border-color: var(--nano-cms-admin-accent);
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.03),
+              0 0 0 3px var(--nano-cms-admin-accent-soft);
+}
+.nano-cms-admin-form input[readonly] {
+  background: var(--nano-cms-admin-bg);
+  color: var(--nano-cms-admin-muted);
+  cursor: not-allowed;
+}
+.nano-cms-admin-form textarea { resize: vertical; min-height: 6rem; }
 
-.draft-tag, .unused-tag {
-    background: #fce8b2;
-    color: #735c00;
-    padding: 0.05rem 0.4rem;
-    border-radius: 3px;
-    font-size: 0.75rem;
-    margin-left: 0.4rem;
+/* Fieldsets: subtle tinted background distinguishes a group of related
+   inputs from surrounding labels. */
+.nano-cms-admin-fieldset {
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  background: var(--nano-cms-admin-bg);
+  padding: 0.85rem 1rem;
+  margin: 0 0 1.25rem;
 }
+.nano-cms-admin-fieldset legend {
+  padding: 0 0.55rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--nano-cms-admin-text);
+}
+.nano-cms-admin-fieldset label { margin-bottom: 0.75rem; }
+.nano-cms-admin-fieldset label:last-child { margin-bottom: 0; }
 
-/* --- Flashes / errors / banners ------------------------------------- */
+.nano-cms-admin-inline {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem !important;
+  font-weight: 400;
+  cursor: pointer;
+}
+.nano-cms-admin-inline input[type=checkbox],
+.nano-cms-admin-inline input[type=radio] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--nano-cms-admin-accent);
+}
+.nano-cms-admin-inline:hover { color: var(--nano-cms-admin-accent); }
 
-.flash-ok {
-    background: #efe;
-    border: 1px solid #9c9;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    margin: 0 0 1rem;
+/* Form actions bar: clear separator above the submit / cancel buttons so
+   they read as the "commit point" of the form. */
+.nano-cms-admin-form-actions {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--nano-cms-admin-border-soft);
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
 }
-.flash-error, .errors {
-    background: #fee;
-    border: 1px solid #f99;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    margin: 0 0 1rem;
+.nano-cms-admin-help {
+  color: var(--nano-cms-admin-muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
 }
-.errors ul { margin: 0.25rem 0; padding-left: 1.25rem; }
-.warn {
-    background: #fce8b2;
-    border: 1px solid #cba62b;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    margin: 0 0 1rem;
-}
-.empty { color: #666; font-style: italic; padding: 1rem 0; }
-
-/* --- Media manager: upload form + thumbnail grid -------------------- */
-
-.upload {
-    background: #f5f5f5;
-    padding: 0.75rem 1rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-}
-.upload input[type=file] { width: auto; margin-right: 0.5rem; }
-
-.media-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1rem;
-}
-.tile {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.5rem;
-    background: #fff;
-}
-.tile img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 3px;
-    background: #fafafa;
-    display: block;
-}
-.tile .meta {
-    font-size: 0.75rem;
-    color: #666;
-    margin-top: 0.25rem;
-    word-break: break-all;
-}
-.tile .actions {
-    margin-top: 0.4rem;
-    gap: 0.4rem;
-}
-.tile button {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-}
-.tile .danger {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    color: #c00;
-    background: #fff;
-    border: 1px solid #f99;
-    border-radius: 3px;
-}
-.tile:hover { border-color: #999; }
-
-/* --- Help page ------------------------------------------------------- */
-
-.help-section {
-    margin: 1.5rem 0;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
-}
-.help-section h2 { font-size: 1.1rem; margin: 0 0 0.5rem; }
-.help-table { margin: 0.5rem 0 1rem; border: 1px solid #eee; }
-.help-table th { padding: 0.35rem 0.6rem; }
-.help-table td { padding: 0.35rem 0.6rem; font-size: 0.9rem; }
-.help-section ul { margin: 0.5rem 0; padding-left: 1.25rem; }
-.help-section li { margin: 0.25rem 0; }
-
-/* --- First-run empty state (dashboard) ------------------------------ */
-
-.empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    background: #f5f5f5;
-    border-radius: 6px;
-}
-.empty-state p { margin: 0.5rem 0; }
-.button-primary {
-    display: inline-block;
-    padding: 0.5rem 1.25rem;
-    background: #0066cc;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    margin-top: 0.5rem;
+.nano-cms-admin-counter {
+  color: var(--nano-cms-admin-muted);
+  font-size: 0.75rem;
+  margin-top: 0.15rem;
 }
 
-/* --- Hover + focus polish ------------------------------------------- */
-
-tbody tr:hover { background: #fafafa; }
-
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-    outline: 2px solid #0066cc;
-    outline-offset: 2px;
+/* Buttons. Subtle shadow gives clickable affordance; the primary button
+   has slightly more shadow weight so it reads as the default action. */
+.nano-cms-admin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.15rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--nano-cms-admin-text);
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius-sm);
+  text-decoration: none;
+  cursor: pointer;
+  min-height: 40px;
+  line-height: 1.4;
+  box-shadow: var(--nano-cms-admin-shadow);
+  transition: background-color 100ms ease, border-color 100ms ease, box-shadow 100ms ease, transform 80ms ease;
+}
+.nano-cms-admin-button:hover {
+  background: var(--nano-cms-admin-bg);
+  border-color: #b6becc;
+}
+.nano-cms-admin-button:active { transform: translateY(1px); box-shadow: none; }
+.nano-cms-admin-button-primary {
+  background: var(--nano-cms-admin-accent);
+  border-color: var(--nano-cms-admin-accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 102, 204, 0.3), var(--nano-cms-admin-shadow);
+}
+.nano-cms-admin-button-primary:hover {
+  background: var(--nano-cms-admin-accent-hover);
+  border-color: var(--nano-cms-admin-accent-hover);
+}
+.nano-cms-admin-button-secondary { color: var(--nano-cms-admin-muted); }
+.nano-cms-admin-button-danger {
+  background: var(--nano-cms-admin-danger);
+  border-color: var(--nano-cms-admin-danger);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(207, 34, 46, 0.25), var(--nano-cms-admin-shadow);
+}
+.nano-cms-admin-button-danger:hover { background: var(--nano-cms-admin-danger-hover); border-color: var(--nano-cms-admin-danger-hover); }
+.nano-cms-admin-button-sm {
+  min-height: 0;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-    border-color: #0066cc;
+/* Tables: zebra-striped rows, hover highlight, comfy row height. */
+.nano-cms-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  overflow: hidden;
+  box-shadow: var(--nano-cms-admin-shadow-panel);
+}
+.nano-cms-admin-table th,
+.nano-cms-admin-table td {
+  text-align: left;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--nano-cms-admin-border-soft);
+  vertical-align: middle;
+}
+.nano-cms-admin-table th {
+  background: linear-gradient(to bottom, var(--nano-cms-admin-bg), #e9eef5);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nano-cms-admin-muted);
+  border-bottom: 1px solid var(--nano-cms-admin-border);
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+.nano-cms-admin-table tbody tr { transition: background-color 80ms ease; }
+.nano-cms-admin-table tbody tr:nth-child(even) { background: rgba(241, 244, 248, 0.5); }
+.nano-cms-admin-table tbody tr:hover { background: var(--nano-cms-admin-accent-soft); }
+.nano-cms-admin-table tr:last-child td { border-bottom: 0; }
+.nano-cms-admin-table a {
+  color: var(--nano-cms-admin-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.nano-cms-admin-table a:hover { text-decoration: underline; }
+.nano-cms-admin-table code {
+  background: var(--nano-cms-admin-bg);
+  padding: 0.1em 0.4em;
+  border-radius: var(--nano-cms-admin-radius-sm);
+  font-size: 0.85em;
+}
+.nano-cms-admin-row-actions { white-space: nowrap; }
+.nano-cms-admin-row-actions form { display: inline; margin: 0; }
+.nano-cms-admin-link-danger {
+  color: var(--nano-cms-admin-danger) !important;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.nano-cms-admin-link-danger:hover { text-decoration: underline; }
+
+/* Pills (status, draft markers). */
+.nano-cms-admin-pill {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: var(--nano-cms-admin-bg);
+  color: var(--nano-cms-admin-muted);
+  border: 1px solid var(--nano-cms-admin-border);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.nano-cms-admin-pill-published { background: var(--nano-cms-admin-success-bg); color: var(--nano-cms-admin-success-fg); border-color: var(--nano-cms-admin-success-fg); }
+.nano-cms-admin-pill-draft { background: var(--nano-cms-admin-warning-bg); color: var(--nano-cms-admin-warning-fg); border-color: #d9b94d; }
+
+/* Markdown editor: framed component with a distinct toolbar band. */
+.nano-cms-admin-markdown-editor {
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  overflow: hidden;
+  background: var(--nano-cms-admin-panel);
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.03);
+}
+.nano-cms-admin-md-toolbar {
+  background: linear-gradient(to bottom, var(--nano-cms-admin-bg), #e9eef5);
+  padding: 0.4rem 0.55rem;
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--nano-cms-admin-border-soft);
+}
+.nano-cms-admin-md-toolbar button {
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius-sm);
+  padding: 0.3rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--nano-cms-admin-shadow);
+  transition: background-color 80ms ease, border-color 80ms ease;
+}
+.nano-cms-admin-md-toolbar button:hover {
+  background: var(--nano-cms-admin-bg);
+  border-color: #b6becc;
+}
+.nano-cms-admin-markdown-editor textarea {
+  display: block;
+  width: 100%;
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  padding: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.92rem;
+  min-height: 22rem;
+  resize: vertical;
+}
+.nano-cms-admin-markdown-editor textarea:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--nano-cms-admin-accent-soft) !important;
 }
 
-button:hover:not(:disabled) { background: #ebebeb; }
-.actions .primary:hover, .button-primary:hover { background: #004fa3; }
-.actions .danger:hover { background: #fff5f5; }
+/* Two-column editor grid. */
+.nano-cms-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+}
+.nano-cms-admin-grid > .full { grid-column: 1 / -1; }
+.nano-cms-admin-checkbox-row { display: flex; align-items: center; gap: 0.5rem; }
+.nano-cms-admin-checkbox-row label { margin: 0; }
+.nano-cms-admin-checkbox-row .nano-cms-admin-preview-link { margin-left: auto; }
+@media (max-width: 700px) { .nano-cms-admin-grid { grid-template-columns: 1fr; } }
 
-.admin-footer {
-    margin-top: 3rem;
-    text-align: center;
+/* Filter / action toolbar (dashboard). */
+.nano-cms-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--nano-cms-admin-panel);
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  box-shadow: var(--nano-cms-admin-shadow-panel);
 }
-.admin-footer .admin-links {
-    margin: 0 0 0.5rem;
-    font-size: 0.8125rem;
-    color: #888;
+.nano-cms-admin-toolbar label {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
 }
-.admin-footer .admin-links a {
-    color: #888;
+.nano-cms-admin-toolbar select {
+  width: auto;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius-sm);
+  background: var(--nano-cms-admin-panel);
 }
-.admin-footer .admin-links a:hover {
-    color: #555;
+.nano-cms-admin-toolbar input[type=checkbox] { accent-color: var(--nano-cms-admin-accent); }
+.nano-cms-admin-toolbar-spacer { margin-left: auto; }
+
+/* Upload form (media manager). */
+.nano-cms-admin-upload {
+  background: var(--nano-cms-admin-bg);
+  border: 1px solid var(--nano-cms-admin-border);
+  padding: 0.85rem 1rem;
+  border-radius: var(--nano-cms-admin-radius);
+  margin-bottom: 1.5rem;
 }
-.admin-version {
-    margin-top: 2rem;
-    text-align: center;
-    font-size: 0.75rem;
-    color: #888;
-    letter-spacing: 0.05em;
+.nano-cms-admin-upload input[type=file] { margin-right: 0.5rem; }
+
+/* Media thumbnail grid. */
+.nano-cms-admin-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
 }
-.admin-footer .admin-version {
-    margin-top: 0;
+.nano-cms-admin-tile {
+  border: 1px solid var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  padding: 0.6rem;
+  background: var(--nano-cms-admin-panel);
+  box-shadow: var(--nano-cms-admin-shadow-panel);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.nano-cms-admin-tile:hover { box-shadow: var(--nano-cms-admin-shadow-raised); transform: translateY(-1px); }
+.nano-cms-admin-tile img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--nano-cms-admin-radius-sm);
+  background: var(--nano-cms-admin-bg);
+  display: block;
+}
+.nano-cms-admin-tile-meta {
+  font-size: 0.75rem;
+  color: var(--nano-cms-admin-muted);
+  margin-top: 0.4rem;
+  word-break: break-all;
+}
+.nano-cms-admin-tile-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
 }
 
-/* Categories admin page */
-.category-image-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
+/* Category banner-image rows (categories page). */
+.nano-cms-admin-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
-.category-image-row {
-    display: grid;
-    grid-template-columns: 100px 1fr auto auto;
-    gap: 1rem;
-    align-items: center;
-    padding: 0.75rem;
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    background: #fff;
+.nano-cms-admin-category-row {
+  display: grid;
+  grid-template-columns: 100px 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--nano-cms-admin-border-soft);
+  border-radius: var(--nano-cms-admin-radius);
+  background: var(--nano-cms-admin-panel);
+  box-shadow: var(--nano-cms-admin-shadow);
 }
-.category-image-thumb {
-    width: 100px;
-    height: 67px;
-    background: #f5f5f5;
-    border-radius: 4px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.nano-cms-admin-category-thumb {
+  width: 100px;
+  height: 67px;
+  background: var(--nano-cms-admin-bg);
+  border-radius: var(--nano-cms-admin-radius-sm);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.category-image-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.nano-cms-admin-category-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.nano-cms-admin-category-thumb .empty-thumb { color: var(--nano-cms-admin-muted); font-size: 0.8125rem; }
+.nano-cms-admin-category-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
 }
-.category-image-thumb .empty-thumb {
-    color: #999;
-    font-size: 0.8125rem;
+.nano-cms-admin-category-meta strong { font-size: 1rem; }
+.nano-cms-admin-category-meta small {
+  color: var(--nano-cms-admin-muted);
+  font-size: 0.8125rem;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
 }
-.category-image-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    min-width: 0;
-}
-.category-image-meta strong { font-size: 1rem; }
-.category-image-meta small { color: #888; font-size: 0.8125rem; font-family: ui-monospace, Menlo, Consolas, monospace; }
-.category-image-form {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin: 0;
-}
-.category-image-form input[type=file] {
-    width: auto;
-    max-width: 220px;
-}
-.category-image-remove { margin: 0; }
-.category-image-remove button.danger {
-    background: #fff;
-    color: #c00;
-    border: 1px solid #c00;
-}
-.category-image-remove button.danger:hover { background: #fff5f5; }
+.nano-cms-admin-category-form { display: flex; gap: 0.5rem; align-items: center; margin: 0; }
+.nano-cms-admin-category-form input[type=file] { max-width: 220px; }
 @media (max-width: 700px) {
-    .category-image-row {
-        grid-template-columns: 1fr;
-    }
-    .category-image-form, .category-image-remove { width: 100%; }
+  .nano-cms-admin-category-row { grid-template-columns: 1fr; }
+  .nano-cms-admin-category-form { width: 100%; }
+}
+
+/* Help page sections. */
+.nano-cms-admin-help-section {
+  margin: 1.5rem 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--nano-cms-admin-border-soft);
+}
+.nano-cms-admin-help-section:first-of-type { border-top: 0; padding-top: 0; }
+.nano-cms-admin-help-section h2 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+.nano-cms-admin-help-section ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+.nano-cms-admin-help-section li { margin: 0.25rem 0; }
+
+/* Setup wizard advisory: signals "read me carefully" with a blue accent
+   rail and a subtle background tint. */
+.nano-cms-admin-advisory {
+  background: linear-gradient(to bottom right, var(--nano-cms-admin-accent-soft), var(--nano-cms-admin-panel));
+  border: 1px solid var(--nano-cms-admin-border);
+  border-left: 4px solid var(--nano-cms-admin-accent);
+  border-radius: var(--nano-cms-admin-radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--nano-cms-admin-shadow-panel);
+}
+.nano-cms-admin-advisory h2 { margin: 0 0 0.5rem; font-size: 1.1rem; letter-spacing: -0.01em; }
+.nano-cms-admin-advisory ul { margin: 0 0 0.5rem 1.25rem; padding: 0; }
+.nano-cms-admin-advisory-note { color: var(--nano-cms-admin-muted); font-size: 0.9rem; font-style: italic; }
+
+/* Login + setup screens: narrower max-width centres a focused form. */
+.nano-cms-admin-login .nano-cms-admin-main,
+.nano-cms-admin-setup .nano-cms-admin-main {
+  max-width: 560px;
+}
+.nano-cms-admin-form-login {
+  max-width: 380px;
+  margin: 2rem auto 0;
+}
+
+/* Empty-state panel: dashed border signals "nothing here yet". */
+.nano-cms-admin-empty {
+  text-align: center;
+  color: var(--nano-cms-admin-muted);
+  padding: 2rem 1.25rem;
+  background: var(--nano-cms-admin-panel);
+  border: 1px dashed var(--nano-cms-admin-border);
+  border-radius: var(--nano-cms-admin-radius);
+  font-size: 0.95rem;
+}
+.nano-cms-admin-empty a { color: var(--nano-cms-admin-accent); text-decoration: none; font-weight: 500; }
+.nano-cms-admin-empty a:hover { text-decoration: underline; }
+
+/* Mobile: tighten paddings, allow tables to scroll horizontally. */
+@media (max-width: 600px) {
+  .nano-cms-admin-header { padding: 0.65rem 1rem; }
+  .nano-cms-admin-logout { margin-left: 0; }
+  .nano-cms-admin-main { padding: 1rem 0.85rem; }
+  .nano-cms-admin-page-title { font-size: 1.35rem; }
+  .nano-cms-admin-section { padding: 1rem; }
+  .nano-cms-admin-section-title { margin: -1rem -1rem 1rem; padding: 0.65rem 1rem; }
+  .nano-cms-admin-form { padding: 1.25rem; }
+  .nano-cms-admin-table { font-size: 0.85rem; }
+  .nano-cms-admin-table th,
+  .nano-cms-admin-table td { padding: 0.55rem 0.7rem; }
 }

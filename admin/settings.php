@@ -74,40 +74,20 @@ $cat_thumb_width = (int)($cfg['cat_thumb_width'] ?? $thumb_width);
 if ($cat_thumb_width < 100 || $cat_thumb_width > 2400) $cat_thumb_width = $thumb_width;
 $cat_thumb_height = (int)($cfg['cat_thumb_height'] ?? $thumb_height);
 if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $thumb_height;
+echo nano_admin_header('Settings', 'settings');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Settings - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1>Settings</h1>
-  <div>
-    <a href="index.php">All posts</a>
-    | <a href="media.php">Media</a>
-    | <a href="categories.php">Categories</a>
-    | <a href="licence.php">Licence</a>
-    | <a href="help.php">Help</a>
-    | <?= nano_admin_logout_form() ?>
-  </div>
-</div>
-
 <?php if ($flash !== null): ?>
-<div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
+<?= nano_admin_flash($flash[0], $flash[1]) ?>
 <?php endif; ?>
 
-<form method="post" class="settings-form">
+<form method="post" class="nano-cms-admin-form">
   <?= nano_admin_csrf_field() ?>
 
   <h2>Site</h2>
   <label>Site name
     <input type="text" name="site_name" value="<?= nano_admin_e($site_name) ?>" maxlength="80" required>
   </label>
-  <p class="help">Shown in the <code>&lt;title&gt;</code> suffix, the RSS feed, and OpenGraph metadata. Set initially by the setup wizard; change it here whenever you rebrand.</p>
+  <p class="nano-cms-admin-help">Shown in the <code>&lt;title&gt;</code> suffix, the RSS feed, and OpenGraph metadata. Set initially by the setup wizard; change it here whenever you rebrand.</p>
 
   <h2>Layout</h2>
   <label>Categories per row
@@ -116,7 +96,7 @@ if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $th
       <option value="4"<?= $categories_per_row === 4 ? ' selected' : '' ?>>4</option>
     </select>
   </label>
-  <p class="help">How many category cards appear per row on the blog homepage.</p>
+  <p class="nano-cms-admin-help">How many category cards appear per row on the blog homepage.</p>
 
   <label>Articles per row
     <select name="articles_per_row">
@@ -124,31 +104,37 @@ if ($cat_thumb_height < 100 || $cat_thumb_height > 2400) $cat_thumb_height = $th
       <option value="4"<?= $articles_per_row === 4 ? ' selected' : '' ?>>4</option>
     </select>
   </label>
-  <p class="help">How many article cards appear per row on category archive pages.</p>
+  <p class="nano-cms-admin-help">How many article cards appear per row on category archive pages.</p>
 
   <h2>Article thumbnails</h2>
-  <p class="help">Hero images uploaded through the media manager get a smaller, pre-cropped thumbnail saved alongside them. Article cards use the thumbnail. The dimensions also drive the card display aspect ratio, so changes show up immediately on the public side. Thumbnail FILE size is regenerated only on future uploads.</p>
-  <p class="help"><strong>Common sizes:</strong> <code>600&times;400</code> (3:2, default), <code>800&times;533</code> (3:2 retina), <code>640&times;360</code> (16:9 widescreen), <code>600&times;450</code> (4:3 squarer), <code>500&times;500</code> (1:1 square).</p>
-  <label>Article thumbnail width (px)
-    <input type="number" name="thumb_width" min="100" max="2400" step="1" value="<?= (int)$thumb_width ?>" required>
-  </label>
-  <label>Article thumbnail height (px)
-    <input type="number" name="thumb_height" min="100" max="2400" step="1" value="<?= (int)$thumb_height ?>" required>
-  </label>
+  <p class="nano-cms-admin-help">Hero images uploaded through the media manager get a smaller, pre-cropped thumbnail saved alongside them. Article cards use the thumbnail. The dimensions also drive the card display aspect ratio, so changes show up immediately on the public side. Thumbnail FILE size is regenerated only on future uploads.</p>
+  <p class="nano-cms-admin-help"><strong>Common sizes:</strong> <code>600&times;400</code> (3:2, default), <code>800&times;533</code> (3:2 retina), <code>640&times;360</code> (16:9 widescreen), <code>600&times;450</code> (4:3 squarer), <code>500&times;500</code> (1:1 square).</p>
+  <fieldset class="nano-cms-admin-fieldset">
+    <legend>Article thumbnail size</legend>
+    <label>Width (px)
+      <input type="number" name="thumb_width" min="100" max="2400" step="1" value="<?= (int)$thumb_width ?>" required>
+    </label>
+    <label>Height (px)
+      <input type="number" name="thumb_height" min="100" max="2400" step="1" value="<?= (int)$thumb_height ?>" required>
+    </label>
+  </fieldset>
 
   <h2>Category images</h2>
-  <p class="help">Category cards on the homepage can have their own hero image (managed on the Categories page). These dimensions are independent of article thumbnails so the two grids can be tuned separately.</p>
-  <p class="help"><strong>Common sizes:</strong> <code>600&times;400</code> (3:2, default), <code>800&times;533</code> (3:2 retina), <code>640&times;360</code> (16:9 widescreen), <code>600&times;450</code> (4:3 squarer), <code>500&times;500</code> (1:1 square).</p>
-  <label>Category image width (px)
-    <input type="number" name="cat_thumb_width" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_width ?>" required>
-  </label>
-  <label>Category image height (px)
-    <input type="number" name="cat_thumb_height" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_height ?>" required>
-  </label>
+  <p class="nano-cms-admin-help">Category cards on the homepage can have their own hero image (managed on the Categories page). These dimensions are independent of article thumbnails so the two grids can be tuned separately.</p>
+  <p class="nano-cms-admin-help"><strong>Common sizes:</strong> <code>600&times;400</code> (3:2, default), <code>800&times;533</code> (3:2 retina), <code>640&times;360</code> (16:9 widescreen), <code>600&times;450</code> (4:3 squarer), <code>500&times;500</code> (1:1 square).</p>
+  <fieldset class="nano-cms-admin-fieldset">
+    <legend>Category image size</legend>
+    <label>Width (px)
+      <input type="number" name="cat_thumb_width" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_width ?>" required>
+    </label>
+    <label>Height (px)
+      <input type="number" name="cat_thumb_height" min="100" max="2400" step="1" value="<?= (int)$cat_thumb_height ?>" required>
+    </label>
+  </fieldset>
 
-  <button type="submit">Save settings</button>
+  <div class="nano-cms-admin-form-actions">
+    <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary">Save settings</button>
+  </div>
 </form>
 
 <?= nano_admin_render_footer() ?>
-</body>
-</html>

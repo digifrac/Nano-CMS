@@ -27,6 +27,11 @@ session*.md
 
 TODO.md
 
+# Upload-test bundle assembled from the working tree for manual host
+# testing (frontend + admin combined). Generated artifact, not source.
+
+/blog-test/
+
 
 # -----------------------------------------------------------------------------
 # Per-deployment content - never commit (this is client data, not source)

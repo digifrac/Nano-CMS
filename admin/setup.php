@@ -92,58 +92,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // redirecting to login - the user needs a clear, prominent
         // reminder to delete setup.php from the server now that it
         // has done its one and only job.
+        echo nano_admin_header('Setup complete', '', false, 'nano-cms-admin-setup');
         ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Setup complete - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body class="setup">
-<h1>Setup complete</h1>
-<div class="flash-ok">Configuration saved to <code>config.json</code>.</div>
-<div class="warn">
-<strong>One last step: delete <code>setup.php</code> from your server now.</strong>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-success">Configuration saved to <code>config.json</code>.</div>
+<div class="nano-cms-admin-advisory">
+<h2>One last step: delete <code>setup.php</code> from your server now.</h2>
 <p>This file has done its only job. Leaving it in place doesn't break anything (subsequent visits return 403), but removing it cuts one unused URL from your attack surface and matches the rest of Nano CMS's "upload only when needed" pattern.</p>
 </div>
-<p><a class="button-primary" href="index.php">Continue to sign-in</a></p>
-</body>
-</html>
-        <?php
+<p><a class="nano-cms-admin-button nano-cms-admin-button-primary" href="index.php">Continue to sign-in</a></p>
+<?php echo nano_admin_render_footer();
         exit;
     }
 }
+echo nano_admin_header('First-time setup', '', false, 'nano-cms-admin-setup');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nano CMS - Setup</title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body class="setup">
-<h1>Nano CMS - first-time setup</h1>
 <p>Choose a password and enter the site details. This wizard runs only once.</p>
 <?php if (!empty($errors)): ?>
-<div class="errors"><ul>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-error"><ul>
 <?php foreach ($errors as $e): ?><li><?= nano_admin_e($e) ?></li><?php endforeach; ?>
 </ul></div>
 <?php endif; ?>
-<form method="post" autocomplete="off">
+<form class="nano-cms-admin-form" method="post" autocomplete="off">
 <?= nano_admin_csrf_field() ?>
 <label>Password (min <?= NANO_ADMIN_PASSWORD_MIN ?> chars)<input type="password" name="password" required></label>
 <label>Confirm password<input type="password" name="password_confirm" required></label>
 <label>Site name<input type="text" name="site_name" value="<?= nano_admin_e((string)($_POST['site_name'] ?? '')) ?>" required></label>
 <label>Base URL of the blog<input type="url" name="base_url" placeholder="https://example.com/blog" value="<?= nano_admin_e((string)($_POST['base_url'] ?? '')) ?>" required></label>
-<p class="help">Full URL the blog is served at. Used for canonical links and the feed.</p>
+<p class="nano-cms-admin-help">Full URL the blog is served at. Used for canonical links and the feed.</p>
 <label>Author name<input type="text" name="author" value="<?= nano_admin_e((string)($_POST['author'] ?? '')) ?>" required></label>
 <label>Publisher name<input type="text" name="publisher_name" value="<?= nano_admin_e((string)($_POST['publisher_name'] ?? '')) ?>" required></label>
 <label>Publisher logo URL (optional)<input type="url" name="publisher_logo" value="<?= nano_admin_e((string)($_POST['publisher_logo'] ?? '')) ?>"></label>
 <label>Posts per page<input type="number" name="posts_per_page" min="1" max="50" value="<?= nano_admin_e((string)($_POST['posts_per_page'] ?? '10')) ?>" required></label>
-<button type="submit">Create site</button>
+<div class="nano-cms-admin-form-actions">
+<button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary">Create site</button>
+</div>
 </form>
-</body>
-</html>
+<?php echo nano_admin_render_footer(); ?>

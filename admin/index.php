@@ -59,28 +59,20 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 
 if (!nano_admin_logged_in()) {
     /* ===== Login form ===================================================== */
+    echo nano_admin_header('Sign in', '', false, 'nano-cms-admin-login');
     ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= nano_admin_e($site_name) ?> - Sign in</title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body class="login">
 <h1>Sign in to <?= nano_admin_e($site_name) ?></h1>
 <?php if ($error !== null): ?>
-<div class="flash-error"><?= nano_admin_e($error) ?></div>
+<?= nano_admin_flash('error', $error) ?>
 <?php endif; ?>
-<form method="post" autocomplete="off">
+<form class="nano-cms-admin-form nano-cms-admin-form-login" method="post" autocomplete="off">
 <?= nano_admin_csrf_field() ?>
 <label>Password<input type="password" name="password" autocomplete="current-password" autofocus required></label>
-<button type="submit">Sign in</button>
+<div class="nano-cms-admin-form-actions">
+<button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary">Sign in</button>
+</div>
 </form>
 <?= nano_admin_render_footer() ?>
-</body>
-</html>
     <?php
     exit;
 }
@@ -129,25 +121,54 @@ $posts = array_values(array_filter($all_posts, static function (array $p) use ($
     return true;
 }));
 $categories = nano_admin_categories();
+
+$draft_count     = count(array_filter($all_posts, static fn(array $p): bool => !empty($p['frontmatter']['draft'])));
+$published_count = count($all_posts) - $draft_count;
+$category_count  = count($categories);
+$install_exists  = is_file(dirname(__DIR__) . '/install.php');
+
+$health          = nano_admin_health_checks();
+$health_problems = array_values(array_filter($health, static fn(array $c): bool => !$c['ok']));
+
+echo nano_admin_header('Posts', 'posts');
+
+if (!empty($health_problems)):
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= nano_admin_e($site_name) ?> - Admin</title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1><?= nano_admin_e($site_name) ?> - admin</h1>
-  <div><a href="media.php">Media</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="licence.php">Licence</a> | <a href="help.php">Help</a> | <?= nano_admin_logout_form() ?></div>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-error">
+  <p><strong>Health check found <?= count($health_problems) ?> problem<?= count($health_problems) === 1 ? '' : 's' ?>.</strong> See the Health check panel at the bottom of this page. This usually means an upgrade did not finish - re-extract the affected files.</p>
 </div>
+<?php endif;
+
+if ($install_exists):
+?>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-error">
+  <p><strong>install.php is still on the server.</strong> Setup is complete, so the installer should be removed now. Leaving it in place is a small fingerprinting risk and could let someone reconfigure the blog if your config files were ever wiped.</p>
+  <form method="post" action="../install.php" style="margin-top:0.5rem">
+    <input type="hidden" name="action" value="delete">
+    <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger" onclick="return confirm('Delete install.php from the server now?')">Delete install.php now</button>
+  </form>
+</div>
+<?php endif; ?>
 <?php if ($flash !== null): ?>
-<div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
+<?= nano_admin_flash($flash[0], $flash[1]) ?>
 <?php endif; ?>
 
-<form class="toolbar" method="get">
+<section class="nano-cms-admin-stats">
+  <div class="nano-cms-admin-stat">
+    <div class="nano-cms-admin-stat-value"><?= (int)$published_count ?></div>
+    <div class="nano-cms-admin-stat-label">Published posts</div>
+  </div>
+  <div class="nano-cms-admin-stat">
+    <div class="nano-cms-admin-stat-value"><?= (int)$draft_count ?></div>
+    <div class="nano-cms-admin-stat-label">Draft posts</div>
+  </div>
+  <div class="nano-cms-admin-stat">
+    <div class="nano-cms-admin-stat-value"><?= (int)$category_count ?></div>
+    <div class="nano-cms-admin-stat-label">Categories</div>
+  </div>
+</section>
+
+<form class="nano-cms-admin-toolbar" method="get">
   <label>Category
     <select name="category" onchange="this.form.submit()">
       <option value="">All</option>
@@ -160,21 +181,21 @@ $categories = nano_admin_categories();
     <input type="checkbox" name="drafts" value="1"<?= $show_drafts ? ' checked' : '' ?> onchange="this.form.submit()">
     Show drafts
   </label>
-  <noscript><button type="submit">Apply</button></noscript>
-  <a class="new" href="edit.php">New post</a>
+  <noscript><button type="submit" class="nano-cms-admin-button nano-cms-admin-button-sm">Apply</button></noscript>
+  <a class="nano-cms-admin-button nano-cms-admin-button-primary nano-cms-admin-toolbar-spacer" href="edit.php">New post</a>
 </form>
 
 <?php if (empty($posts)): ?>
 <?php if (empty($all_posts)): ?>
-<div class="empty-state">
+<div class="nano-cms-admin-empty">
   <p>No posts yet. Welcome to Nano CMS.</p>
-  <p><a class="button-primary" href="edit.php">Create your first post</a></p>
+  <p><a class="nano-cms-admin-button nano-cms-admin-button-primary" href="edit.php">Create your first post</a></p>
 </div>
 <?php else: ?>
-<p class="empty">No posts match the current filter.</p>
+<div class="nano-cms-admin-empty"><p>No posts match the current filter.</p></div>
 <?php endif; ?>
 <?php else: ?>
-<table>
+<table class="nano-cms-admin-table">
 <thead>
 <tr><th>Title</th><th>Date</th><th>Updated</th><th>Category</th><th>Actions</th></tr>
 </thead>
@@ -183,17 +204,17 @@ $categories = nano_admin_categories();
 <tr>
 <td>
   <a href="edit.php?slug=<?= nano_admin_e((string)$fm['slug']) ?>"><?= nano_admin_e((string)$fm['title']) ?></a>
-<?php if (!empty($fm['draft'])): ?><span class="draft-tag">DRAFT</span><?php endif; ?>
+<?php if (!empty($fm['draft'])): ?> <span class="nano-cms-admin-pill nano-cms-admin-pill-draft">Draft</span><?php endif; ?>
 </td>
 <td><?= nano_admin_e((string)$fm['date']) ?></td>
 <td><?= nano_admin_e((string)($fm['updated'] ?? '')) ?></td>
 <td><?= nano_admin_e((string)($fm['category'] ?? '')) ?></td>
-<td class="row-actions">
+<td class="nano-cms-admin-row-actions">
   <a href="edit.php?slug=<?= nano_admin_e((string)$fm['slug']) ?>">Edit</a>
   <form method="post" action="?action=delete" onsubmit="return confirm('Delete &quot;<?= nano_admin_e((string)$fm['title']) ?>&quot;? This cannot be undone.');">
     <?= nano_admin_csrf_field() ?>
     <input type="hidden" name="slug" value="<?= nano_admin_e((string)$fm['slug']) ?>">
-    | <button type="submit">Delete</button>
+    &middot; <button type="submit" class="nano-cms-admin-link-danger">Delete</button>
   </form>
 </td>
 </tr>
@@ -201,6 +222,21 @@ $categories = nano_admin_categories();
 </tbody>
 </table>
 <?php endif; ?>
+
+<section class="nano-cms-admin-section">
+  <h2 class="nano-cms-admin-section-title">Health check</h2>
+  <table class="nano-cms-admin-table">
+    <tbody>
+<?php foreach ($health as $c): ?>
+      <tr>
+        <td style="width:1%;white-space:nowrap"><strong style="color:<?= $c['ok'] ? 'var(--nano-cms-admin-success-fg)' : 'var(--nano-cms-admin-danger)' ?>"><?= $c['ok'] ? 'OK' : 'CHECK' ?></strong></td>
+        <td style="white-space:nowrap"><?= nano_admin_e($c['label']) ?></td>
+        <td><?= nano_admin_e($c['detail']) ?></td>
+      </tr>
+<?php endforeach; ?>
+    </tbody>
+  </table>
+  <p class="nano-cms-admin-help">Nano CMS v<?= nano_admin_e(NANO_ADMIN_VERSION) ?> &middot; running PHP <?= nano_admin_e(PHP_VERSION) ?>. Check this panel after every upgrade.</p>
+</section>
+
 <?= nano_admin_render_footer() ?>
-</body>
-</html>

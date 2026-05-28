@@ -2,6 +2,11 @@
 
 Deploys to any shared PHP host with HTTPS. Two ZIPs, ten minutes.
 
+> **Upgrading an existing install?** This page is first-time deployment.
+> For upgrades, see [UPGRADE.md](UPGRADE.md) - the short version is "extract
+> the release ZIPs over your blog; never overwrite `bootstrap.php`, your
+> config directory, or `posts/` and `media/`."
+
 ---
 
 ## 1. Prerequisites
@@ -49,6 +54,31 @@ The two share only the on-disk file format, never any PHP code.
 ---
 
 ## 3. First-time deployment
+
+### Option A - Web installer (recommended)
+
+The fastest path. The installer creates the outside-webroot config
+directory and writes `bootstrap.php` for you, then hands off to the setup
+wizard.
+
+1. Upload `nano-cms-frontend.zip` into the webroot and extract, so you get
+   `/home/clientuser/example.com/blog/...` (then delete the ZIP).
+2. Upload `nano-cms-admin.zip` into `blog/` and extract → `blog/admin/...`
+   (then delete the ZIP).
+3. Visit `https://example.com/blog/install.php` over HTTPS. It suggests a
+   config directory **outside** the webroot (DOCUMENT_ROOT-aware, so it
+   doesn't land inside an addon-domain webroot on cPanel/Plesk), creates
+   it at mode 0750, and writes `bootstrap.php`. Click **Install**.
+4. Click **Open setup wizard** and complete it (fields listed in step 3f
+   below). **Leave `install.php` in place for now.**
+5. After setup, the admin dashboard shows a red "install.php is still on
+   the server" banner with a one-click delete. Use it - that removes the
+   installer at the right moment without breaking the setup hand-off.
+
+If the host's permissions stop the installer from creating the directory
+or writing `bootstrap.php`, use Option B.
+
+### Option B - Manual configuration (fallback)
 
 Adjust paths to match your host. The examples below assume:
 
@@ -222,9 +252,11 @@ Once you have the licence string, two equivalent ways to install it:
    `licence_key` field to the full `base64(payload).base64(signature)`
    string. No restart, no cache - the next page render picks it up.
 
-Verification is offline-only. There is no network call, no licence
-server, and no telemetry. Lose your licence key and Digital Fracture
-will re-issue it for free against the same domain.
+Verification is offline-only: there is no network call at verification
+time and no telemetry. (Licences are signed by the Digital Fracture
+licence server; your site only ever verifies the signature locally
+against the embedded public key.) Lose your licence key and Digital
+Fracture will re-issue it for free against the same domain.
 
 **Development domains skip the licence check entirely:**
 

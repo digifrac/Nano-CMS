@@ -43,57 +43,42 @@ $items = nano_admin_list_media();
 $used = nano_admin_media_used_set();
 $base_url = rtrim((string)($cfg['base_url'] ?? ''), '/');
 $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
+echo nano_admin_header('Media', 'media');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Media - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1>Media</h1>
-  <div>
-    <a href="index.php">All posts</a> | <a href="categories.php">Categories</a> | <a href="settings.php">Settings</a> | <a href="licence.php">Licence</a> | <a href="help.php">Help</a> | <?= nano_admin_logout_form() ?>
-  </div>
-</div>
-
 <?php if ($flash !== null): ?>
-<div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
+<?= nano_admin_flash($flash[0], $flash[1]) ?>
 <?php endif; ?>
 
 <?php if (!$reencoder_available): ?>
-<div class="warn"><strong>Uploads disabled:</strong> neither the GD nor the Imagick PHP extension is loaded on this server. Re-encoding through one of them is required to safely accept uploads. Browsing and deletion still work.</div>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-warning"><strong>Uploads disabled:</strong> neither the GD nor the Imagick PHP extension is loaded on this server. Re-encoding through one of them is required to safely accept uploads. Browsing and deletion still work.</div>
 <?php endif; ?>
 
-<form class="upload" method="post" action="?action=upload" enctype="multipart/form-data">
+<form class="nano-cms-admin-upload" method="post" action="?action=upload" enctype="multipart/form-data">
   <?= nano_admin_csrf_field() ?>
   <input type="file" name="image" accept=".jpg,.jpeg,.png,.gif,.webp" <?= $reencoder_available ? 'required' : 'disabled' ?>>
-  <button type="submit" <?= $reencoder_available ? '' : 'disabled' ?>>Upload</button>
-  <span class="help">jpg/png/gif/webp, up to 5 MB. Files are re-encoded on save.</span>
+  <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-primary" <?= $reencoder_available ? '' : 'disabled' ?>>Upload</button>
+  <span class="nano-cms-admin-help">jpg/png/gif/webp, up to 5 MB. Files are re-encoded on save.</span>
 </form>
 
 <?php if (empty($items)): ?>
-<p class="empty">No media uploaded yet.</p>
+<div class="nano-cms-admin-empty"><p>No media uploaded yet.</p></div>
 <?php else: ?>
-<div class="media-grid">
+<div class="nano-cms-admin-media-grid">
 <?php foreach ($items as $it): $name = $it['filename']; $is_used = isset($used[strtolower($name)]); ?>
-  <div class="tile">
+  <div class="nano-cms-admin-tile">
     <img src="<?= nano_admin_e($base_url . '/media/' . $name) ?>" alt="" loading="lazy">
-    <div class="meta">
+    <div class="nano-cms-admin-tile-meta">
       <strong><?= nano_admin_e($name) ?></strong>
-      <?php if (!$is_used): ?><span class="unused-tag">unused</span><?php endif; ?>
+      <?php if (!$is_used): ?> <span class="nano-cms-admin-pill">unused</span><?php endif; ?>
       <br><?= number_format($it['bytes'] / 1024, 1) ?> KB &middot; <?= nano_admin_e(date('Y-m-d', $it['mtime'])) ?>
     </div>
-    <div class="actions">
-      <button type="button" class="js-copy" data-clip="![](<?= nano_admin_e($name) ?>)" title="Copy Markdown image syntax for the post body">Copy MD</button>
-      <button type="button" class="js-copy" data-clip="<?= nano_admin_e($name) ?>" title="Copy just the filename for the frontmatter image: field">Copy name</button>
+    <div class="nano-cms-admin-tile-actions">
+      <button type="button" class="js-copy nano-cms-admin-button nano-cms-admin-button-sm" data-clip="![](<?= nano_admin_e($name) ?>)" title="Copy Markdown image syntax for the post body">Copy MD</button>
+      <button type="button" class="js-copy nano-cms-admin-button nano-cms-admin-button-sm" data-clip="<?= nano_admin_e($name) ?>" title="Copy just the filename for the frontmatter image: field">Copy name</button>
       <form method="post" action="?action=delete" onsubmit="return confirm('Delete <?= nano_admin_e($name) ?>?');">
         <?= nano_admin_csrf_field() ?>
         <input type="hidden" name="filename" value="<?= nano_admin_e($name) ?>">
-        <button type="submit" class="danger">Delete</button>
+        <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger nano-cms-admin-button-sm">Delete</button>
       </form>
     </div>
   </div>
@@ -118,5 +103,3 @@ document.querySelectorAll('button.js-copy').forEach(function (b) {
 });
 </script>
 <?= nano_admin_render_footer() ?>
-</body>
-</html>

@@ -19,32 +19,12 @@ nano_admin_require_login();
 
 $cfg = nano_admin_load_config();
 $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
+echo nano_admin_header('Help', 'help');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Help - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1>Help</h1>
-  <div>
-    <a href="index.php">All posts</a>
-    | <a href="media.php">Media</a>
-    | <a href="categories.php">Categories</a>
-    | <a href="settings.php">Settings</a>
-    | <a href="licence.php">Licence</a>
-    | <?= nano_admin_logout_form() ?>
-  </div>
-</div>
-
-<section class="help-section">
+<section class="nano-cms-admin-help-section">
 <h2>Markdown</h2>
 <p>The post body is Markdown. Parsedown's safe mode is on, which strips raw HTML and dangerous URLs - everything that ends up in the rendered post is generated from Markdown or shortcodes.</p>
-<table class="help-table">
+<table class="nano-cms-admin-table">
 <tr><th>Syntax</th><th>Renders as</th></tr>
 <tr><td><code># Heading 1</code> ... <code>###### Heading 6</code></td><td>Headings</td></tr>
 <tr><td><code>**bold**</code> &middot; <code>*italic*</code> &middot; <code>`inline code`</code></td><td>Inline emphasis</td></tr>
@@ -58,20 +38,20 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 </table>
 </section>
 
-<section class="help-section">
+<section class="nano-cms-admin-help-section">
 <h2>Shortcodes</h2>
 <p>Shortcodes expand to safe iframe embeds <em>after</em> Markdown rendering, so they survive safe-mode stripping. There are exactly two:</p>
-<table class="help-table">
+<table class="nano-cms-admin-table">
 <tr><th>Shortcode</th><th>Renders as</th></tr>
 <tr><td><code>[video:youtube:VIDEO_ID]</code></td><td>Responsive YouTube embed (uses <code>youtube-nocookie.com</code>)</td></tr>
 <tr><td><code>[video:vimeo:VIDEO_ID]</code></td><td>Responsive Vimeo embed</td></tr>
 </table>
-<p class="help">Place a shortcode on its own line for a block-level embed. Inline shortcodes (mid-paragraph) work but render as a div nested inside a paragraph - browsers tolerate it.</p>
+<p class="nano-cms-admin-help">Place a shortcode on its own line for a block-level embed. Inline shortcodes (mid-paragraph) work but render as a div nested inside a paragraph - browsers tolerate it.</p>
 </section>
 
-<section class="help-section">
+<section class="nano-cms-admin-help-section">
 <h2>Frontmatter fields</h2>
-<table class="help-table">
+<table class="nano-cms-admin-table">
 <tr><th>Field</th><th>Required</th><th>Notes</th></tr>
 <tr><td><code>title</code></td><td>yes</td><td>Used in <code>&lt;title&gt;</code> and the post heading. Aim for under 60 chars for search snippets.</td></tr>
 <tr><td><code>slug</code></td><td>yes</td><td>URL slug. <code>[a-z0-9-]+</code> only. Authoritative - the file is renamed to match on every save.</td></tr>
@@ -86,7 +66,7 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 </table>
 </section>
 
-<section class="help-section">
+<section class="nano-cms-admin-help-section">
 <h2>Media uploads</h2>
 <ul>
 <li>Allowed types: <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>. Nothing else.</li>
@@ -97,7 +77,7 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 </ul>
 </section>
 
-<section class="help-section">
+<section class="nano-cms-admin-help-section">
 <h2>Recommended image sizes</h2>
 <p>Hero images appear in two places: the article-card grid (small, cropped) and the single-post hero (full-width). The rendering rules:</p>
 <ul>
@@ -106,10 +86,10 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 <li><strong>Keep the subject near the upper-centre.</strong> The card crop biases roughly 35% from the top - faces and key elements there survive the crop reliably.</li>
 <li><strong>JPG for photos, PNG for graphics with sharp edges, WebP if you want smaller files.</strong> The server re-encodes on upload, so source compression doesn't matter.</li>
 </ul>
-<p class="help">Every upload now generates a pre-cropped thumbnail saved alongside the original (e.g. <code>2026-05-06-a4f8b2.jpg</code> + <code>2026-05-06-a4f8b2-thumb.jpg</code>). Article cards on category pages display the thumbnail; the single-post hero still uses the full-size original. Default thumbnail dimensions are 600&times;400 (3:2). Adjust them on the Settings page if needed - changes apply only to subsequent uploads.</p>
+<p class="nano-cms-admin-help">Every upload now generates a pre-cropped thumbnail saved alongside the original (e.g. <code>2026-05-06-a4f8b2.jpg</code> + <code>2026-05-06-a4f8b2-thumb.jpg</code>). Article cards on category pages display the thumbnail; the single-post hero still uses the full-size original. Default thumbnail dimensions are 600&times;400 (3:2). Adjust them on the Settings page if needed - changes apply only to subsequent uploads.</p>
 </section>
 
-<section class="help-section">
+<section class="nano-cms-admin-help-section">
 <h2>Deployment notes</h2>
 <ul>
 <li><strong>HTTPS is mandatory.</strong> The admin refuses to load over HTTP, with no localhost exemption.</li>
@@ -120,8 +100,6 @@ $site_name = (string)($cfg['site_name'] ?? 'Nano CMS');
 </ul>
 </section>
 
-<p class="help">Admin version <?= nano_admin_e(NANO_ADMIN_VERSION) ?>. Format version <?= nano_admin_e((string)($cfg['format_version'] ?? '?')) ?>.</p>
+<p class="nano-cms-admin-help">Admin version <?= nano_admin_e(NANO_ADMIN_VERSION) ?>. Format version <?= nano_admin_e((string)($cfg['format_version'] ?? '?')) ?>.</p>
 
 <?= nano_admin_render_footer() ?>
-</body>
-</html>

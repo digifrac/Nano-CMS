@@ -46,69 +46,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $categories = nano_admin_categories();
 $base_url = rtrim((string)($cfg['base_url'] ?? ''), '/');
 $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
+echo nano_admin_header('Categories', 'categories');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Categories - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1>Categories</h1>
-  <div>
-    <a href="index.php">All posts</a>
-    | <a href="media.php">Media</a>
-    | <a href="settings.php">Settings</a>
-    | <a href="licence.php">Licence</a>
-    | <a href="help.php">Help</a>
-    | <?= nano_admin_logout_form() ?>
-  </div>
-</div>
-
 <?php if ($flash !== null): ?>
-<div class="flash-<?= nano_admin_e($flash[0]) ?>"><?= nano_admin_e($flash[1]) ?></div>
+<?= nano_admin_flash($flash[0], $flash[1]) ?>
 <?php endif; ?>
 
 <?php if (!$reencoder_available): ?>
-<div class="warn"><strong>Uploads disabled:</strong> GD or Imagick must be loaded to safely accept image uploads. Browsing still works.</div>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-warning"><strong>Uploads disabled:</strong> GD or Imagick must be loaded to safely accept image uploads. Browsing still works.</div>
 <?php endif; ?>
 
-<p class="help">A category is anything used in a post's <code>category:</code> frontmatter. Attach an image here and it appears on the homepage card for that topic. Removing an image leaves the card text-only.</p>
+<p class="nano-cms-admin-help">A category is anything used in a post's <code>category:</code> frontmatter. Attach an image here and it appears on the homepage card for that topic. Removing an image leaves the card text-only.</p>
 
 <?php if (empty($categories)): ?>
-<p class="empty">No categories yet. Create a post first.</p>
+<div class="nano-cms-admin-empty"><p>No categories yet. Create a post first.</p></div>
 <?php else: ?>
-<div class="category-image-list">
+<div class="nano-cms-admin-category-list">
 <?php foreach ($categories as $cat):
     $img_filename = nano_admin_find_category_image($cat);
     $img_url = $img_filename !== null ? $base_url . '/media/' . $img_filename : null;
 ?>
-  <div class="category-image-row">
-    <div class="category-image-thumb">
+  <div class="nano-cms-admin-category-row">
+    <div class="nano-cms-admin-category-thumb">
 <?php if ($img_url !== null): ?>
       <img src="<?= nano_admin_e($img_url) ?>" alt="">
 <?php else: ?>
       <span class="empty-thumb">No image</span>
 <?php endif; ?>
     </div>
-    <div class="category-image-meta">
+    <div class="nano-cms-admin-category-meta">
       <strong><?= nano_admin_e(ucfirst(str_replace('-', ' ', $cat))) ?></strong>
       <small><?= nano_admin_e($cat) ?></small>
     </div>
-    <form method="post" action="?action=upload" enctype="multipart/form-data" class="category-image-form">
+    <form method="post" action="?action=upload" enctype="multipart/form-data" class="nano-cms-admin-category-form">
       <?= nano_admin_csrf_field() ?>
       <input type="hidden" name="slug" value="<?= nano_admin_e($cat) ?>">
       <input type="file" name="image" accept=".jpg,.jpeg,.png,.gif,.webp" <?= $reencoder_available ? 'required' : 'disabled' ?>>
-      <button type="submit" <?= $reencoder_available ? '' : 'disabled' ?>><?= $img_url !== null ? 'Replace' : 'Upload' ?></button>
+      <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-sm" <?= $reencoder_available ? '' : 'disabled' ?>><?= $img_url !== null ? 'Replace' : 'Upload' ?></button>
     </form>
 <?php if ($img_url !== null): ?>
-    <form method="post" action="?action=delete" class="category-image-remove" onsubmit="return confirm('Remove this category image?');">
+    <form method="post" action="?action=delete" onsubmit="return confirm('Remove this category image?');">
       <?= nano_admin_csrf_field() ?>
       <input type="hidden" name="slug" value="<?= nano_admin_e($cat) ?>">
-      <button type="submit" class="danger">Remove</button>
+      <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger nano-cms-admin-button-sm">Remove</button>
     </form>
 <?php endif; ?>
   </div>
@@ -117,5 +97,3 @@ $reencoder_available = extension_loaded('gd') || extension_loaded('imagick');
 <?php endif; ?>
 
 <?= nano_admin_render_footer() ?>
-</body>
-</html>

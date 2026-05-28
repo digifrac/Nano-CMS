@@ -153,48 +153,27 @@ $categories = nano_admin_categories();
 $preview_url = (!$is_new && $base_url !== '')
     ? $base_url . '/' . rawurlencode((string)$original_fm['slug']) . '/?preview=' . rawurlencode(nano_admin_csrf_token())
     : null;
+echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= nano_admin_e($is_new ? 'New post' : ('Edit: ' . $form['title'])) ?> - <?= nano_admin_e($site_name) ?></title>
-<link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-<div class="bar">
-  <h1><?= nano_admin_e($is_new ? 'New post' : 'Edit post') ?></h1>
-  <div>
-    <a href="index.php">All posts</a>
-    | <a href="media.php">Media</a>
-    | <a href="categories.php">Categories</a>
-    | <a href="settings.php">Settings</a>
-    | <a href="licence.php">Licence</a>
-    | <a href="help.php">Help</a>
-    | <?= nano_admin_logout_form() ?>
-  </div>
-</div>
-
 <?php if (!empty($errors)): ?>
-<div class="errors"><strong>Could not save:</strong>
+<div class="nano-cms-admin-flash nano-cms-admin-flash-error"><strong>Could not save:</strong>
 <ul><?php foreach ($errors as $e): ?><li><?= nano_admin_e($e) ?></li><?php endforeach; ?></ul>
 </div>
 <?php elseif ($flash !== null): ?>
-<div class="flash-ok"><?= nano_admin_e($flash) ?></div>
+<?= nano_admin_flash('ok', $flash) ?>
 <?php endif; ?>
 
-<form method="post" autocomplete="off">
+<form method="post" class="nano-cms-admin-form" autocomplete="off">
 <?= nano_admin_csrf_field() ?>
 
-<div class="grid">
+<div class="nano-cms-admin-grid">
   <div class="full">
     <label>Title<input type="text" name="title" id="nano-title" value="<?= nano_admin_e($form['title']) ?>" maxlength="200" required></label>
-    <p class="counter"><span id="title-count">0</span> chars (search snippets cut off around 60)</p>
+    <p class="nano-cms-admin-counter"><span id="title-count">0</span> chars (search snippets cut off around 60)</p>
   </div>
   <div>
     <label>Slug<input type="text" name="slug" value="<?= nano_admin_e($form['slug']) ?>" pattern="[a-z0-9\-]+" required></label>
-    <p class="help">[a-z0-9-] only. Authoritative for the URL; filename will be reconciled on save.</p>
+    <p class="nano-cms-admin-help">[a-z0-9-] only. Authoritative for the URL; filename will be reconciled on save.</p>
   </div>
   <div>
     <label>Category<input type="text" name="category" list="nano-categories" value="<?= nano_admin_e($form['category']) ?>" required></label>
@@ -212,56 +191,58 @@ $preview_url = (!$is_new && $base_url !== '')
   </div>
   <div class="full">
     <label>Description (meta description, ~150 chars)<input type="text" name="description" value="<?= nano_admin_e($form['description']) ?>" maxlength="240" required></label>
-    <p class="counter"><span id="desc-count">0</span> chars</p>
+    <p class="nano-cms-admin-counter"><span id="desc-count">0</span> chars</p>
   </div>
   <div>
     <label>Hero image filename (in /media/)<input type="text" name="image" value="<?= nano_admin_e($form['image']) ?>"></label>
-    <p class="help">Full-size image shown at the top of the single-post page.</p>
+    <p class="nano-cms-admin-help">Full-size image shown at the top of the single-post page.</p>
   </div>
   <div>
     <label>Card thumbnail filename (optional)<input type="text" name="thumbnail" value="<?= nano_admin_e($form['thumbnail'] ?? '') ?>"></label>
-    <p class="help">Separate image used on category-archive cards. Leave blank to auto-derive from the hero image.</p>
+    <p class="nano-cms-admin-help">Separate image used on category-archive cards. Leave blank to auto-derive from the hero image.</p>
   </div>
   <div>
     <label>Image alt text<input type="text" name="image_alt" value="<?= nano_admin_e($form['image_alt']) ?>"></label>
   </div>
-  <div class="full checkbox-row">
+  <div class="full nano-cms-admin-checkbox-row">
     <label><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>
 <?php if ($preview_url !== null): ?>
-    <span class="preview-link">
+    <span class="nano-cms-admin-preview-link">
       <a href="<?= nano_admin_e($preview_url) ?>" target="_blank" rel="noopener">Preview as draft</a>
     </span>
 <?php endif; ?>
   </div>
   <div class="full">
     <label>Body (Markdown)</label>
-    <div class="md-toolbar">
-      <button type="button" data-md="bold">B</button>
-      <button type="button" data-md="italic"><em>I</em></button>
-      <button type="button" data-md="link">Link</button>
-      <button type="button" data-md="heading">H</button>
-      <button type="button" data-md="list">List</button>
-      <button type="button" data-md="code">Code</button>
+    <div class="nano-cms-admin-markdown-editor">
+      <div class="nano-cms-admin-md-toolbar">
+        <button type="button" data-md="bold">B</button>
+        <button type="button" data-md="italic"><em>I</em></button>
+        <button type="button" data-md="link">Link</button>
+        <button type="button" data-md="heading">H</button>
+        <button type="button" data-md="list">List</button>
+        <button type="button" data-md="code">Code</button>
+      </div>
+      <textarea id="nano-body" name="body" required><?= nano_admin_e($form['body']) ?></textarea>
     </div>
-    <textarea id="nano-body" name="body" required><?= nano_admin_e($form['body']) ?></textarea>
-    <p class="help">Markdown only. Embed video with <code>[video:youtube:ID]</code> or <code>[video:vimeo:ID]</code>.</p>
+    <p class="nano-cms-admin-help">Markdown only. Embed video with <code>[video:youtube:ID]</code> or <code>[video:vimeo:ID]</code>.</p>
   </div>
 </div>
 
-<div class="actions">
-  <button type="submit" name="save_action" value="list" class="primary"><?= $is_new ? 'Create and return to list' : 'Save and return to list' ?></button>
-  <button type="submit" name="save_action" value="continue">Save and keep editing</button>
-  <a href="index.php">Cancel</a>
+<div class="nano-cms-admin-form-actions">
+  <button type="submit" name="save_action" value="list" class="nano-cms-admin-button nano-cms-admin-button-primary"><?= $is_new ? 'Create and return to list' : 'Save and return to list' ?></button>
+  <button type="submit" name="save_action" value="continue" class="nano-cms-admin-button">Save and keep editing</button>
+  <a href="index.php" class="nano-cms-admin-button nano-cms-admin-button-secondary">Cancel</a>
 </div>
 
 </form>
 
 <?php if (!$is_new): ?>
-<form method="post" action="index.php?action=delete" class="delete-form"
+<form method="post" action="index.php?action=delete"
       onsubmit="return confirm('Delete this post? This cannot be undone.');">
   <?= nano_admin_csrf_field() ?>
   <input type="hidden" name="slug" value="<?= nano_admin_e((string)$original_fm['slug']) ?>">
-  <button type="submit" class="danger">Delete this post</button>
+  <button type="submit" class="nano-cms-admin-button nano-cms-admin-button-danger">Delete this post</button>
 </form>
 <?php endif; ?>
 
@@ -280,7 +261,7 @@ $preview_url = (!$is_new && $base_url !== '')
         if (window.scrollY !== savedWindowScroll) window.scrollTo(0, savedWindowScroll);
       }, 0);
     });
-    document.querySelectorAll('.md-toolbar button[data-md]').forEach(function (btn) {
+    document.querySelectorAll('.nano-cms-admin-md-toolbar button[data-md]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var kind = btn.getAttribute('data-md');
         var s = ta.selectionStart, e = ta.selectionEnd;
@@ -316,5 +297,3 @@ $preview_url = (!$is_new && $base_url !== '')
 })();
 </script>
 <?= nano_admin_render_footer() ?>
-</body>
-</html>
