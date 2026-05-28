@@ -188,7 +188,7 @@ ob_start();
   </a>
 <?php endif; ?>
 <?php if (!empty($featured_posts)): ?>
-  <h2 class="nano-blog-section-title">Featured</h2>
+  <h2 class="nano-blog-section-title">Featured articles</h2>
   <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$articles_per_row ?>; <?= $article_grid_style ?>">
 <?php foreach ($featured_posts as $fp): $fp_img = nano_card_image_url($fp); ?>
     <article class="nano-blog-card<?= $fp_img !== null ? ' has-image' : '' ?>">
@@ -209,7 +209,7 @@ ob_start();
 <?php if (empty($categories)): ?>
   <p>No posts yet.</p>
 <?php else: ?>
-  <h2 class="nano-blog-section-title">Browse by topic</h2>
+  <h2 class="nano-blog-section-title">Categories</h2>
   <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>; <?= $category_grid_style ?>">
 <?php foreach ($categories as $c):
     $post_word = $c['count'] === 1 ? 'article' : 'articles';
