@@ -104,7 +104,7 @@ ob_start();
 <?php endif; ?>
   </header>
 <?php if (!empty($fm['image'])): ?>
-  <figure class="nano-blog-hero">
+  <figure class="nano-blog-figure">
     <img src="<?= nano_e(nano_media_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>" loading="lazy">
   </figure>
 <?php endif; ?>

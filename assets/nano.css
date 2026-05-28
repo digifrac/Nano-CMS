@@ -236,6 +236,11 @@
 .nano-blog-breadcrumb span[aria-hidden] { margin: 0; color: var(--nano-color-border); opacity: 1; }
 .nano-blog-category-intro { margin: 0 0 calc(var(--nano-spacing-unit) * 1.5); color: var(--nano-color-text-muted); max-width: 65ch; }
 
+/* Single-post lead image: full image at natural size (capped to the content
+   column), no fixed-height box and no crop - mirrors Cart's gallery-main. */
+.nano-blog-figure { margin: 0 0 calc(var(--nano-spacing-unit) * 1.5) 0; }
+.nano-blog-figure img { max-width: 100%; height: auto; display: block; border: 1px solid var(--nano-color-border); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); }
+
 /* Homepage hero article + section headings. */
 .nano-blog-section-title { font-size: 1.25rem; margin: calc(var(--nano-spacing-unit) * 2) 0 var(--nano-spacing-unit); padding-top: calc(var(--nano-spacing-unit) * 1.5); border-top: 1px solid var(--nano-color-border); }
 .nano-blog-hero { display: block; color: inherit; text-decoration: none; border: 1px solid var(--nano-color-border); border-radius: var(--nano-radius); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.25s ease, transform 0.25s ease; margin-bottom: calc(var(--nano-spacing-unit) * 2); }
