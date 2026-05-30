@@ -20,7 +20,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
  * release, even though the two codebases ship as separate zips.
  * When bumping for a release, edit both.
  */
-const NANO_VERSION = '1.5.0';
+const NANO_VERSION = '1.6.0';
 
 require_once __DIR__ . '/lib/Parsedown.php';
 
@@ -62,6 +62,89 @@ function nano_image_bg_attr(?string $hex): string
     return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $hex)
         ? ' style="background:' . $hex . '"'
         : '';
+}
+
+/**
+ * Map a stored focal-point keyword to a CSS object-position value. The
+ * keyword is what each image's editor saves - so the crop is per-image,
+ * never a single global setting. '' or an unknown value falls back to the
+ * historical default of upper-centre (50% 35%), so images saved before this
+ * feature existed look exactly as they did.
+ */
+function nano_image_position_value(string $keyword): string
+{
+    return match (trim($keyword)) {
+        'centre', 'center' => '50% 50%',
+        'top'              => '50% 0%',
+        'bottom'           => '50% 100%',
+        'left'             => '0% 50%',
+        'right'            => '100% 50%',
+        'top-left'         => '0% 0%',
+        'top-right'        => '100% 0%',
+        'bottom-left'      => '0% 100%',
+        'bottom-right'     => '100% 100%',
+        'upper-centre'     => '50% 35%',
+        default            => '50% 35%',
+    };
+}
+
+/**
+ * Build the inline style fragment for a framed image (article/category cards
+ * and the post hero): per-image fit (cover/contain), focal point, and
+ * background colour, combined into one ` style="..."`. Only emits properties
+ * that are actually set, so the stylesheet still drives the common (untouched)
+ * case and existing markup stays lean. Returns '' when nothing is set.
+ *
+ * This is the per-image control - each post and category carries its own
+ * fit/focus/background, mirroring Nano Cart's per-product image settings.
+ */
+function nano_image_style_attr(string $fit, string $position, ?string $bg): string
+{
+    $props = [];
+
+    $fit = strtolower(trim($fit));
+    if ($fit === 'cover' || $fit === 'contain') {
+        $props[] = 'object-fit:' . $fit;
+    }
+
+    $position = trim($position);
+    if ($position !== '') {
+        $props[] = 'object-position:' . nano_image_position_value($position);
+    }
+
+    $bg = trim((string)$bg);
+    if (preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $bg)) {
+        $props[] = 'background:' . $bg;
+    }
+
+    return $props === [] ? '' : ' style="' . implode(';', $props) . '"';
+}
+
+/**
+ * Per-image fit keyword for the card image (mirrors nano_card_image_bg): a
+ * separate thumbnail's own setting when a `thumbnail` is set, otherwise the
+ * hero image's. Follows whichever image nano_card_image_url() shows.
+ */
+function nano_card_image_fit(array $fm): string
+{
+    $thumb = trim((string)($fm['thumbnail'] ?? ''));
+    if ($thumb !== '') {
+        return (string)($fm['thumbnail_fit'] ?? '');
+    }
+    return (string)($fm['image_fit'] ?? '');
+}
+
+/**
+ * Per-image focal-point keyword for the card image, paired with
+ * nano_card_image_fit().
+ */
+function nano_card_image_position(array $fm): string
+{
+    $thumb = trim((string)($fm['thumbnail'] ?? ''));
+    if ($thumb !== '') {
+        return (string)($fm['thumbnail_position'] ?? '');
+    }
+    return (string)($fm['image_position'] ?? '');
 }
 
 /* ------------------------------------------------------------------------- */
@@ -544,6 +627,9 @@ function nano_list_categories_with_counts(): array
         }
         $by_slug[$slug]['description'] = (string)($rec['description'] ?? '');
         $by_slug[$slug]['image_bg'] = (string)($rec['image_bg'] ?? '');
+        $by_slug[$slug]['image_alt'] = (string)($rec['image_alt'] ?? '');
+        $by_slug[$slug]['image_fit'] = (string)($rec['image_fit'] ?? '');
+        $by_slug[$slug]['image_focus'] = (string)($rec['image_focus'] ?? '');
         if (array_key_exists('sort_order', $rec)) {
             $by_slug[$slug]['sort_order'] = (int)$rec['sort_order'];
         }
@@ -561,6 +647,43 @@ function nano_list_categories_with_counts(): array
         return strcmp($a['label'], $b['label']);
     });
     return $cats;
+}
+
+/**
+ * Render the section sub-nav shown above each page's heading: an "All" link
+ * plus one link per category, with the current section marked active. Driven
+ * by the category list, so new categories appear automatically. Returns
+ * already-escaped HTML, or '' when there are no categories.
+ */
+function nano_category_nav_html(string $current_slug = ''): string
+{
+    $cats = nano_list_categories_with_counts();
+    if (empty($cats)) {
+        return '';
+    }
+    $out  = '<nav class="nano-blog-catnav" aria-label="Categories">';
+    $out .= '<input type="checkbox" id="nano-blog-catnav-toggle" class="nano-blog-catnav-toggle">';
+    $out .= '<label class="nano-blog-catnav-btn" for="nano-blog-catnav-toggle">'
+          . '<svg class="nano-blog-catnav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>'
+          . '<span>Categories</span></label>';
+    $out .= '<label class="nano-blog-catnav-backdrop" for="nano-blog-catnav-toggle" aria-hidden="true"></label>';
+    $out .= '<aside class="nano-blog-catnav-panel" aria-label="Categories">';
+    $out .= '<div class="nano-blog-catnav-head"><span>Categories</span>'
+          . '<label class="nano-blog-catnav-close" for="nano-blog-catnav-toggle" aria-label="Close">&times;</label></div>';
+    $out .= '<div class="nano-blog-catnav-links">';
+    $out .= '<a' . ($current_slug === '' ? ' class="is-active" aria-current="page"' : '') . ' href="'
+          . nano_e(nano_index_url(1)) . '">' . nano_e(nano_blog_label()) . '</a>';
+    foreach ($cats as $c) {
+        $slug = (string)($c['slug'] ?? '');
+        if ($slug === '') {
+            continue;
+        }
+        $active = $slug === $current_slug ? ' class="is-active" aria-current="page"' : '';
+        $out .= '<a href="' . nano_e(nano_category_url($slug)) . '"' . $active . '>'
+              . nano_e((string)($c['label'] ?? $slug)) . '</a>';
+    }
+    $out .= '</div></aside></nav>';
+    return $out;
 }
 
 /* ------------------------------------------------------------------------- */

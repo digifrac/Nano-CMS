@@ -78,15 +78,27 @@ echo nano_admin_header('Help', 'help');
 </section>
 
 <section class="nano-cms-admin-help-section">
+<h2>Per-image control</h2>
+<p>There is no single global crop. Each post and each category carries its own image settings, set on the post editor and the category editor:</p>
+<table class="nano-cms-admin-table">
+<tr><th>Setting</th><th>What it does</th></tr>
+<tr><td><code>Fit: cover</code></td><td>Fills the card frame and crops the overflow. Best for photos where edge loss is fine. This is the default.</td></tr>
+<tr><td><code>Fit: contain</code></td><td>Shows the <em>whole</em> image inside the card with no cropping. Leftover space shows the background colour. Best for logos, packshots, and anything that must not be cut.</td></tr>
+<tr><td><code>Focal point</code></td><td>When Cover crops the image, this picks which part to keep - upper centre (default), centre, top, bottom, left, or right. No effect under Contain.</td></tr>
+<tr><td><code>Background colour</code></td><td>Hex colour shown behind a Contain image or behind transparency. Leave blank for none.</td></tr>
+</table>
+<p class="nano-cms-admin-help">Uploaded thumbnails now keep the picture's original shape - nothing is cropped into the file - so you can change Fit and Focal point on any image at any time and the framing updates live, with no re-upload needed.</p>
+</section>
+
+<section class="nano-cms-admin-help-section">
 <h2>Recommended image sizes</h2>
-<p>Hero images appear in two places: the article-card grid (small, cropped) and the single-post hero (full-width). The rendering rules:</p>
 <ul>
-<li><strong>Aim for landscape, ratio 3:2.</strong> Article cards crop everything to 3:2 (1.5x wider than tall). Pictures shot in 4:3 or 16:9 still work, but expect crop loss.</li>
-<li><strong>Recommended size: 1200&times;800 pixels.</strong> Big enough to look sharp on retina screens, small enough that the file stays well under the 5 MB limit. 1600&times;1067 if you want extra headroom for high-DPI displays.</li>
-<li><strong>Keep the subject near the upper-centre.</strong> The card crop biases roughly 35% from the top - faces and key elements there survive the crop reliably.</li>
-<li><strong>JPG for photos, PNG for graphics with sharp edges, WebP if you want smaller files.</strong> The server re-encodes on upload, so source compression doesn't matter.</li>
+<li><strong>Upload large, display small.</strong> Upload a generous source (e.g. 1200&times;800 or larger, well under the 5 MB limit); the blog downscales it for cards and never upscales, so a small source stays small.</li>
+<li><strong>Landscape 3:2 is the safe default</strong> for the card grid, but any shape works now - use Contain plus a background colour when you don't want a picture cropped.</li>
+<li><strong>Keep the subject where your Focal point points.</strong> Under Cover the default keeps the upper-centre; change it per image if the subject sits elsewhere.</li>
+<li><strong>JPG for photos, PNG for graphics with transparency, WebP for smaller files.</strong> The server re-encodes on upload, so source compression doesn't matter.</li>
 </ul>
-<p class="nano-cms-admin-help">Every upload now generates a pre-cropped thumbnail saved alongside the original (e.g. <code>2026-05-06-a4f8b2.jpg</code> + <code>2026-05-06-a4f8b2-thumb.jpg</code>). Article cards on category pages display the thumbnail; the single-post hero still uses the full-size original. Default thumbnail dimensions are 600&times;400 (3:2). Adjust them on the Settings page if needed - changes apply only to subsequent uploads.</p>
+<p class="nano-cms-admin-help">Card thumbnail dimensions (the bounding box images are downscaled into) are set on the Settings page; changes apply to subsequent uploads.</p>
 </section>
 
 <section class="nano-cms-admin-help-section">

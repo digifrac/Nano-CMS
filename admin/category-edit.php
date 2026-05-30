@@ -35,8 +35,11 @@ $form = [
     'name'        => (string)($existing['name'] ?? ($is_new ? '' : ucfirst(str_replace('-', ' ', $get_slug)))),
     'description' => (string)($existing['description'] ?? ''),
     'image'       => (string)($existing['image'] ?? ''),
+    'image_alt'   => (string)($existing['image_alt'] ?? ''),
     'image_position' => (($existing['image_position'] ?? '') === 'right') ? 'right' : 'left',
     'image_bg'    => (string)($existing['image_bg'] ?? ''),
+    'image_fit'   => (($existing['image_fit'] ?? '') === 'contain') ? 'contain' : 'cover',
+    'image_focus' => (string)($existing['image_focus'] ?? ''),
     'sort_order'  => isset($existing['sort_order']) ? (string)(int)$existing['sort_order'] : '',
 ];
 $errors = [];
@@ -46,8 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form['name']        = trim((string)($_POST['name'] ?? ''));
     $form['description'] = trim((string)($_POST['description'] ?? ''));
     $form['image']       = trim((string)($_POST['image'] ?? ''));
+    $form['image_alt']   = trim((string)($_POST['image_alt'] ?? ''));
     $form['image_position'] = (($_POST['image_position'] ?? '') === 'right') ? 'right' : 'left';
     $form['image_bg'] = trim((string)($_POST['image_bg'] ?? ''));
+    $form['image_fit'] = (($_POST['image_fit'] ?? '') === 'contain') ? 'contain' : 'cover';
+    $form['image_focus'] = trim((string)($_POST['image_focus'] ?? ''));
     $form['sort_order'] = trim((string)($_POST['sort_order'] ?? ''));
     $slug = $is_new ? nano_admin_safe_slug((string)($_POST['slug'] ?? '')) : $get_slug;
     $form['slug'] = $slug;
@@ -77,8 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name'        => $form['name'],
             'description' => $form['description'],
             'image'       => $form['image'],
+            'image_alt'   => $form['image_alt'],
             'image_position' => $form['image_position'],
             'image_bg'    => $form['image_bg'],
+            'image_fit'   => $form['image_fit'],
+            'image_focus' => $form['image_focus'],
             'sort_order'  => $form['sort_order'],
         ]);
         header('Location: categories.php?msg=' . ($is_new ? 'created' : 'saved'));
@@ -140,9 +149,28 @@ echo nano_admin_header($is_new ? 'New category' : 'Edit category', 'categories')
 <div class="nano-cms-admin-imgprev" data-prev-for="cat-image"></div>
 <p class="nano-cms-admin-help">Shown on the homepage category card and the category page header. Optional.</p>
 
+<label for="cat-image-alt">Image alt text</label>
+<input type="text" name="image_alt" id="cat-image-alt" value="<?= nano_admin_e($form['image_alt']) ?>" maxlength="200" placeholder="Describe the image for screen readers and SEO">
+<p class="nano-cms-admin-help">Alternative text for the category image (homepage card and page banner), for screen readers and search engines. Falls back to the category name if left blank.</p>
+
 <label for="cat-image-bg">Image background colour</label>
 <input type="text" name="image_bg" id="cat-image-bg" value="<?= nano_admin_e($form['image_bg']) ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
 <p class="nano-cms-admin-help">Hex colour shown behind this category's card and banner images - e.g. through the transparent areas of a PNG. Leave blank for transparent.</p>
+
+<label for="cat-image-fit">Image fit</label>
+<select name="image_fit" id="cat-image-fit">
+  <option value="cover"<?= $form['image_fit'] !== 'contain' ? ' selected' : '' ?>>Cover &ndash; fill the frame, crop the overflow (default)</option>
+  <option value="contain"<?= $form['image_fit'] === 'contain' ? ' selected' : '' ?>>Contain &ndash; show the whole image (uses the background colour)</option>
+</select>
+<p class="nano-cms-admin-help">How this category's image fills its card on the homepage. Choose <strong>Contain</strong> for logos or anything that must not be cropped.</p>
+
+<label for="cat-image-focus">Image focal point</label>
+<select name="image_focus" id="cat-image-focus">
+<?php foreach (['' => 'Upper centre (default)', 'centre' => 'Centre', 'top' => 'Top', 'bottom' => 'Bottom', 'left' => 'Left', 'right' => 'Right'] as $val => $lbl): ?>
+  <option value="<?= nano_admin_e($val) ?>"<?= $form['image_focus'] === $val ? ' selected' : '' ?>><?= nano_admin_e($lbl) ?></option>
+<?php endforeach; ?>
+</select>
+<p class="nano-cms-admin-help">Which part of the image to keep when Cover crops it to fit the card. No effect when Contain is selected.</p>
 
 <label>Image position
   <select name="image_position">

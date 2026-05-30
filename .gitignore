@@ -32,6 +32,15 @@ TODO.md
 
 /blog-test/
 
+# Live demo deployment (blog + shop + marketing site bundled for SFTP upload
+# to the public site). Dev/deploy folder, not CMS source.
+
+/web-downlod/
+
+# Dev note documenting a demo-site (web-downlod) issue. Working notes, not source.
+
+NAV-POP-FIX.md
+
 # Local dev test suite (licence verification harness etc.). Run locally
 # during development; not shipped or tracked as CMS source.
 

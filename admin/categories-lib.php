@@ -71,8 +71,11 @@ function nano_admin_save_category(array $cat): bool
         'name'        => trim((string)($cat['name'] ?? '')),
         'description' => trim((string)($cat['description'] ?? '')),
         'image'       => trim((string)($cat['image'] ?? '')),
+        'image_alt'   => trim((string)($cat['image_alt'] ?? '')),
         'image_position' => (($cat['image_position'] ?? '') === 'right') ? 'right' : 'left',
         'image_bg'    => preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', trim((string)($cat['image_bg'] ?? ''))) ? trim((string)$cat['image_bg']) : '',
+        'image_fit'   => (trim((string)($cat['image_fit'] ?? '')) === 'contain') ? 'contain' : 'cover',
+        'image_focus' => in_array(trim((string)($cat['image_focus'] ?? '')), ['centre', 'top', 'bottom', 'left', 'right'], true) ? trim((string)$cat['image_focus']) : '',
         'created'     => (string)($existing['created'] ?? $cat['created'] ?? $now),
         'updated'     => $now,
     ];

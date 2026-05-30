@@ -2,6 +2,35 @@
 
 Notable changes to Nano CMS. Earlier per-commit history lives in git.
 
+## [1.6.0] - 2026-05-30
+
+### Added
+- **Per-image fit, focal point, and background - set per image, not globally.**
+  Every post (hero and card) and every category now carries its own image
+  controls in the editor: **Fit** (Cover - fill and crop; or Contain - show the
+  whole image on a background), a **Focal point** (upper-centre by default, or
+  centre/top/bottom/left/right) deciding what Cover keeps, and a **background
+  colour** behind Contain images or transparency. These apply to article cards,
+  the homepage hero, featured cards, category cards, and the category banner.
+- **Admin Dashboard page.** A landing screen with stats, recent posts, quick
+  actions, and the installation health check - mirroring Nano Cart. The Posts
+  page is now just the post list and its filter toolbar.
+
+### Changed
+- **Uploaded thumbnails preserve the image's shape instead of baking in a 3:2
+  crop.** The old generator hard-cropped every thumbnail (centred, biased 35%
+  from the top), which a per-image Fit/Focal point could never undo. Thumbnails
+  are now downscaled within the configured box with no crop, so the front-end
+  frames each image live. Existing images keep their old crop until re-uploaded;
+  new uploads get the new behaviour.
+- **Redesigned admin navigation.** The admin menu is unified with Nano Cart
+  (Dashboard · Posts · Categories · Media · Settings · Licence · Help), with a
+  wordmark, monoline icons, and an active underline. On phones and tablets it
+  collapses into a slide-in drawer (CSS-only, no JavaScript).
+- **Refreshed blog navigation.** The category sections sub-nav is now a tidy
+  scrollable tab strip with an active underline, and the default site header is
+  sticky with a subtle brand mark and animated link underlines.
+
 ## [1.5.0] - 2026-05-28
 
 ### Added

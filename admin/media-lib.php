@@ -352,9 +352,13 @@ function nano_admin_resize_to_width($img, int $width)
 }
 
 /**
- * Crop+resize $src into a thumbnail at $dest. Cover-crop with an
- * upper-bias of 35% (matches the .nano-blog-card image object-position
- * so the visual is consistent across full-size hero and small thumb).
+ * Downscale $src into a thumbnail at $dest, PRESERVING the source aspect
+ * ratio and never upscaling. No crop is baked into the file: $width/$height
+ * are a bounding box the image is scaled to fit inside. The front-end frames
+ * each image per-image with CSS object-fit/object-position/background (set in
+ * the post and category editors), so cards can choose cover/contain and a
+ * focal point without the thumbnail having thrown pixels away. This is what
+ * makes the per-image controls actually work - a pre-cropped thumb couldn't.
  * Tries GD first (standard PHP image extension), falls back to Imagick.
  */
 function nano_admin_media_generate_thumb(string $src, string $dest, int $width, int $height, string $ext): bool
@@ -378,26 +382,18 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
                 $sw = imagesx($img);
                 $sh = imagesy($img);
                 if ($sw < 1 || $sh < 1) return false;
-                $src_aspect = $sw / $sh;
-                $tgt_aspect = $width / $height;
-                if ($src_aspect > $tgt_aspect) {
-                    $crop_w = (int)round($sh * $tgt_aspect);
-                    $crop_h = $sh;
-                    $crop_x = (int)round(($sw - $crop_w) / 2);
-                    $crop_y = 0;
-                } else {
-                    $crop_w = $sw;
-                    $crop_h = (int)round($sw / $tgt_aspect);
-                    $crop_x = 0;
-                    // 35% from top, keeps subjects in the upper third visible.
-                    $crop_y = (int)round(($sh - $crop_h) * 0.35);
-                }
-                $thumb = imagecreatetruecolor($width, $height);
+                // Scale to fit inside the WxH box, preserving aspect ratio and
+                // never enlarging (scale capped at 1.0). No crop - the front-end
+                // frames the image per-image with CSS.
+                $scale = min($width / $sw, $height / $sh, 1.0);
+                $dw = max(1, (int)round($sw * $scale));
+                $dh = max(1, (int)round($sh * $scale));
+                $thumb = imagecreatetruecolor($dw, $dh);
                 if ($ext === 'png') {
                     imagealphablending($thumb, false);
                     imagesavealpha($thumb, true);
                 }
-                if (!imagecopyresampled($thumb, $img, 0, 0, $crop_x, $crop_y, $width, $height, $crop_w, $crop_h)) {
+                if (!imagecopyresampled($thumb, $img, 0, 0, 0, 0, $dw, $dh, $sw, $sh)) {
                     imagedestroy($thumb);
                     return false;
                 }
@@ -419,9 +415,11 @@ function nano_admin_media_generate_thumb(string $src, string $dest, int $width, 
         try {
             $im = new Imagick($src);
             if (method_exists($im, 'autoOrient')) { $im->autoOrient(); }
-            // cropThumbnailImage centers by default; matches GD path's
-            // upper-bias closely enough for a fallback.
-            $im->cropThumbnailImage($width, $height);
+            // bestfit = true scales to fit inside the box, preserving aspect
+            // and not cropping. Only downscale: skip when already within box.
+            if ($im->getImageWidth() > $width || $im->getImageHeight() > $height) {
+                $im->thumbnailImage($width, $height, true);
+            }
             $im->stripImage();
             if ($ext === 'jpg' || $ext === 'jpeg') {
                 $im->setImageCompressionQuality($quality_jpg);

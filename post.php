@@ -88,6 +88,7 @@ $category_label = ($cat_record !== null && trim((string)($cat_record['name'] ?? 
 ob_start();
 ?>
 <article class="nano-blog-post">
+<?= nano_category_nav_html((string)$fm['category']) ?>
   <nav class="nano-blog-breadcrumb" aria-label="Breadcrumb">
     <a href="<?= nano_e(nano_index_url(1)) ?>"><?= nano_e(nano_blog_label()) ?></a>
     <span aria-hidden="true">&rsaquo;</span>
@@ -105,7 +106,7 @@ ob_start();
   </header>
 <?php if (!empty($fm['image'])): ?>
   <figure class="nano-blog-figure">
-    <img src="<?= nano_e(nano_media_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>"<?= nano_image_bg_attr($fm['image_bg'] ?? '') ?> loading="lazy">
+    <img src="<?= nano_e(nano_media_url((string)$fm['image'])) ?>" alt="<?= nano_e((string)($fm['image_alt'] ?? $fm['title'])) ?>"<?= nano_image_style_attr((string)($fm['image_fit'] ?? ''), (string)($fm['image_position'] ?? ''), $fm['image_bg'] ?? '') ?> loading="lazy">
   </figure>
 <?php endif; ?>
   <div class="nano-blog-content">

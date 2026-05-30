@@ -11,6 +11,7 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/core.php';
 require_once __DIR__ . '/posts.php';
 require_once __DIR__ . '/media-lib.php';
+require_once __DIR__ . '/categories-lib.php';
 require_once __DIR__ . '/../generators.php';
 
 nano_admin_assert_https();
@@ -63,9 +64,13 @@ $form = [
     'image'       => (string)($original_fm['image'] ?? ''),
     'image_alt'   => (string)($original_fm['image_alt'] ?? ''),
     'image_bg'    => (string)($original_fm['image_bg'] ?? ''),
+    'image_fit'   => (string)($original_fm['image_fit'] ?? ''),
+    'image_position' => (string)($original_fm['image_position'] ?? ''),
     'thumbnail'   => (string)($original_fm['thumbnail'] ?? ''),
     'thumbnail_alt' => (string)($original_fm['thumbnail_alt'] ?? ''),
     'thumbnail_bg' => (string)($original_fm['thumbnail_bg'] ?? ''),
+    'thumbnail_fit' => (string)($original_fm['thumbnail_fit'] ?? ''),
+    'thumbnail_position' => (string)($original_fm['thumbnail_position'] ?? ''),
     'draft'       => !empty($original_fm['draft']),
     'hero'        => !empty($original_fm['hero']),
     'featured'    => !empty($original_fm['featured']),
@@ -77,7 +82,7 @@ $form = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     nano_admin_require_csrf();
 
-    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'image_bg', 'thumbnail', 'thumbnail_alt', 'thumbnail_bg'] as $key) {
+    foreach (['title', 'slug', 'date', 'updated', 'category', 'description', 'image', 'image_alt', 'image_bg', 'image_fit', 'image_position', 'thumbnail', 'thumbnail_alt', 'thumbnail_bg', 'thumbnail_fit', 'thumbnail_position'] as $key) {
         $form[$key] = trim((string)($_POST[$key] ?? ''));
     }
     $form['draft'] = !empty($_POST['draft']);
@@ -143,9 +148,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'image'       => $form['image'],
             'image_alt'   => $form['image_alt'],
             'image_bg'    => $form['image_bg'],
+            'image_fit'   => $form['image_fit'],
+            'image_position' => $form['image_position'],
             'thumbnail'   => $form['thumbnail'],
             'thumbnail_alt' => $form['thumbnail_alt'],
             'thumbnail_bg' => $form['thumbnail_bg'],
+            'thumbnail_fit' => $form['thumbnail_fit'],
+            'thumbnail_position' => $form['thumbnail_position'],
             'draft'       => $form['draft'],
             'hero'        => $form['hero'],
             'featured'    => $form['featured'],
@@ -168,7 +177,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $flash = ((string)($_GET['msg'] ?? '')) === 'saved' ? 'Post saved.' : null;
-$categories = nano_admin_categories();
+// Category options for the dropdown: managed category records (created in the
+// Categories manager) merged with any categories already used by posts, keyed
+// slug => display label. Mirrors the shop's category select while keeping
+// post-derived categories so editing a post never orphans its category.
+$cat_options = [];
+foreach (nano_admin_categories() as $cat_slug) {
+    $cat_options[$cat_slug] = ucfirst(str_replace('-', ' ', $cat_slug));
+}
+foreach (nano_admin_list_category_records() as $cat_slug => $cat_rec) {
+    $cat_options[$cat_slug] = trim((string)($cat_rec['name'] ?? '')) !== ''
+        ? (string)$cat_rec['name']
+        : ucfirst(str_replace('-', ' ', (string)$cat_slug));
+}
+$cur_category = (string)$form['category'];
+if ($cur_category !== '' && !isset($cat_options[$cur_category])) {
+    $cat_options[$cur_category] = ucfirst(str_replace('-', ' ', $cur_category));
+}
+asort($cat_options, SORT_STRING | SORT_FLAG_CASE);
 $preview_url = (!$is_new && $base_url !== '')
     ? $base_url . '/' . rawurlencode((string)$original_fm['category']) . '/' . rawurlencode((string)$original_fm['slug']) . '/?preview=' . rawurlencode(nano_admin_csrf_token())
     : null;
@@ -211,12 +237,17 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
     <p class="nano-cms-admin-help">[a-z0-9-] only. Authoritative for the URL; filename will be reconciled on save.</p>
   </div>
   <div>
-    <label>Category<input type="text" name="category" list="nano-categories" value="<?= nano_admin_e($form['category']) ?>" required></label>
-    <datalist id="nano-categories">
-<?php foreach ($categories as $c): ?>
-      <option value="<?= nano_admin_e($c) ?>">
+    <label>Category
+      <select name="category" required>
+<?php if ($cur_category === ''): ?>
+        <option value="" disabled selected>Select a category&hellip;</option>
+<?php endif; ?>
+<?php foreach ($cat_options as $cat_slug => $cat_label): ?>
+        <option value="<?= nano_admin_e((string)$cat_slug) ?>"<?= $cur_category === (string)$cat_slug ? ' selected' : '' ?>><?= nano_admin_e($cat_label) ?></option>
 <?php endforeach; ?>
-    </datalist>
+      </select>
+    </label>
+    <p class="nano-cms-admin-help">Create or edit categories (name, image, alt text) under <a href="categories.php">Categories</a>.</p>
   </div>
   <div>
     <label>Date<input type="date" name="date" value="<?= nano_admin_e($form['date']) ?>" required></label>
@@ -260,9 +291,43 @@ echo nano_admin_header($is_new ? 'New post' : 'Edit post', 'posts');
     <p class="nano-cms-admin-help">Hex colour behind the hero/lead image (the large image on the post page, and on cards that derive their thumbnail from it). Leave blank for transparent.</p>
   </div>
   <div>
+    <label for="nano-image-fit">Hero image fit</label>
+    <select name="image_fit" id="nano-image-fit">
+      <option value="cover"<?= ($form['image_fit'] === '' || $form['image_fit'] === 'cover') ? ' selected' : '' ?>>Cover &ndash; fill the frame, crop the overflow (default)</option>
+      <option value="contain"<?= $form['image_fit'] === 'contain' ? ' selected' : '' ?>>Contain &ndash; show the whole image (uses the background colour)</option>
+    </select>
+    <p class="nano-cms-admin-help">How this image fills its frame on cards. Choose <strong>Contain</strong> for logos, packshots, or anything that must never be cropped.</p>
+  </div>
+  <div>
+    <label for="nano-image-position">Hero image focal point</label>
+    <select name="image_position" id="nano-image-position">
+<?php foreach (['' => 'Upper centre (default)', 'centre' => 'Centre', 'top' => 'Top', 'bottom' => 'Bottom', 'left' => 'Left', 'right' => 'Right'] as $val => $lbl): ?>
+      <option value="<?= nano_admin_e($val) ?>"<?= $form['image_position'] === $val ? ' selected' : '' ?>><?= nano_admin_e($lbl) ?></option>
+<?php endforeach; ?>
+    </select>
+    <p class="nano-cms-admin-help">Which part of the image to keep when Cover crops it to fit a card. No effect when Contain is selected.</p>
+  </div>
+  <div>
     <label for="nano-thumbnail-bg">Card thumbnail background colour</label>
     <input type="text" name="thumbnail_bg" id="nano-thumbnail-bg" value="<?= nano_admin_e($form['thumbnail_bg'] ?? '') ?>" placeholder="#ffffff (blank = transparent)" pattern="#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})">
     <p class="nano-cms-admin-help">Hex colour behind the separate card thumbnail (when one is set above). Leave blank for transparent.</p>
+  </div>
+  <div>
+    <label for="nano-thumbnail-fit">Card thumbnail fit</label>
+    <select name="thumbnail_fit" id="nano-thumbnail-fit">
+      <option value="cover"<?= ($form['thumbnail_fit'] === '' || $form['thumbnail_fit'] === 'cover') ? ' selected' : '' ?>>Cover &ndash; fill the frame, crop the overflow (default)</option>
+      <option value="contain"<?= $form['thumbnail_fit'] === 'contain' ? ' selected' : '' ?>>Contain &ndash; show the whole image (uses the background colour)</option>
+    </select>
+    <p class="nano-cms-admin-help">Applies to the separate card thumbnail (when one is set above).</p>
+  </div>
+  <div>
+    <label for="nano-thumbnail-position">Card thumbnail focal point</label>
+    <select name="thumbnail_position" id="nano-thumbnail-position">
+<?php foreach (['' => 'Upper centre (default)', 'centre' => 'Centre', 'top' => 'Top', 'bottom' => 'Bottom', 'left' => 'Left', 'right' => 'Right'] as $val => $lbl): ?>
+      <option value="<?= nano_admin_e($val) ?>"<?= $form['thumbnail_position'] === $val ? ' selected' : '' ?>><?= nano_admin_e($lbl) ?></option>
+<?php endforeach; ?>
+    </select>
+    <p class="nano-cms-admin-help">Which part of the thumbnail to keep when Cover crops it. No effect when Contain is selected.</p>
   </div>
   <div class="full nano-cms-admin-checkbox-row">
     <label><input type="checkbox" name="draft" value="1"<?= $form['draft'] ? ' checked' : '' ?>> Draft (excluded from public listing, sitemap, RSS)</label>

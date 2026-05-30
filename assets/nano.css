@@ -216,6 +216,8 @@
   font-size: 0.875em;
 }
 .nano-blog-category a { color: inherit; }
+/* Breadcrumb: a contained pill so it reads as a distinct nav row above the
+   heading, not loose text floating above the title. */
 .nano-blog-breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -232,9 +234,97 @@
 .nano-blog-breadcrumb a {
   color: var(--nano-color-text-muted);
   text-decoration: none;
+  transition: color 140ms ease;
 }
-.nano-blog-breadcrumb a:hover { color: var(--nano-color-text); text-decoration: underline; }
+.nano-blog-breadcrumb a:hover { color: var(--nano-color-accent); }
 .nano-blog-breadcrumb span[aria-hidden] { margin: 0; color: var(--nano-color-border); opacity: 1; }
+.nano-blog-breadcrumb [aria-current="page"] { color: var(--nano-color-text); font-weight: 600; }
+
+/* Category navigation: a PERMANENT off-canvas panel on every device. The only
+   on-page element is the trigger button - every category link lives in the
+   slide-in panel, so the list scales to any number and never competes with the
+   host site's own header/mobile nav. Pure CSS (checkbox toggle), no JS. */
+.nano-blog-catnav { margin: 0; }
+.nano-blog-catnav-toggle { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* Floating edge tab - fixed to the right of the viewport, always reachable,
+   takes no space in the page flow. */
+.nano-blog-catnav-btn {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  writing-mode: vertical-rl;
+  cursor: pointer;
+  padding: 1.1rem 0.5rem;
+  border: 1px solid var(--nano-color-border);
+  border-right: 0;
+  background: var(--nano-color-bg-soft);
+  color: var(--nano-color-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: -4px 0 14px rgba(0, 0, 0, 0.08);
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.nano-blog-catnav-btn:hover { background: var(--nano-color-accent); color: #fff; }
+.nano-blog-catnav-ico { width: 1.05rem; height: 1.05rem; flex: none; }
+
+.nano-blog-catnav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 18, 23, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 240ms ease, visibility 240ms ease;
+  z-index: 1000;
+}
+.nano-blog-catnav-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  height: 100dvh;
+  width: min(320px, 85vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--nano-color-bg, #fff);
+  border-left: 1px solid var(--nano-color-border);
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.18);
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1001;
+}
+.nano-blog-catnav-toggle:checked ~ .nano-blog-catnav-backdrop { opacity: 1; visibility: visible; }
+.nano-blog-catnav-toggle:checked ~ .nano-blog-catnav-panel { transform: translateX(0); }
+
+.nano-blog-catnav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--nano-color-border);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.nano-blog-catnav-close { cursor: pointer; font-size: 1.6rem; line-height: 1; color: var(--nano-color-text-muted); padding: 0 0.25rem; }
+.nano-blog-catnav-close:hover { color: var(--nano-color-text); }
+.nano-blog-catnav-links { overflow-y: auto; flex: 1; }
+.nano-blog-catnav-links a {
+  display: block;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--nano-color-border);
+  color: var(--nano-color-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+.nano-blog-catnav-links a:hover { color: var(--nano-color-text); background: var(--nano-color-bg-soft); }
+.nano-blog-catnav-links a.is-active { color: var(--nano-color-accent); background: var(--nano-color-bg-soft); font-weight: 700; }
 
 /* Category page header: banner image + description, side by side on wide
    screens with the image on the left (or right) - ported from Cart's

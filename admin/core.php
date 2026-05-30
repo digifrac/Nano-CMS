@@ -23,7 +23,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
  * release, even though the two codebases ship as separate zips.
  * When bumping for a release, edit both.
  */
-const NANO_ADMIN_VERSION = '1.5.0';
+const NANO_ADMIN_VERSION = '1.6.0';
 const NANO_ADMIN_SESSION_NAME = 'nano_admin';
 const NANO_ADMIN_IDLE_TIMEOUT = 60 * 60;                 // 60 minutes of inactivity
 const NANO_ADMIN_RATE_LIMIT_FAILURES = 5;
@@ -81,6 +81,27 @@ function nano_admin_render_footer(): string
  * pass an extra body class such as 'nano-cms-admin-login' to narrow the
  * column.
  */
+/**
+ * Inline monoline SVG icon for a nav item, keyed by nav slug. Kept inline
+ * (no sprite or image file) so the admin stays a self-contained upload with
+ * no extra asset requests. Unknown keys fall back to a neutral dot.
+ */
+function nano_admin_nav_icon(string $key): string
+{
+    $paths = [
+        'dashboard'  => '<rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/>',
+        'posts'      => '<path d="M6 3.5h9l4 4V20.5H6z"/><path d="M15 3.5V8h4"/><path d="M9 12.5h7M9 16h7"/>',
+        'products'   => '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5"/><path d="M12 12v9"/>',
+        'categories' => '<path d="M3.5 8.5 12 4l8.5 4.5L12 13z"/><path d="M3.5 13.5 12 18l8.5-4.5"/>',
+        'media'      => '<rect x="3.5" y="4.5" width="17" height="15"/><circle cx="9" cy="10" r="1.7"/><path d="M20.5 15.5 15 10 4 19.5"/>',
+        'settings'   => '<path d="M4 8h9M17 8h3"/><circle cx="15" cy="8" r="2"/><path d="M4 16h3M11 16h9"/><circle cx="9" cy="16" r="2"/>',
+        'licence'    => '<path d="M12 3.5 19 6v6c0 4.3-3 7-7 8.5-4-1.5-7-4.2-7-8.5V6z"/><path d="M9 12l2 2 4-4"/>',
+        'help'       => '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.3 2.3c-.8.4-1.4.9-1.4 1.9"/><path d="M12 16.6h.01"/>',
+    ];
+    $inner = $paths[$key] ?? '<circle cx="12" cy="12" r="3.2"/>';
+    return '<svg class="nano-cms-admin-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $inner . '</svg>';
+}
+
 function nano_admin_header(
     string $page_title,
     string $current_nav = '',
@@ -100,9 +121,10 @@ function nano_admin_header(
 
     if ($show_chrome) {
         $items = [
+            'dashboard'  => ['Dashboard',  'dashboard.php'],
             'posts'      => ['Posts',      'index.php'],
-            'media'      => ['Media',      'media.php'],
             'categories' => ['Categories', 'categories.php'],
+            'media'      => ['Media',      'media.php'],
             'settings'   => ['Settings',   'settings.php'],
             'licence'    => ['Licence',    'licence.php'],
             'help'       => ['Help',       'help.php'],
@@ -110,12 +132,17 @@ function nano_admin_header(
         $nav = '';
         foreach ($items as $key => [$label, $url]) {
             $cls = 'nano-cms-admin-nav-link' . ($key === $current_nav ? ' nano-cms-admin-nav-current' : '');
-            $nav .= '<a class="' . $cls . '" href="' . nano_admin_e($url) . '">' . nano_admin_e($label) . '</a>';
+            $nav .= '<a class="' . $cls . '" href="' . nano_admin_e($url) . '"'
+                . ($key === $current_nav ? ' aria-current="page"' : '') . '>'
+                . nano_admin_nav_icon($key)
+                . '<span class="nano-cms-admin-nav-label">' . nano_admin_e($label) . '</span></a>';
         }
         $html .= '<header class="nano-cms-admin-header">'
-            . '<a class="nano-cms-admin-brand" href="index.php">Nano CMS</a>'
-            . '<nav class="nano-cms-admin-nav">' . $nav . '</nav>'
-            . nano_admin_logout_form()
+            . '<a class="nano-cms-admin-brand" href="dashboard.php"><span class="nano-cms-admin-brand-mark" aria-hidden="true"></span>Nano <span class="nano-cms-admin-brand-tag">CMS</span></a>'
+            . '<input type="checkbox" id="nano-cms-admin-navtoggle" class="nano-cms-admin-navtoggle" aria-label="Toggle menu">'
+            . '<label class="nano-cms-admin-navtoggle-btn" for="nano-cms-admin-navtoggle" aria-hidden="true"><span class="nano-cms-admin-navtoggle-bars"></span></label>'
+            . '<label class="nano-cms-admin-navbackdrop" for="nano-cms-admin-navtoggle" aria-hidden="true"></label>'
+            . '<nav class="nano-cms-admin-nav">' . $nav . nano_admin_logout_form() . '</nav>'
             . '</header>';
     }
 
@@ -326,7 +353,7 @@ function nano_admin_csrf_field(): string
  */
 function nano_admin_logout_form(): string
 {
-    return '<form method="post" action="index.php?action=logout" class="nano-cms-admin-logout-form" style="margin:0 0 0 auto;">'
+    return '<form method="post" action="index.php?action=logout" class="nano-cms-admin-logout-form">'
          . nano_admin_csrf_field()
          . '<button type="submit" class="nano-cms-admin-logout">Sign out</button>'
          . '</form>';

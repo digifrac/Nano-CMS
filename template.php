@@ -50,14 +50,6 @@ if (!defined('NANO_BOOTSTRAPPED')) {
   <!-- (link tags for CSS, fonts, favicon, analytics, etc.)         -->
   <!-- =========================================================== -->
 
-  <!-- Default styling for the Blog/Shop nav below. Restyle, or remove
-       this block entirely when you paste the client's own header. -->
-  <style>
-    .nano-site-nav{display:flex;gap:1.5rem;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid #e5e5e5;font-family:'Inter',system-ui,-apple-system,sans-serif}
-    .nano-site-nav a{text-decoration:none;color:#111;font-weight:600;font-size:.95rem}
-    .nano-site-nav a:hover{color:#555}
-  </style>
-
   <!-- =========================================================== -->
   <!-- END: client site <head>                                      -->
   <!-- =========================================================== -->
@@ -76,14 +68,6 @@ if (!defined('NANO_BOOTSTRAPPED')) {
     If your header uses max-width + padding, give it box-sizing: border-box;
     and set a line-height, or it can render a different size than you expect.
   -->
-
-  <!-- Site nav: Blog (Nano CMS) + Shop (Nano Cart). Adjust the hrefs to
-       match where each is installed (e.g. Shop at "/" if the storefront
-       is the main site). -->
-  <nav class="nano-site-nav" aria-label="Primary">
-    <a href="/blog/">Blog</a>
-    <a href="/shop/">Shop</a>
-  </nav>
 
   <!-- =========================================================== -->
   <!-- END: client site header                                      -->
