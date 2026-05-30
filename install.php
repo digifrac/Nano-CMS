@@ -18,7 +18,20 @@
 $blog_dir   = __DIR__;
 $bootstrap  = $blog_dir . '/bootstrap.php';
 $self_file  = __FILE__;
-$admin_url  = 'admin/';
+
+// Absolute, PATH_INFO-proof URLs. install.php's own links/forms must be
+// absolute: accessing the script with trailing path info (e.g.
+// /blog/install.php/admin/) otherwise makes a relative "admin/" link stack
+// into /blog/install.php/admin/admin/... and re-run the installer in a loop.
+$self_url   = $_SERVER['SCRIPT_NAME'] ?? 'install.php';
+$base_url   = rtrim(str_replace('\\', '/', dirname($self_url)), '/');
+$admin_url  = $base_url . '/admin/';
+
+// Never run with trailing path info; bounce to the clean script URL.
+if (!empty($_SERVER['PATH_INFO'])) {
+    header('Location: ' . $self_url, true, 302);
+    exit;
+}
 
 /**
  * Pick a sensible default for the outside-webroot config directory.
@@ -37,7 +50,13 @@ $admin_url  = 'admin/';
  */
 function nano_install_default_cfg_dir(string $blog_dir): string
 {
-    $name = 'nano-blog-config';
+    // Unique per-site name. Multiple Nano CMS blogs under the same parent
+    // directory must NOT default to the same config dir, or they would
+    // silently share one config.json (admin password hash + licence key).
+    // Derive a slug from the hostname so each domain gets its own.
+    $host = isset($_SERVER['HTTP_HOST']) ? strtolower((string)$_SERVER['HTTP_HOST']) : '';
+    $slug = trim((string)preg_replace('/[^a-z0-9]+/', '-', $host), '-');
+    $name = 'nano-blog-config' . ($slug !== '' ? '-' . $slug : '');
     $docroot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim(str_replace('\\', '/', (string)$_SERVER['DOCUMENT_ROOT']), '/') : '';
     $blog_norm = rtrim(str_replace('\\', '/', $blog_dir), '/');
     $parent = dirname($blog_norm);
@@ -135,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
     exit;
 }
 
-$delete_form = '<form method="post" style="display:inline">'
+$delete_form = '<form method="post" action="' . nano_install_h($self_url) . '" style="display:inline">'
     . '<input type="hidden" name="action" value="delete">'
     . '<button class="btn btn-secondary" type="submit" onclick="return confirm(\'Delete install.php from the server now?\')">Delete install.php</button>'
     . '</form>';
@@ -173,6 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Config directory must be OUTSIDE the blog directory (that is the point).';
     } elseif (nano_install_is_inside_docroot($cfg_dir)) {
         $errors[] = 'Config directory <code>' . nano_install_h($cfg_dir) . '</code> is inside the webroot (<code>' . nano_install_h((string)$_SERVER['DOCUMENT_ROOT']) . '</code>). It would be web-accessible, defeating the whole point of an outside-webroot config. Try a path ABOVE the webroot, e.g. <code>' . nano_install_h(dirname((string)$_SERVER['DOCUMENT_ROOT']) . '/nano-blog-config') . '</code>.';
+    } elseif (is_file($cfg_dir . '/config.json')) {
+        $errors[] = 'A <code>config.json</code> already exists in <code>' . nano_install_h($cfg_dir) . '</code>. That directory belongs to an existing Nano CMS install. Choose a different, empty config directory for THIS blog (for example <code>' . nano_install_h($default_cfg_dir) . '</code>) - otherwise the two sites would share one admin password and licence.';
     } else {
         // Try to create the directory.
         if (!is_dir($cfg_dir)) {
@@ -226,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'install complete',
                 '<div class="success"><p><strong>Installed.</strong> <code>bootstrap.php</code> is in place and points at <code>' . nano_install_h($cfg_dir) . '</code>.</p></div>'
                 . '<h2>Next step</h2>'
-                . '<p><a class="btn" href="admin/setup.php">Open setup wizard</a></p>'
+                . '<p><a class="btn" href="' . nano_install_h($base_url) . '/admin/setup.php">Open setup wizard</a></p>'
                 . '<p>The setup wizard creates the operator password and site settings. <strong>Do not delete install.php yet</strong> - the admin dashboard shows a one-click "delete install.php" banner once setup completes successfully. Deleting it now would break the setup hand-off.</p>'
                 . '<h2>What just happened</h2>'
                 . '<ul>'
@@ -280,7 +301,7 @@ $body = $error_html
     . '<p>The installer will create that directory and write <code>bootstrap.php</code> for you, then hand off to the admin setup wizard.</p>'
     . $docroot_warning
     . $writable_hint
-    . '<form method="post">'
+    . '<form method="post" action="' . nano_install_h($self_url) . '">'
     . '<label>Config directory (absolute path)'
     . '<input type="text" name="cfg_dir" required value="' . nano_install_h($cfg_dir) . '">'
     . '</label>'
