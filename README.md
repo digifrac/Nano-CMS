@@ -2,9 +2,11 @@
 
 A flat-file PHP blog system for adding SEO-driven content to existing static HTML/CSS sites.
 
+**🔗 Live demo: [nanocms.co.uk/blog](https://nanocms.co.uk/blog/)**
+
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF4D00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/digitalfracture)
 
-> **Status: v1.5.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment, [UPGRADE.md](UPGRADE.md) for upgrading, and [CHANGELOG.md](CHANGELOG.md) for release history.
+> **Status: v1.6.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment, [UPGRADE.md](UPGRADE.md) for upgrading, and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 
