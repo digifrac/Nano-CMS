@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nano CMS User Guide</title>
+<style>
+  :root {
+    --ink: #1b1b22;
+    --muted: #5a5a68;
+    --line: #ececdf;
+    --bg: #ffffff;
+    --soft: #faf7f2;
+    --accent: #ff4d00;
+    --accent_soft: #fff0ea;
+    --radius: 10px;
+    --maxw: 820px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 96px; }
+  header.masthead {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 64px 24px 28px;
+  }
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-size: 40px;
+    line-height: 1.15;
+    margin: 0 0 14px;
+    letter-spacing: -0.02em;
+  }
+  .lede { font-size: 19px; color: var(--muted); margin: 0; max-width: 62ch; }
+  h2 {
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  h3 { font-size: 19px; margin: 32px 0 10px; }
+  p { margin: 0 0 16px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  strong { font-weight: 650; }
+  code {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font: 14px/1.5 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    color: #c23a00;
+  }
+  pre {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    overflow-x: auto;
+    font: 14px/1.6 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+  ul, ol { margin: 0 0 16px; padding-left: 22px; }
+  li { margin: 6px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 24px;
+    font-size: 15.5px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    background: var(--soft);
+    font-weight: 650;
+    font-size: 14px;
+  }
+  tr:last-child td { border-bottom: none; }
+  .callout {
+    background: var(--accent_soft);
+    border: 1px solid #ffd9c9;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-size: 16px;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  nav.toc {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 26px;
+    margin: 36px 0 8px;
+  }
+  nav.toc h2 {
+    border: none;
+    padding: 0;
+    margin: 0 0 12px;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  nav.toc ol { columns: 2; column-gap: 32px; margin: 0; }
+  nav.toc a { color: var(--ink); }
+  footer.endmatter {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 32px; }
+    nav.toc ol { columns: 1; }
+    header.masthead { padding-top: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <p class="eyebrow">Nano CMS</p>
+  <h1>User Guide</h1>
+  <p class="lede">A plain language guide to running a Nano CMS blog: signing in, writing and publishing posts, adding images, organising categories, and keeping the blog tidy. It assumes the blog is already installed. You should be comfortable writing in Markdown, but you need no other code.</p>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#layout">How a blog is laid out</a></li>
+      <li><a href="#signin">Signing in</a></li>
+      <li><a href="#tour">A tour of the admin</a></li>
+      <li><a href="#markdown">A quick word on Markdown</a></li>
+      <li><a href="#categories">Set up your categories</a></li>
+      <li><a href="#write">Write a post</a></li>
+      <li><a href="#images">Add images</a></li>
+      <li><a href="#publish">Publish and check</a></li>
+      <li><a href="#featuring">Featuring your best posts</a></li>
+      <li><a href="#settings">Settings</a></li>
+      <li><a href="#licence">Removing the footer credit</a></li>
+      <li><a href="#golive">Going live and staying safe</a></li>
+      <li><a href="#backups">Backups</a></li>
+      <li><a href="#faq">Common questions</a></li>
+      <li><a href="#routine">A simple publishing routine</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="layout">How a Nano CMS blog is laid out</h2>
+  <p>A Nano CMS blog has three simple ideas behind it. Understanding them makes everything else easy.</p>
+  <p><strong>Posts are simple text files.</strong> Every article you write is saved as a plain Markdown file on the server. There is no database. This keeps the blog fast, safe, and easy to back up.</p>
+  <p><strong>Categories group your posts.</strong> Every post belongs to one category, for example News, Guides, or Reviews. The blog homepage shows your categories as a grid. A visitor picks a topic, then reads the articles inside it.</p>
+  <p><strong>The admin is removable.</strong> You write and publish through a private admin area. When you finish, the admin can be taken off the server entirely, so there is nothing to break into while you are not using it. Putting it back is how you publish again. Your developer usually handles uploading and removing the admin.</p>
+
+  <h2 id="signin">Signing in</h2>
+  <p>Your admin lives at your blog address followed by <code>/admin</code>. For example, if your blog is at <code>example.com/blog</code>, your admin is at <code>example.com/blog/admin</code>.</p>
+  <ol>
+    <li>Open that address in your browser.</li>
+    <li>Enter the password you set during setup.</li>
+    <li>You land on the Dashboard.</li>
+  </ol>
+  <p>A few things worth knowing:</p>
+  <ul>
+    <li>The admin only works over a secure <code>https</code> connection. This is deliberate and protects your password.</li>
+    <li>If the admin address shows a setup page or simply does not load, the admin folder is probably not on the server right now. Ask your developer to upload it so you can publish.</li>
+    <li>Your password is set when the blog is first installed. If you ever need it changed, that is a quick job for your developer.</li>
+  </ul>
+
+  <h2 id="tour">A tour of the admin</h2>
+  <p>Down the side of the admin you will find these areas:</p>
+  <table>
+    <tr><th>Area</th><th>What it is for</th></tr>
+    <tr><td><strong>Dashboard</strong></td><td>Your starting point. Shows how many posts are published, how many are drafts, and a health check that confirms the blog is set up correctly.</td></tr>
+    <tr><td><strong>Posts</strong></td><td>The list of all your articles. Write, edit, and delete posts here.</td></tr>
+    <tr><td><strong>Categories</strong></td><td>The topics your posts sit under. Give each one a name, description, and image.</td></tr>
+    <tr><td><strong>Media</strong></td><td>A file browser for every image you have uploaded.</td></tr>
+    <tr><td><strong>Settings</strong></td><td>Blog wide options: name, web address, author, layout, and image sizes.</td></tr>
+    <tr><td><strong>Licence</strong></td><td>Where you paste a licence key to remove the small footer credit. Optional.</td></tr>
+    <tr><td><strong>Help</strong></td><td>A short reference card built into the admin, including a Markdown cheat sheet.</td></tr>
+  </table>
+  <p>The rest of this guide goes through these in the order you will actually use them.</p>
+
+  <h2 id="markdown">A quick word on Markdown</h2>
+  <p>The body of every post is written in Markdown. It is just normal text with a few simple marks for formatting. You do not need to learn it all at once. Here are the pieces you will use most:</p>
+  <table>
+    <tr><th>You type</th><th>You get</th></tr>
+    <tr><td><code>## A heading</code></td><td>A section heading. More hashes mean a smaller heading.</td></tr>
+    <tr><td><code>**bold text**</code></td><td><strong>bold text</strong></td></tr>
+    <tr><td><code>*italic text*</code></td><td><em>italic text</em></td></tr>
+    <tr><td><code>[link text](https://example.com)</code></td><td>A clickable link</td></tr>
+    <tr><td><code>- one item</code> on each line</td><td>A bullet list</td></tr>
+    <tr><td><code>1. one item</code> on each line</td><td>A numbered list</td></tr>
+    <tr><td><code>&gt; a quote</code></td><td>An indented quotation</td></tr>
+    <tr><td>A blank line</td><td>Starts a new paragraph</td></tr>
+  </table>
+  <p>For safety, the editor strips out any raw web code you might paste in, so the published page only ever contains the formatting above. The built in <strong>Help</strong> page has the full cheat sheet.</p>
+  <h3>Embedding a video</h3>
+  <p>You can drop in a YouTube or Vimeo video by putting one of these on its own line, using the video's id:</p>
+  <pre><code>[video:youtube:VIDEO_ID]
+[video:vimeo:VIDEO_ID]</code></pre>
+  <p>The id is the short code at the end of the video's web address.</p>
+
+  <h2 id="categories">Step one: set up your categories</h2>
+  <p>It is worth creating your categories before you write many posts, so each article has a tidy home to go in.</p>
+  <ol>
+    <li>Go to <strong>Categories</strong> and choose to add a new one.</li>
+    <li>Fill in the fields:</li>
+  </ol>
+  <table>
+    <tr><th>Field</th><th>What to put</th></tr>
+    <tr><td><strong>Name</strong></td><td>The display name readers see, for example <code>Guides</code>.</td></tr>
+    <tr><td><strong>Slug</strong></td><td>The short web friendly version, for example <code>guides</code>. Lowercase letters, numbers, and dashes only. This becomes part of the web address.</td></tr>
+    <tr><td><strong>Description</strong></td><td>A short paragraph shown at the top of the category page. Written in Markdown. Optional but good for readers and search engines.</td></tr>
+    <tr><td><strong>Image</strong></td><td>A picture shown on the category card on the homepage and as a banner on the category page. Optional.</td></tr>
+    <tr><td><strong>Sort order</strong></td><td>A number that decides where this category sits among the others. Lower numbers come first.</td></tr>
+  </table>
+  <p>Save. You do not strictly have to create category records in advance. If you simply write a post and give it a new category name, that category will appear on its own. Creating a proper record just lets you add a nice name, description, and image to it.</p>
+
+  <h2 id="write">Step two: write a post</h2>
+  <p>This is the heart of the blog and the thing you will do most.</p>
+  <ol>
+    <li>Go to <strong>Posts</strong> and choose to write a new one.</li>
+    <li>Fill in the details around the article. These are the fields the editor asks for:</li>
+  </ol>
+  <table>
+    <tr><th>Field</th><th>Required</th><th>What to put</th></tr>
+    <tr><td><strong>Title</strong></td><td>Yes</td><td>The headline of the article. Aim for under sixty characters so it reads well in search results.</td></tr>
+    <tr><td><strong>Slug</strong></td><td>Yes</td><td>The web friendly version of the title, in lowercase with dashes, for example <code>how-to-repot-a-fern</code>. This becomes the post's web address.</td></tr>
+    <tr><td><strong>Date</strong></td><td>Yes</td><td>The publish date, in the form <code>YYYY-MM-DD</code>.</td></tr>
+    <tr><td><strong>Updated</strong></td><td>No</td><td>A later date you can show when you revise a post. It is set for you when you change a post's content. Clear it for tiny tweaks you do not want flagged.</td></tr>
+    <tr><td><strong>Category</strong></td><td>Yes</td><td>One category for the post. As you type, existing categories suggest themselves.</td></tr>
+    <tr><td><strong>Description</strong></td><td>Yes</td><td>A one sentence summary, around 150 characters. This is what search engines show under the title, so make it inviting.</td></tr>
+    <tr><td><strong>Body</strong></td><td>Yes</td><td>The article itself, written in Markdown.</td></tr>
+    <tr><td><strong>Hero image</strong></td><td>No</td><td>A large picture shown at the top of the article.</td></tr>
+    <tr><td><strong>Card image</strong></td><td>No</td><td>A separate, smaller picture used only on the article card in listings. Leave it blank to reuse the hero image.</td></tr>
+    <tr><td><strong>Image description</strong></td><td>No</td><td>A short description of the picture for search engines and screen readers. Always worth adding.</td></tr>
+    <tr><td><strong>Draft</strong></td><td>No</td><td>Tick this to keep the post hidden while you work on it. Untick it to publish.</td></tr>
+  </table>
+  <div class="callout"><p>A good habit: save the post as a <strong>Draft</strong> first, read it back on the preview, then untick Draft to publish when you are happy. Drafts are invisible to the public but you can preview them while signed in.</p></div>
+
+  <h2 id="images">Step three: add images</h2>
+  <p>Pictures make posts inviting, and Nano CMS handles them carefully.</p>
+  <h3>Uploading</h3>
+  <p>You add images through the <strong>Media</strong> area or straight from the post editor. Allowed types are JPG, PNG, GIF, and WebP, up to five megabytes each. Every upload is processed on the server for safety, and given a fresh tidy filename automatically.</p>
+  <div class="callout"><p><strong>Upload large, and the blog will shrink it for you.</strong> A generous source picture, say 1200 by 800 or bigger, gives the best results. The blog never stretches a small image up, so avoid tiny files.</p></div>
+  <h3>The Media area</h3>
+  <p>The Media area is a simple file browser for all your pictures. You can:</p>
+  <ul>
+    <li>Create folders to keep things organised. Two folders always exist: one for article images and one for category images.</li>
+    <li>Drag and drop files in to upload them.</li>
+    <li>Drag a file into a folder to move it, or rename it.</li>
+    <li>See an "unused" badge on any picture that no post currently uses, so you can clear out clutter safely. Moving or renaming a picture updates the posts that use it automatically.</li>
+  </ul>
+  <h3>Fitting a picture</h3>
+  <p>Each hero image, each card image, and each category image carries its own display settings, so one picture never forces an awkward crop on another. You can set:</p>
+  <table>
+    <tr><th>Setting</th><th>What it does</th></tr>
+    <tr><td><strong>Fit: Cover</strong></td><td>Fills the frame and trims any overflow. Best for photographs where losing a little around the edges is fine. This is the default.</td></tr>
+    <tr><td><strong>Fit: Contain</strong></td><td>Shows the entire picture with nothing trimmed. Any spare space shows the background colour. Best for logos or anything that must be seen in full.</td></tr>
+    <tr><td><strong>Focal point</strong></td><td>When Cover trims a picture, this chooses which part to keep: upper centre, centre, top, bottom, left, or right.</td></tr>
+    <tr><td><strong>Background colour</strong></td><td>A colour shown behind a Contain image or through the see through parts of a PNG. A hex colour, or blank for none.</td></tr>
+  </table>
+  <p>Because the blog resizes on demand, you can change a picture's fit or focal point at any time and see the result straight away, with no need to upload it again.</p>
+  <h3>A quick rule of thumb</h3>
+  <ul>
+    <li>Landscape pictures, roughly three by two, are the safe default for cards.</li>
+    <li>Use <strong>Cover</strong> for normal photos.</li>
+    <li>Use <strong>Contain</strong> with a background colour for logos or anything that must not be cut.</li>
+    <li>Always add a short, honest image description. It helps search engines and readers using screen readers.</li>
+  </ul>
+
+  <h2 id="publish">Step four: publish and check</h2>
+  <p>When the words and pictures are ready, untick <strong>Draft</strong> and save. The post is now live, and the blog's sitemap and feed update themselves automatically.</p>
+  <p>Visit your blog in a normal browser tab and check:</p>
+  <ul>
+    <li>The post appears under the right category.</li>
+    <li>The headline, picture, and links look right.</li>
+    <li>The article reads the way you intended.</li>
+  </ul>
+  <p>If something is off, go back into the admin, fix it, and save again. Changes are live immediately.</p>
+
+  <h2 id="featuring">Featuring your best posts</h2>
+  <p>A few options let you control what readers notice first on the homepage.</p>
+  <p><strong>Hero</strong> lifts a single standout article into a large banner at the top of the homepage. Only one post can be the hero at a time.</p>
+  <p><strong>Featured</strong> highlights a small set of posts in a row above the category grid. Use it for pieces you want to keep visible.</p>
+  <p><strong>Draft versus published</strong> is your on and off switch. A draft is saved safely but invisible to readers, ready for the day you publish it.</p>
+  <p>Your homepage then reads as a tidy landing page: an optional hero, a row of featured articles, and a grid of categories for readers to explore.</p>
+
+  <h2 id="settings">Settings</h2>
+  <p><strong>Settings</strong> holds the blog wide options. You will set most of these once at the start and rarely touch them again.</p>
+  <h3>Site</h3>
+  <ul>
+    <li><strong>Site name</strong>: the name of your blog, shown in the page title, the feed, and social media previews.</li>
+    <li><strong>Base URL</strong>: the full web address the blog is served at, for example <code>https://example.com/blog</code>, with no trailing slash. This matters: every link, image, and feed is built from it. If links ever drop the <code>/blog</code> part or category pages fail to load, this is the setting to check.</li>
+    <li><strong>Author name</strong>: the default author credited on posts.</li>
+    <li><strong>Publisher name</strong>: your brand or business name, used in the data search engines read.</li>
+    <li><strong>Publisher logo</strong>: an optional web address for your logo, used in search rich results.</li>
+    <li><strong>Posts per page</strong>: how many articles show on a category page before it splits into further pages.</li>
+  </ul>
+  <h3>Layout</h3>
+  <ul>
+    <li><strong>Categories per row</strong> and <strong>Articles per row</strong>: choose 3 or 4 across on wide screens. Narrower screens automatically show fewer so nothing is ever cramped.</li>
+  </ul>
+  <h3>Image sizes</h3>
+  <ul>
+    <li><strong>Article thumbnail size</strong>: the shape and size of the small pictures on article cards. The defaults suit most blogs. A common choice is 600 by 400.</li>
+    <li><strong>Category image size</strong>: the same idea for category cards, set separately so the two grids can be tuned independently.</li>
+  </ul>
+  <p>Changing these sizes affects pictures uploaded from then on. The card shapes update on the public side straight away.</p>
+
+  <h2 id="licence">Removing the footer credit (optional)</h2>
+  <p>By default, Nano CMS shows a small "Powered by Nano CMS" line in the footer of the pages it renders. This is normal and completely fine to leave in place.</p>
+  <p>If you would rather remove it, you can buy a licence for your domain and paste the key into the <strong>Licence</strong> area of the admin. The footer credit then disappears. The check happens entirely on your own server, with no tracking and no contact with anyone. You can buy a licence from the Nano CMS website.</p>
+
+  <h2 id="golive">Going live and staying safe</h2>
+  <p>When you have finished a round of writing, the safest thing is to have the admin folder taken off the server. Your blog keeps working perfectly without it: readers browse and read every article exactly as before. The only thing that goes away is the private admin area, and with it any way for someone to try the password while you are not using it.</p>
+  <p>When you want to publish again, the admin folder goes back on, you sign in, you work, and it comes off again. Your developer usually handles this part, so a typical routine is:</p>
+  <ol>
+    <li>Ask your developer to put the admin back.</li>
+    <li>Write and publish.</li>
+    <li>Tell them you are done so they can take it off again.</li>
+  </ol>
+
+  <h2 id="backups">Backups</h2>
+  <p>Your entire blog is a set of plain files on the server: the posts and the images. There is no database. A simple scheduled copy of the posts folder, the media folder, and the config folder to a safe place is all the backup you need. Your developer sets this up once, and restoring is just copying the files back. It is worth confirming with them that backups are running.</p>
+
+  <h2 id="faq">Common questions</h2>
+  <p><strong>Do I have to know how to code?</strong><br>No. You only need to be comfortable writing in Markdown, which is plain text with a few simple marks. The Help page inside the admin has a one page cheat sheet.</p>
+  <p><strong>Can readers leave comments?</strong><br>No. Nano CMS is built purely for publishing articles, with no comments, accounts, or logins for readers. This keeps it fast and safe. If you want discussion, a separate embedded comment service is the usual route.</p>
+  <p><strong>I published a post but it is not showing.</strong><br>Check that <strong>Draft</strong> is unticked, and that it sits under a category that exists. Then refresh the page in your browser.</p>
+  <p><strong>My links or images are broken after moving the blog.</strong><br>This is almost always the <strong>Base URL</strong> in Settings pointing at the wrong address. Set it to the blog's real web address with no trailing slash, and save.</p>
+  <p><strong>The admin will not load.</strong><br>The admin folder is most likely off the server for safety. Ask your developer to put it back so you can sign in.</p>
+  <p><strong>Can I schedule a post for the future?</strong><br>No. A post is either a draft or published. To publish later, leave it as a draft and untick Draft on the day.</p>
+
+  <h2 id="routine">A simple publishing routine</h2>
+  <ol>
+    <li>Have the admin put back on the server.</li>
+    <li>Sign in.</li>
+    <li>Write your post as a draft, with a hero image and a good description.</li>
+    <li>Preview it and read it back.</li>
+    <li>Untick Draft to publish.</li>
+    <li>Sign out and have the admin taken off again.</li>
+  </ol>
+  <p>That is the whole job. Set your categories up once, write posts as you go, and let the blog stay quiet, fast, and safe in between.</p>
+
+  <footer class="endmatter">
+    <p>Nano CMS User Guide. For setup and deployment see INSTALL.md, and the built in Help page inside the admin for a Markdown cheat sheet you can read while you work.</p>
+  </footer>
+
+</div>
+</body>
+</html>

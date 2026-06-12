@@ -249,6 +249,7 @@ Solo-developed. Bug reports and architectural feedback are welcome via GitHub Is
 
 ## See also
 
+- [`GUIDE.md`](GUIDE.md) - standalone user guide for blog operators (day-to-day use: writing posts, images, categories, publishing). Same guide as a ready-to-host page in [`GUIDE.html`](GUIDE.html).
 - [`INSTALL.md`](INSTALL.md) - step-by-step deployment guide
 - [`FORMAT.md`](FORMAT.md) - on-disk file format contract (post files, frontmatter, config schema)
 - [`CATEGORIES.md`](CATEGORIES.md) - categories index page spec (1.1)
