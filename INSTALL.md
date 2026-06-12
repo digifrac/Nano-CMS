@@ -269,7 +269,7 @@ it renders a small `Powered by Nano CMS - Developed by Digital Fracture`
 footer at the bottom of every Nano-rendered page.
 
 To remove the footer on production sites, purchase a perpetual per-domain
-licence at [digitalfracture.co.uk/nano-licence.html](https://digitalfracture.co.uk/nano-licence.html) (£29 single domain, £69 agency 3-pack, £249 unlimited).
+licence at [digitalfracture.co.uk/nano.php](https://www.digitalfracture.co.uk/nano.php) (£29 single domain, £69 agency 3-pack, £249 unlimited).
 
 Once you have the licence string, two equivalent ways to install it:
 

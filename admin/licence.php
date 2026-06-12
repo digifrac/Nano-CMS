@@ -122,7 +122,7 @@ echo nano_admin_header('Licence', 'licence');
 <section class="nano-cms-admin-section">
   <h2 class="nano-cms-admin-section-title">Where to buy</h2>
   <p>£29 per domain. £69 for an agency 3-pack. £249 unlimited.
-    <a href="https://digitalfracture.co.uk/nano-licence.html" target="_blank" rel="noopener">Buy at Digital Fracture &rarr;</a>
+    <a href="https://www.digitalfracture.co.uk/nano.php" target="_blank" rel="noopener">Buy at Digital Fracture &rarr;</a>
   </p>
   <p class="nano-cms-admin-help">Licences are signed by the Digital Fracture licence server (Ed25519) and verified locally against the public key embedded in this build, so there is no phone-home at verification time. Lost a key? Email Digital Fracture; re-issue is free.</p>
 </section>

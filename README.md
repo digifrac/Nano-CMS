@@ -222,7 +222,7 @@ Nano CMS displays a small `Powered by Nano CMS - Developed by Digital Fracture` 
 - **Agency 3-pack:** £69 (covers up to three client domains)
 - **Agency unlimited:** £249 (single wildcard licence covers any domain you own)
 
-Buy at [digitalfracture.co.uk/nano-licence.html](https://digitalfracture.co.uk/nano-licence.html).
+Buy at [digitalfracture.co.uk/nano.php](https://www.digitalfracture.co.uk/nano.php).
 
 Once you have a licence string, either:
 
