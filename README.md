@@ -6,7 +6,7 @@ A flat-file PHP blog system for adding SEO-driven content to existing static HTM
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF4D00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/digitalfracture)
 
-> **Status: v1.6.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment, [UPGRADE.md](UPGRADE.md) for upgrading, and [CHANGELOG.md](CHANGELOG.md) for release history.
+> **Status: v1.7.0.** Live on at least one production host. See [INSTALL.md](INSTALL.md) for deployment, [UPGRADE.md](UPGRADE.md) for upgrading, and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 
@@ -162,6 +162,10 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 - HTTPS-only admin, CSRF on every POST, bcrypt + rate-limited login, browser-session cookies, idle-timeout sessions, password-hash-bound sessions
 - Image upload pipeline with GD/Imagick re-encode (defends against EXIF-payload smuggling)
 - Deployment guide ([INSTALL.md](INSTALL.md)) and pre-flight host check script
+
+## What's new in 1.7
+
+- **Homepage category slots.** The blog homepage no longer renders every category in one long grid. It now shows up to two rows of category cards (3-per-row → 6 slots, 4-per-row → 8), and you choose which categories fill the slots, and in what order, from a new **Homepage slots** picker on the admin Categories page (plain dropdowns, no drag, no JavaScript). Unslotted categories stay reachable from the off-canvas Categories menu. New optional `homepage_slot` field on category records. Backward compatible: with no slots assigned, the homepage shows all categories exactly as before.
 
 ## What's new in 1.5
 

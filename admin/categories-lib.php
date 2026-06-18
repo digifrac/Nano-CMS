@@ -84,12 +84,86 @@ function nano_admin_save_category(array $cat): bool
     if (isset($cat['sort_order']) && $cat['sort_order'] !== '' && is_numeric($cat['sort_order'])) {
         $record['sort_order'] = (int)$cat['sort_order'];
     }
+    // Preserve the homepage slot (managed from the Categories slot picker) so a
+    // normal edit of name/description/image doesn't drop it. An explicit
+    // numeric value in $cat wins; otherwise carry over the existing slot.
+    if (isset($cat['homepage_slot']) && $cat['homepage_slot'] !== '' && is_numeric($cat['homepage_slot'])) {
+        $record['homepage_slot'] = (int)$cat['homepage_slot'];
+    } elseif (isset($existing['homepage_slot'])) {
+        $record['homepage_slot'] = (int)$existing['homepage_slot'];
+    }
     $json = json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if ($json === false) {
         return false;
     }
     nano_admin_atomic_write(nano_admin_category_record_path($slug), $json . "\n", 0644);
     return true;
+}
+
+/**
+ * Assign homepage slots to categories. $slot_to_slug maps a slot number
+ * (1..$cap) to a category slug (or '' for empty). Each category ends up
+ * with at most one homepage_slot, each slot held by at most one category
+ * (the first non-empty entry wins a contested slot or category). A category
+ * that has no managed record yet gets a minimal one created so its slot can
+ * persist. Records no longer holding a slot have homepage_slot removed.
+ */
+function nano_admin_set_homepage_slots(array $slot_to_slug, int $cap): bool
+{
+    // Build slug => slot, deduping so a category can hold only one slot.
+    $slug_to_slot = [];
+    for ($slot = 1; $slot <= $cap; $slot++) {
+        $slug = nano_admin_safe_slug((string)($slot_to_slug[$slot] ?? ''));
+        if ($slug === '' || isset($slug_to_slot[$slug])) {
+            continue;
+        }
+        $slug_to_slot[$slug] = $slot;
+    }
+
+    $dir = nano_admin_categories_dir();
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+        return false;
+    }
+    $ok = true;
+    $now = gmdate('Y-m-d\TH:i:s\Z');
+
+    $write = static function (array $rec) use ($now): bool {
+        $rec['updated'] = $now;
+        $json = json_encode($rec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            return false;
+        }
+        nano_admin_atomic_write(nano_admin_category_record_path((string)$rec['slug']), $json . "\n", 0644);
+        return true;
+    };
+
+    // 1. Set/keep the slot on each assigned category, creating a record if none.
+    foreach ($slug_to_slot as $slug => $slot) {
+        $rec = nano_admin_load_category($slug);
+        if ($rec === null) {
+            $rec = ['slug' => $slug, 'created' => $now];
+        }
+        if ((int)($rec['homepage_slot'] ?? 0) === $slot) {
+            continue; // unchanged
+        }
+        $rec['homepage_slot'] = $slot;
+        if (!$write($rec)) {
+            $ok = false;
+        }
+    }
+
+    // 2. Clear the slot from any record no longer assigned one.
+    foreach (nano_admin_list_category_records() as $slug => $rec) {
+        if (isset($slug_to_slot[$slug]) || !array_key_exists('homepage_slot', $rec)) {
+            continue;
+        }
+        unset($rec['homepage_slot']);
+        if (!$write($rec)) {
+            $ok = false;
+        }
+    }
+
+    return $ok;
 }
 
 function nano_admin_delete_category(string $slug): bool
@@ -163,6 +237,7 @@ function nano_admin_all_categories(): array
             'count'       => (int)($counts[$slug] ?? 0),
             'has_record'  => $rec !== null,
             'sort_order'  => ($rec !== null && array_key_exists('sort_order', $rec)) ? (int)$rec['sort_order'] : null,
+            'homepage_slot' => ($rec !== null && array_key_exists('homepage_slot', $rec)) ? (int)$rec['homepage_slot'] : null,
         ];
     }
     // Manual order first (sort_order, lower leads), then alphabetical by name

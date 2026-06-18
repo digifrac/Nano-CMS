@@ -103,6 +103,17 @@ It is worth creating your categories before you write many posts, so each articl
 
 You do not strictly have to create category records in advance. If you simply write a post and give it a new category name, that category will appear on its own. Creating a proper record just lets you add a nice name, description, and image to it.
 
+### Featuring categories on the homepage
+
+If you build up a lot of categories, you do not want the homepage to become an endless wall of them. So the homepage shows a fixed number of category cards in **slots**, and you choose which categories fill them.
+
+* The homepage has **6 slots** (when categories show 3 per row) or **8 slots** (4 per row). The number follows your "Categories per row" setting.
+* On the **Categories** page there is a **Homepage slots** panel: one dropdown per slot. Pick a category for Slot 1, Slot 2, and so on, in the order you want them to appear. Leave a slot on "Empty" to leave it blank.
+* Categories you do not put in a slot are still there for readers, in the slide out **Categories** menu (the button at the top of every page). Nothing is lost, it is just not on the homepage.
+* To feature a different category, change a slot's dropdown to it and save. To reorder, change which category sits in which slot. You can give a homepage slot to any category, even one that has no record yet.
+
+If you leave every slot empty, the homepage simply shows all your categories, the same as before. So you only need to touch this once a blog grows past a homepage full of categories.
+
 ---
 
 ## Step two: write a post

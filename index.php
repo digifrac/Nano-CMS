@@ -91,6 +91,11 @@ if ($category !== null) {
         exit;
     }
     $categories = nano_list_categories_with_counts();
+    // Homepage grid is two rows of category cards (6 at 3-per-row, 8 at
+    // 4-per-row). Operators choose which categories fill the slots; the rest
+    // remain in the off-canvas category nav. With no slots assigned, all
+    // categories show (unchanged behaviour).
+    $home_categories = nano_homepage_categories($categories, $categories_per_row * 2);
     $heading = $site_name;
     // Homepage hero + featured articles. nano_list_posts() is published-only
     // and newest-first, so the first hero we hit is the newest hero.
@@ -200,7 +205,7 @@ ob_start();
   <section class="nano-blog-section nano-blog-categories">
     <h2 class="nano-blog-section-title">Categories</h2>
     <div class="nano-blog-grid" style="--nano-cards-per-row: <?= (int)$categories_per_row ?>; <?= $category_grid_style ?>">
-<?php foreach ($categories as $c):
+<?php foreach ($home_categories as $c):
     $post_word = $c['count'] === 1 ? 'article' : 'articles';
     $cat_image = nano_category_image_url($c['slug']);
 ?>

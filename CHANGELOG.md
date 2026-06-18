@@ -2,6 +2,22 @@
 
 Notable changes to Nano CMS. Earlier per-commit history lives in git.
 
+## [1.7.0] - 2026-06-12
+
+### Added
+- **Homepage category slots.** The blog homepage grid is now capped to two rows
+  of category cards - 6 at 3-per-row, 8 at 4-per-row - instead of rendering
+  every category. Operators choose which categories fill the slots, and in what
+  order, from a new **Homepage slots** picker on the admin Categories page (a row
+  of slot dropdowns; no drag, no JavaScript). Each slot is held by one category
+  and each category by one slot; assigning a slot to a derived (record-less)
+  category creates a minimal record to hold it. Categories left unslotted stay
+  reachable from the off-canvas category menu. New optional `homepage_slot` field
+  on category records (see [FORMAT.md](FORMAT.md)).
+
+  Backward compatible: with no slots assigned, the homepage shows all categories
+  exactly as before, so existing blogs are unchanged until the feature is used.
+
 ## [1.6.0] - 2026-05-30
 
 ### Added

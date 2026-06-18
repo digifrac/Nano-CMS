@@ -20,7 +20,7 @@ if (!defined('NANO_BOOTSTRAPPED')) {
  * release, even though the two codebases ship as separate zips.
  * When bumping for a release, edit both.
  */
-const NANO_VERSION = '1.6.0';
+const NANO_VERSION = '1.7.0';
 
 require_once __DIR__ . '/lib/Parsedown.php';
 
@@ -633,6 +633,9 @@ function nano_list_categories_with_counts(): array
         if (array_key_exists('sort_order', $rec)) {
             $by_slug[$slug]['sort_order'] = (int)$rec['sort_order'];
         }
+        if (array_key_exists('homepage_slot', $rec)) {
+            $by_slug[$slug]['homepage_slot'] = (int)$rec['homepage_slot'];
+        }
     }
 
     $cats = array_values($by_slug);
@@ -647,6 +650,40 @@ function nano_list_categories_with_counts(): array
         return strcmp($a['label'], $b['label']);
     });
     return $cats;
+}
+
+/**
+ * The categories to show in the homepage grid. Each category may carry a
+ * `homepage_slot` (1..$cap). If any category is slotted, only the slotted
+ * ones are shown, ordered by slot number. If none are slotted, all
+ * categories are returned, so an existing blog is unchanged until an
+ * operator starts assigning slots. The off-canvas category nav always
+ * lists every category regardless of slots.
+ *
+ * @param array $categories Output of nano_list_categories_with_counts().
+ * @param int   $cap        Maximum slots, = categories_per_row * 2 (6 or 8).
+ */
+function nano_homepage_categories(array $categories, int $cap): array
+{
+    $slotted = [];
+    foreach ($categories as $c) {
+        if (!array_key_exists('homepage_slot', $c)) {
+            continue;
+        }
+        $slot = (int)$c['homepage_slot'];
+        if ($slot < 1 || $slot > $cap) {
+            continue;
+        }
+        if (isset($slotted[$slot])) {
+            continue; // first category wins a contested slot
+        }
+        $slotted[$slot] = $c;
+    }
+    if (empty($slotted)) {
+        return $categories; // fallback: no slots assigned yet
+    }
+    ksort($slotted);
+    return array_values($slotted);
 }
 
 /**

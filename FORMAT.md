@@ -328,10 +328,16 @@ back to the legacy `media/category-<slug>.<ext>` convention.
 | `name` | string | Display name (heading, card, breadcrumb). Required when a record exists. |
 | `description` | string | Shown on the category page; used as its meta description. Optional. |
 | `image` | string | A `/media/` filename (chosen in the editor). Optional; falls back to the `category-<slug>` convention then to none. |
+| `sort_order` | integer | Manual order in lists (lower leads). Optional; unset sinks to the bottom alphabetically. |
+| `homepage_slot` | integer | Position in the homepage category grid, `1`..`cap` where `cap = categories_per_row × 2` (6 or 8). Optional. **Uniqueness enforced by admin** — one category per slot, one slot per category, edited from the Homepage slots picker on the Categories page. Assigning a slot to a derived (record-less) category creates a minimal record to hold it. |
 | `created` / `updated` | string | ISO-8601 UTC timestamps, maintained by the admin. |
 
 Records are managed in the admin Categories page; deleting a record reverts
 the category to plain derived behaviour (it does not touch posts).
+
+If **no** category has a `homepage_slot`, the homepage shows all categories
+(the default). If any do, the homepage shows only slotted categories, ordered
+by slot; the rest stay reachable from the off-canvas category nav.
 
 ---
 
