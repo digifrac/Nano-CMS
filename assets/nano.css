@@ -460,15 +460,15 @@
 .nano-blog-footer {
   margin-top: calc(var(--nano-spacing-unit) * 2);
   padding-top: var(--nano-spacing-unit);
-  border-top: 1px solid var(--nano-color-border);
   font-size: 0.8125rem;
   color: var(--nano-color-text-muted);
+  opacity: 0.55;
   text-align: center;
 }
 .nano-blog-footer a {
-  color: var(--nano-color-text-muted);
+  color: inherit;
   text-decoration: underline;
-  text-decoration-color: var(--nano-color-border);
+  text-decoration-color: var(--nano-color-border-soft);
   text-underline-offset: 0.15em;
 }
 .nano-blog-footer a:hover { color: var(--nano-color-accent); }
