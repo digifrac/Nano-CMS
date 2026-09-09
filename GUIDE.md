@@ -47,7 +47,6 @@ Down the side of the admin you will find these areas:
 | **Categories** | The topics your posts sit under. Give each one a name, description, and image. |
 | **Media** | A file browser for every image you have uploaded. |
 | **Settings** | Blog wide options: name, web address, author, layout, and image sizes. |
-| **Licence** | Where you paste a licence key to remove the small footer credit. Optional. |
 | **Help** | A short reference card built into the admin, including a Markdown cheat sheet. |
 
 The rest of this guide goes through these in the order you will actually use them.
@@ -235,14 +234,6 @@ Your homepage then reads as a tidy landing page: an optional hero, a row of feat
 * **Category image size**: the same idea for category cards, set separately so the two grids can be tuned independently.
 
 Changing these sizes affects pictures uploaded from then on. The card shapes update on the public side straight away.
-
----
-
-## Removing the footer credit (optional)
-
-By default, Nano CMS shows a small "Powered by Nano CMS" line in the footer of the pages it renders. This is normal and completely fine to leave in place.
-
-If you would rather remove it, you can buy a licence for your domain and paste the key into the **Licence** area of the admin. The footer credit then disappears. The check happens entirely on your own server, with no tracking and no contact with anyone. You can buy a licence from the Nano CMS website.
 
 ---
 

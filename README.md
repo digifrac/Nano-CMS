@@ -180,15 +180,13 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 ## What's new in 1.4
 
 - **Web installer (`install.php`).** Creates the outside-webroot config directory (DOCUMENT_ROOT-aware, so it never lands inside an addon-domain webroot), writes `bootstrap.php`, and hands off to the setup wizard - then self-deletes via a one-click banner on the dashboard once setup is done.
-- **Admin redesigned** onto a shared sticky-header scaffold: one canonical nav with current-page highlighting, dashboard stat cards (published / drafts / categories), a quick-actions panel, zebra tables, and fieldset-grouped forms - all scoped under the `nano-cms-admin-*` class prefix. CSRF logout, HTTPS enforcement, rate limiting, and licensing are unchanged.
+- **Admin redesigned** onto a shared sticky-header scaffold: one canonical nav with current-page highlighting, dashboard stat cards (published / drafts / categories), a quick-actions panel, zebra tables, and fieldset-grouped forms - all scoped under the `nano-cms-admin-*` class prefix. CSRF logout, HTTPS enforcement and rate limiting are unchanged.
 - **Dashboard health-check panel** verifies PHP version, the image extension (GD/Imagick), `fileinfo`, that required front-end files are present, that `config.json` loads, and that `media/` is writable - catching a half-finished upgrade in the admin instead of via a dead public page.
 - **Editable base URL (and more) in Settings**, fixing the "category pages 404 after install" class of misconfiguration, plus an upgrade guide ([UPGRADE.md](UPGRADE.md)).
 
 ## What's new in 1.3
 
-- **Cryptographic licence verification.** Customers can now suppress the "Powered by Nano CMS" footer attribution by pasting a paid Ed25519 licence key into the admin Licence page (or directly into `config.json`). Verification is fully offline against a public key embedded in the build - no phone-home, no licence server, no telemetry. Localhost, `*.test`, `*.local`, and ports-in-host are auto-bypassed for development. See "Removing the footer attribution" below.
-- **Footer attribution by default.** Nano-rendered pages now show a small `Powered by Nano CMS - Developed by Digital Fracture` footer until a valid licence is present. Renders inside `<main class="nano-blog">` so it inherits the host site's content scope, and styling uses the existing `nano.css` custom-property tokens.
-- **New admin Licence page** at `/admin/licence.php` with paste, verify, and remove flows. Verbose error reasons in the admin (operator-only) - silent on the public frontend.
+- **Footer attribution by default.** Nano-rendered pages now show a small `Powered by Nano CMS - Developed by Digital Fracture` footer. Renders inside `<main class="nano-blog">` so it inherits the host site's content scope, and styling uses the existing `nano.css` custom-property tokens.
 
 ## What's new in 1.2
 
@@ -215,27 +213,6 @@ Adapt to your preferred backup target - cloud sync, restic, tarballs, anything w
 - Admin settings page for `site_name`, `posts_per_page`, etc. (currently set at install via the setup wizard, only changeable by hand-editing `config.json`)
 
 Features explicitly **not** planned: multi-user accounts, plugin system, theme system, WYSIWYG editor, comments, scheduled publishing, post revisions. The project will not accept feature requests for any of these.
-
----
-
-## Removing the footer attribution
-
-Nano CMS displays a small `Powered by Nano CMS - Developed by Digital Fracture` footer on the pages it renders. The CMS itself is MIT-licensed and free for any use; the footer covers ongoing development. To remove it on production sites, purchase a perpetual per-domain licence:
-
-- **Single domain:** £29
-- **Agency 3-pack:** £69 (covers up to three client domains)
-- **Agency unlimited:** £249 (single wildcard licence covers any domain you own)
-
-Buy at [digitalfracture.co.uk/nano.php](https://www.digitalfracture.co.uk/nano.php).
-
-Once you have a licence string, either:
-
-1. **Paste it in the admin** under **Licence** (then remove the admin folder again as normal), or
-2. **Edit `config.json` directly** via SFTP and put the string in the `licence_key` field.
-
-Either way the frontend verifies the signature on every page render against the embedded public key. There is no network call and no licence server - lose the licence file and re-issue is free.
-
-Localhost, `*.test`, `*.local`, and any host with a port in the URL skip the licence check entirely so local development never shows the footer.
 
 ---
 
